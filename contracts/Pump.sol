@@ -10,7 +10,6 @@ import "./Token.sol";
 import "./interface/IIPShare.sol";
 import "./interface/IBondingCurve.sol";
 import "./UniswapV2/FullMath.sol";
-import "./solady/utils/SafeTransferLib.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "hardhat/console.sol";
 
