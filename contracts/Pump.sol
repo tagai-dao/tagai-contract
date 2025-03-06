@@ -10,6 +10,7 @@ import "./Token.sol";
 import "./interface/IIPShare.sol";
 import "./interface/IBondingCurve.sol";
 import "./UniswapV2/FullMath.sol";
+import "./solady/src/utils/FixedPointMathLib.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "hardhat/console.sol";
 
@@ -24,7 +25,7 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     uint256[2] private feeRatio = [100, 100];  // 0: to tiptag; 1: to salesman
     address private WETH = 0x4200000000000000000000000000000000000006;
     address private uniswapV2Factory = 0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6;
-    address private uniswapV2Router02 = 0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24;
+    address private uniswapV2Router = 0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24;
 
     mapping(address => bool) public createdTokens;
     mapping(string => bool) public createdTicks;
@@ -248,8 +249,8 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
      * calculate the eth price when user buy amount tokens
      */
     function getPrice(uint256 supply, uint256 amount) public pure override returns (uint256) {
-        uint256 a = 6_500_000_000;
-        uint256 b = 2.5175516438e26;
+        uint256 a = 1_400_000_000;
+        uint256 b = 2.326e26;
         uint256 x = FixedPointMathLib.mulWad(a, b);
         uint256 e1 = uint256(FixedPointMathLib.expWad(int256((supply + amount) * 1e18 / b)));
         uint256 e2 = uint256(FixedPointMathLib.expWad(int256((supply) * 1e18 / b)));
@@ -271,8 +272,8 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     }
 
     function getBuyAmountByValue(uint256 bondingCurveSupply, uint256 ethAmount) public pure override returns (uint256) {
-        uint256 a = 6_500_000_000;
-        uint256 b = 2.5175516438e26;
+        uint256 a = 1_400_000_000;
+        uint256 b = 2.326e26;
         // b * ln(ethAmount / (a*b) + exp(bondingCurveSupply/b)) - bondingCurveSupply;
         uint256 ab = FixedPointMathLib.mulWad(a, b);
         uint256 sab = FixedPointMathLib.divWad(ethAmount, ab);

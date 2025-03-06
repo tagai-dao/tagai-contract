@@ -24,7 +24,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
     uint256 private constant bondingCurveTotalAmount = 650000000 ether;
     uint256 private constant liquidityAmount = 200000000 ether;
 
-    
+    address private pair;
 
     // bonding curve
     uint256 public bondingCurveSupply = 0;
@@ -49,7 +49,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         return ipshareSubject;
     }
 
-    function initialize(address manager_, address ipshareSubject_, string memory tick) public override {
+    function initialize(address manager_, address ipshareSubject_, string memory tick) public {
         if (initialized) {
             revert TokenInitialized();
         }
@@ -64,7 +64,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         _mint(address(manager), socialDistributionAmount);
 
         IUniswapV2Factory factory = IUniswapV2Factory(IPump(manager_).getUniswapV2Factory());
-        pair = factory.getPair(address(this), IPump(manager_).getWETH());
+        pair = factory.createPair(address(this), IPump(manager_).getWETH());
     }
 
     /********************************** bonding curve ********************************/

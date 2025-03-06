@@ -29,4 +29,6 @@ interface IToken {
    function listed() external view returns (bool);
 
    function getIPShare() external view returns (address);
+
+   function initialize(address manager_, address ipshareSubject_, string memory tick) external;
 }
