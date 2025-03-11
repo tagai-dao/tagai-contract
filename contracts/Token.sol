@@ -10,6 +10,7 @@ import "./interface/IIPShare.sol";
 import "./interface/IPump.sol";
 import "./interface/IUniswapV2Router02.sol";
 import "./interface/IUniswapV2Factory.sol";
+import "./interface/IUniswapV2Pair.sol";
 import "./interface/IBondingCurve.sol";
 import "./interface/INonfungiblePositionManager.sol";
 
@@ -76,6 +77,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         address sellsman,
         uint16 slippage
     ) public payable nonReentrant returns (uint256) {
+        require(msg.sender != pair, "can't buy token from pair");
         sellsman = _checkBondingCurveState(sellsman);
         uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
         uint256 buyFunds = msg.value;
@@ -216,16 +218,15 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         (bool success1, ) = tiptagFeeAddress.call{value: 1 ether}("");
         require(success1, "Transfer ETH failed");
 
-        IUniswapV2Router02 router = IUniswapV2Router02(IPump(manager).getUniswapV2Router());
+        uint256 tokenAmount = balanceOf(address(this));
+        uint256 ethBalance = address(this).balance;
+        
+        _transfer(address(this), pair, tokenAmount);
+        (bool success, ) = IPump(manager).getWETH().call{value: ethBalance}(abi.encodeWithSignature("deposit()"));
+        require(success, "ETH to WETH failed");
+        ERC20(IPump(manager).getWETH()).transfer(pair, ethBalance);
 
-        router.addLiquidityETH{value: address(this).balance}(
-            address(this),
-            liquidityAmount,
-            0,
-            0,
-            BlackHole,
-            block.timestamp + 300
-        );
+        IUniswapV2Pair(pair).mint(BlackHole);
 
         listed = true;
         emit TokenListedToDex(pair);

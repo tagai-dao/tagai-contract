@@ -41,9 +41,19 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     uint256 public totalTokens;
 
     constructor(
-        address _ipshare
+        address _ipshare,
+        address _feeReceiver,   
+        address _weth,
+        address _uniswapV2Factory,
+        address _uniswapV2Router,
+        address _claimSigner
     ) Ownable(msg.sender) {
         ipshare = _ipshare;
+        feeReceiver = _feeReceiver;
+        WETH = _weth;
+        uniswapV2Factory = _uniswapV2Factory;
+        uniswapV2Router = _uniswapV2Router;
+        claimSigner = _claimSigner;
     }
 
     receive() external payable {}
@@ -63,7 +73,7 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     }
 
     function adminChangeFeeRatio(uint256[2] calldata ratios) public onlyOwner {
-        if (ratios[0] > 9000 || ratios[1] > 9000) {
+        if (ratios[0] > 1000 || ratios[1] > 1000) {
             revert TooMuchFee();
         }
         feeRatio = ratios;
@@ -73,6 +83,14 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     function adminChangeClaimSigner(address signer) public onlyOwner {
         emit ClaimSignerChanged(claimSigner, signer);
         claimSigner = signer;
+    }
+
+    function adminSetClaimFee(uint256 _claimFee) public onlyOwner {
+        if (_claimFee > 0.02 ether) {
+            revert TooMuchFee();
+        }
+        emit ClaimFeeChanged(claimFee, _claimFee);
+        claimFee = _claimFee;
     }
 
     function adminChangeFeeAddress(address _feeReceiver) public onlyOwner {
@@ -256,6 +274,7 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
      * calculate the eth price when user buy amount tokens
      */
     function getPrice(uint256 supply, uint256 amount) public pure override returns (uint256) {
+        require(supply <= 1000000000 ether && amount <= 1000000000 ether, "supply or amount too large");
         uint256 a = 6_500_000_000;
         uint256 b = 2.5175516438e26;
         uint256 x = FixedPointMathLib.mulWad(a, b);
@@ -279,6 +298,7 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
     }
 
     function getBuyAmountByValue(uint256 bondingCurveSupply, uint256 ethAmount) public pure override returns (uint256) {
+        require(bondingCurveSupply <= 1000000000 ether && ethAmount <= 1000000000 ether, "supply or amount too large");
         uint256 a = 6_500_000_000;
         uint256 b = 2.5175516438e26;
         // b * ln(ethAmount / (a*b) + exp(bondingCurveSupply/b)) - bondingCurveSupply;

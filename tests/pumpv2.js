@@ -4,6 +4,8 @@ const { deployPumpFactory, deployIPShare } = require('./common')
 const { ethers } = require('hardhat')
 const { parseAmount, getEthBalance, sleep } = require('./helper');
 const { bigint } = require('hardhat/internal/core/params/argumentTypes');
+const { IUniswapV2Pair } = require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json");
+
 
 describe("Pump", function () {
     let owner;
@@ -360,6 +362,179 @@ describe("Pump", function () {
             await expect(token.connect(alice).buyToken(parseAmount(50000000), ethers.ZeroAddress, 500, {
                 value: needEth
             })).to.changeTokenBalance(token, alice, parseAmount(650000000) - balanceOfBob)
+        })
+
+        it("Can make lp if someone transfer weth to pair", async () => {
+            await token.connect(alice).buyToken(parseAmount(100000000), ethers.ZeroAddress, 0, {
+                value: parseAmount(1)
+            })
+            await weth.deposit({ value: parseAmount(30) })
+            await weth.transfer(pair, parseAmount(23))
+            const pairContract = await ethers.getContractAt([{
+                "inputs": [
+                  {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  }
+                ],
+                "name": "balanceOf",
+                "outputs": [
+                  {
+                    "internalType": "uint256",
+                    "name": "result",
+                    "type": "uint256"
+                  }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+              },
+                {
+                    "inputs": [],
+                    "name": "totalSupply",
+                    "outputs": [
+                      {
+                        "internalType": "uint256",
+                        "name": "result",
+                        "type": "uint256"
+                      }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                  },
+                {
+                  "inputs": [],
+                  "name": "getReserves",
+                  "outputs": [
+                    {
+                      "internalType": "uint112",
+                      "name": "_reserve0",
+                      "type": "uint112"
+                    },
+                    {
+                      "internalType": "uint112",
+                      "name": "_reserve1",
+                      "type": "uint112"
+                    },
+                    {
+                      "internalType": "uint32",
+                      "name": "_blockTimestampLast",
+                      "type": "uint32"
+                    }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+                },
+                {
+                  "inputs": [
+                    {
+                      "internalType": "address",
+                      "name": "to",
+                      "type": "address"
+                    }
+                  ],
+                  "name": "mint",
+                  "outputs": [],
+                  "stateMutability": "nonpayable",
+                  "type": "function"
+                },
+                {
+                  "inputs": [],
+                  "name": "sync",
+                  "outputs": [],
+                  "stateMutability": "nonpayable",
+                  "type": "function"
+                },
+                {
+                    "inputs": [
+                      {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                      }
+                    ],
+                    "name": "burn",
+                    "outputs": [
+                      {
+                        "internalType": "uint256",
+                        "name": "amount0",
+                        "type": "uint256"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "amount1",
+                        "type": "uint256"
+                      }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                  },
+                  {
+                    "inputs": [
+                      {
+                        "internalType": "address",
+                        "name": "to",
+                        "type": "address"
+                      },
+                      {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                      }
+                    ],
+                    "name": "transfer",
+                    "outputs": [
+                      {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                      }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                  }
+              ], pair)
+            console.log({pairContract})
+            await pairContract.sync()
+
+            await token.connect(alice).buyToken(parseAmount(600000000), ethers.ZeroAddress, 0, {
+                value: parseAmount(20)
+            })
+
+            expect(await token.listed()).eq(true)
+
+            const balances = await Promise.all([
+                weth.balanceOf(pair),
+                token.balanceOf(pair),
+                getEthBalance(token),
+                token.balanceOf(token),
+                pairContract.getReserves(),
+                pairContract.totalSupply()
+            ])
+            
+            await token.connect(alice).approve(uniswapV2Router02, parseAmount(1000000000000))
+
+            await uniswapV2Router02.connect(alice).addLiquidityETH(token, parseAmount(200000000), 0, 0, alice.address, Math.floor(Date.now() / 1000) + 300, {
+                value: parseAmount(42)
+            })
+            const lpBalance = await pairContract.balanceOf(alice);
+            console.log('reserves', balances)
+            console.log('lpBalance', lpBalance)
+
+            let [tb1, bb1] = await Promise.all([
+                token.balanceOf(alice),
+                weth.balanceOf(alice)
+            ])
+
+            await pairContract.connect(alice).transfer(pair, lpBalance)
+            await pairContract.connect(alice).burn(alice);
+
+            let [tb2, bb2] = await Promise.all([
+                token.balanceOf(alice),
+                weth.balanceOf(alice)
+            ])
+            console.log(tb1.toString() / 1e18, tb2.toString() / 1e18, bb1.toString() / 1e18, bb2.toString() / 1e18)
+
         })
 
         it('will emit list event with the last buy', async () => {
