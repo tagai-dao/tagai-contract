@@ -42,6 +42,14 @@ async function deployPumpFactory() {
 
     const TestERC20 = await ethers.getContractFactory('TestERC20');
     const testERC20 = await TestERC20.deploy();
+
+
+    const WrappedUniV2ForTagAI = await ethers.getContractFactory('WrappedUniV2ForTagAI');
+    const wrappedUniV2 = await WrappedUniV2ForTagAI.deploy(
+        uniswapV2Router02.target,
+        weth.target,
+        donutFeeDestination
+    )
     return {
         ipshare,
         donut,
@@ -57,7 +65,8 @@ async function deployPumpFactory() {
         weth,
         uniswapV2Factory,
         uniswapV2Router02,
-        testERC20
+        testERC20, 
+        wrappedUniV2
     }
 }
 

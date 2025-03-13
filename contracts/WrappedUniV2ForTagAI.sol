@@ -6,26 +6,19 @@ import "./interface/IUniswapV2Router02.sol";
 import "./Token.sol";
 import "./interface/IIPShare.sol";
 
-contract WrappedUniV2ForTipTag is Ownable {
-    IIPShare public ipshare;
-    address public uniswapRouter02 = 0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24;
-    address public WETH = 0x4200000000000000000000000000000000000006;
-    address public feeAddress;
+contract WrappedUniV2ForTagAI is Ownable {
+    address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
+    address public WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
 
     uint16 public sellsmanRatio = 100;
     uint16 public tagaiRatio = 100;
 
     constructor(
-        address _ipshare,
-        address _feeAddress,
-        uint16 _sellsmanRatio,
-        uint16 _tagaiRatio
     ) Ownable(msg.sender) {
-        ipshare = IIPShare(_ipshare);
-        feeAddress = _feeAddress;
-        sellsmanRatio = _sellsmanRatio;
-        tagaiRatio = _tagaiRatio;
     }
+
+    receive() external payable {}
 
     function adminSetFeeRatio(
         uint16 _sellsmanRatio,
@@ -39,10 +32,6 @@ contract WrappedUniV2ForTipTag is Ownable {
         tagaiRatio = _tagaiRatio;
     }
 
-    function adminSetIpshare(address addr) public onlyOwner {
-        ipshare = IIPShare(addr);
-    }
-
     function adminSetFeeAddress(address addr) public onlyOwner {
         feeAddress = addr;
     }
@@ -52,9 +41,11 @@ contract WrappedUniV2ForTipTag is Ownable {
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
+        uint deadline,
+        address _ipshare
     ) public payable {
         require(path[0] == WETH, "wrong path");
+        IIPShare ipshare = IIPShare(_ipshare);
         address _token = path[1];
         Token token = Token(payable(_token));
         if (sellsman == address(0)) {
@@ -91,10 +82,11 @@ contract WrappedUniV2ForTipTag is Ownable {
         address[] calldata path,
         address to,
         uint256 deadline,
-        address sellsman
+        address sellsman,
+        address _ipshare
     ) public {
         require(path[1] == WETH, "wrong path");
-
+        IIPShare ipshare = IIPShare(_ipshare);
         Token token = Token(payable(path[0]));
         if (sellsman == address(0)) {
             sellsman = token.ipshareSubject();
@@ -119,7 +111,7 @@ contract WrappedUniV2ForTipTag is Ownable {
         require(result, "Transfer failed");
 
         uint[] memory amounts = univ2.swapExactTokensForETH(
-            amountIn,
+            amountOuts[0],
             amountOutMin,
             path,
             address(this),
@@ -130,11 +122,13 @@ contract WrappedUniV2ForTipTag is Ownable {
             uint sellsmanFee = (amounts[amounts.length - 1] * sellsmanRatio) /
                 10000;
             amount -= sellsmanFee;
+            require(sellsmanFee >= 10000, "Too low fund");
             ipshare.valueCapture{value: sellsmanFee}(sellsman);
         }
         if (tagaiRatio > 0) {
             uint256 tagaiFee = (amounts[amounts.length - 1] * tagaiRatio) /
                 10000;
+            require(tagaiFee >= 10000, "Too low fee");
             amount -= tagaiFee;
             (bool res, ) = feeAddress.call{value: tagaiFee}("");
             require(res, "Pay fee fail");

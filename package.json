@@ -10,7 +10,8 @@
     "test": "hardhat test",
     "test-ipshare": "hardhat test tests/ipshare",
     "test-pump": "hardhat test tests/pumpv2",
-    "test-bc": "hardhat test tests/bondingCurve"
+    "test-bc": "hardhat test tests/bondingCurve",
+    "test-uniswap": "hardhat test tests/uniswap"
   },
   "dependencies": {
     "@makerdao/multicall": "^0.12.0",
