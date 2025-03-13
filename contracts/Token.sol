@@ -75,7 +75,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         address sellsman,
         uint16 slippage
     ) public payable nonReentrant returns (uint256) {
-        require(msg.sender != pair, "can't buy token from pair");
+        require(msg.sender != pair, "can't buy token to pair");
         sellsman = _checkBondingCurveState(sellsman);
         uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
         uint256 buyFunds = msg.value;

@@ -39,19 +39,9 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     uint256 public totalTokens;
 
     constructor(
-        address _ipshare,
-        address _feeReceiver,   
-        address _weth,
-        address _uniswapV2Factory,
-        address _uniswapV2Router,
-        address _claimSigner
+        address _ipshare
     ) Ownable(msg.sender) {
         ipshare = _ipshare;
-        feeReceiver = _feeReceiver;
-        WETH = _weth;
-        uniswapV2Factory = _uniswapV2Factory;
-        uniswapV2Router = _uniswapV2Router;
-        claimSigner = _claimSigner;
     }
 
     receive() external payable {}
