@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Nonces.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interface/IPump.sol";
 import "./Token.sol";
@@ -12,9 +10,9 @@ import "./interface/IBondingCurve.sol";
 import './UniswapV2/FullMath.sol';
 import './solady/src/utils/FixedPointMathLib.sol';
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
+contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private ipshare;
     uint256 public createFee = 0.01 ether;
     uint256 private claimFee = 0.001 ether;
@@ -231,8 +229,9 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
                 revert CostFeeFail();
             }
         }
+        
+        bytes32 data = keccak256(abi.encodePacked(block.chainid, token, orderId, msg.sender, amount));
 
-        bytes32 data = keccak256(abi.encodePacked(token, orderId, msg.sender, amount));
         if (!_check(data, signature)) {
             revert InvalidSignature();
         }
@@ -264,7 +263,7 @@ contract Pump is Ownable, Nonces, IPump, ReentrancyGuard, IBondingCurve {
         }
         bytes memory profix = "\x19Ethereum Signed Message:\n32";
         bytes32 info = keccak256(abi.encodePacked(profix, data));
-        address addr = ecrecover(info, v, r, s);
+        address addr = ECDSA.recover(info, v, r, s);
         return addr == claimSigner;
     }
 

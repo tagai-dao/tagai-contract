@@ -67,11 +67,33 @@ describe("Pump", function () {
     }
 
     async function getClaimSignature(tokenAddress, orderId, amount, user) {
-        const message = ethers.solidityPackedKeccak256(['address', 'uint256', 'address', 'uint256'],
-            [tokenAddress, orderId, user, amount]
-        );
-        return await owner.signMessage(ethers.toBeArray(message))
+        // const message = ethers.solidityPacked(['uint256', 'address', 'uint256', 'address', 'uint256'],
+        //     [97, tokenAddress, orderId, user, amount]
+        // );
+        // return await owner.signMessage(message)
+        const dataHash = ethers.solidityPackedKeccak256(['uint256', 'address', 'uint256', 'address', 'uint256'],
+            [97, tokenAddress, orderId, user, amount]
+        )
+
+        const signature = await owner.signMessage(ethers.getBytes(dataHash))
+
+        return signature
     }
+
+    describe("Ownerable", function () {
+        it("Can change claim signer", async () => {
+            await pump.adminChangeClaimSigner(alice.address)
+            expect(await pump.getClaimSigner()).eq(alice.address)
+        })
+
+        it("Can transfer ownership", async () => {
+            await pump.transferOwnership(bob.address)
+            expect(await pump.owner()).eq(owner.address)
+            expect(await pump.pendingOwner()).eq(bob.address)
+            await pump.connect(bob).acceptOwnership()
+            expect(await pump.owner()).eq(bob.address)
+        })
+    })
 
     describe("Create token", function () {
         let createValue;
@@ -687,8 +709,7 @@ describe("Pump", function () {
             const signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature.replace('3', '5'), {
                 value: parseAmount(0.222)
-            }))
-                .to.revertedWithCustomError(token, 'InvalidSignature')
+            })).to.revertedWithCustomError(pump, 'ECDSAInvalidSignature()')
         })
 
         it('will revert if insufficient claim fee', async () => {

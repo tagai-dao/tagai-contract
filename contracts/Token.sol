@@ -27,8 +27,6 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
     uint256 public bondingCurveSupply = 0;
 
-    mapping(uint256 => bool) public claimedOrder;
-
     // state
     address private manager;        // pump contract address
     address public ipshareSubject;
@@ -83,6 +81,10 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         uint256 buyFunds = msg.value;
         uint256 tiptagFee = (msg.value * feeRatio[0]) / divisor;
         uint256 sellsmanFee = (msg.value * feeRatio[1]) / divisor;
+
+         if (sellsmanFee < 100000000) {
+            revert DustIssue();
+        }
 
         uint256 tokenReceived = bondingCurve
             .getBuyAmountByValue(bondingCurveSupply, buyFunds - tiptagFee - sellsmanFee);
@@ -212,8 +214,6 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
     /********************************** to dex ********************************/
     function _makeLiquidityPool() private {
-        _approve(address(this), IPump(manager).getUniswapV2Router(), liquidityAmount);
-
         address tiptagFeeAddress = IPump(manager).getFeeReceiver();
         (bool success1, ) = tiptagFeeAddress.call{value: 1 ether}("");
         require(success1, "Transfer ETH failed");
