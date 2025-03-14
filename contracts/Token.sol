@@ -64,9 +64,12 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         _mint(address(this), bondingCurveTotalAmount + liquidityAmount);
         _mint(address(manager), socialDistributionAmount);
 
-        // create v3 pool and set price
+        // create v2 pool and set price
         IUniswapV2Factory factory = IUniswapV2Factory(IPump(manager).getUniswapV2Factory());
-        pair = factory.createPair(address(this), IPump(manager).getWETH());
+        pair = factory.getPair(address(this), IPump(manager).getWETH());
+        if (pair == address(0)) {
+            pair = factory.createPair(address(this), IPump(manager).getWETH());
+        }
     }
 
     /********************************** bonding curve ********************************/
