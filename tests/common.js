@@ -4,18 +4,17 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers");
 const { UniswapV3Deployer } = require("./vendor/UniswapV3Deployer");
 
 async function deployPumpFactory() {
-    const {
-        ipshare,
-        donut,
-        owner,
-        alice,
-        bob,
-        carol,
-        buyer,
-        donutFeeDestination,
+    const [
+        owner, 
+        alice, 
+        bob, 
+        carol, 
+        donut, 
+        buyer, 
+        donutFeeDestination, 
         dexFeeDestination,
         subject
-     } = await deployIPShare()
+    ] = await ethers.getSigners();
 
      
        // deploy weth
@@ -38,20 +37,26 @@ async function deployPumpFactory() {
 
     const Factory = await ethers.getContractFactory('Pump');
     
-    const pump = await Factory.deploy(ipshare, donutFeeDestination, weth, uniswapV2Factory, uniswapV2Router02, owner);
+    const pump1 = await Factory.deploy();
+    const pump2 = await Factory.deploy();
+    const pump3 = await Factory.deploy();
 
-    const TestERC20 = await ethers.getContractFactory('TestERC20');
-    const testERC20 = await TestERC20.deploy();
-
+    const SocialDistribution = await ethers.getContractFactory('SocialDistribution');   
+    const socialDistribution = await SocialDistribution.deploy([pump1.target, pump2.target, pump3.target], owner, donutFeeDestination);
 
     const WrappedUniV2ForTagAI = await ethers.getContractFactory('WrappedUniV2ForTagAI');
-    // const wrappedUniV2 = await WrappedUniV2ForTagAI.deploy(
-    //     uniswapV2Router02.target,
-    //     weth.target,
-    //     donutFeeDestination
-    // )
+    const wrappedUniV2 = await WrappedUniV2ForTagAI.deploy(
+        socialDistribution.target,
+        uniswapV2Router02.target,
+        weth.target,
+        donutFeeDestination
+    )
+
+    const TestERC20Factory = await ethers.getContractFactory('TestERC20');
+    const testERC20 = await TestERC20Factory.deploy('TestERC20', 'TEST');
+    const testERC202 = await TestERC20Factory.deploy('TestERC202', 'TEST2');
+
     return {
-        ipshare,
         donut,
         owner,
         alice,
@@ -61,50 +66,19 @@ async function deployPumpFactory() {
         donutFeeDestination,
         dexFeeDestination,
         subject,
-        pump,
+        pump1,
+        pump2,
+        pump3,
         weth,
         uniswapV2Factory,
         uniswapV2Router02,
+        socialDistribution,
         testERC20, 
-        // wrappedUniV2
+        testERC202,
+        wrappedUniV2
     }
 }
 
-async function deployIPShare() {
-    const [
-        owner, 
-        alice, 
-        bob, 
-        carol, 
-        donut, 
-        buyer, 
-        donutFeeDestination, 
-        dexFeeDestination,
-        subject
-    ] = await ethers.getSigners();
-
-    const ipshareFactory = await ethers.getContractFactory('IPShare');
-    const ipshare = await ipshareFactory.deploy();
-    await ipshare.adminSetDonutFeeDestination(donutFeeDestination);
-    return {
-        // contracts
-        ipshare,
-        donut,
-        // users
-        owner,
-        alice,
-        bob,
-        carol,
-        buyer,
-        // fee receivers
-        donutFeeDestination,
-        dexFeeDestination,
-        subject
-      };
-}
-
-
 module.exports = {
-    deployPumpFactory,
-    deployIPShare
+    deployPumpFactory
 }

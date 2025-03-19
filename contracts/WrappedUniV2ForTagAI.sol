@@ -16,16 +16,25 @@ contract WrappedUniV2ForTagAI is Ownable {
     uint16 public tagaiRatio = 100;
 
     constructor(
-        address _socialDistribution
+        address _socialDistribution,
+        address _uniswapRouter02,
+        address _WETH,
+        address _feeAddress
     ) Ownable(msg.sender) {
         socialDistribution = _socialDistribution;
+        uniswapRouter02 = _uniswapRouter02;
+        WETH = _WETH;
+        feeAddress = _feeAddress;
     }
 
     receive() external payable {}
 
     function adminSetFeeRatio(
         uint16 _sellsmanRatio,
-        uint16 _tagaiRatio
+        uint16 _tagaiRatio,
+        address _uniswapRouter02,
+        address _WETH,
+        address _feeAddress
     ) public onlyOwner {
         require(
             _sellsmanRatio < 1000 && _tagaiRatio < 1000,
@@ -33,6 +42,9 @@ contract WrappedUniV2ForTagAI is Ownable {
         );
         sellsmanRatio = _sellsmanRatio;
         tagaiRatio = _tagaiRatio;
+        uniswapRouter02 = _uniswapRouter02;
+        WETH = _WETH;
+        feeAddress = _feeAddress;
     }
 
     function adminSetFeeAddress(address addr) public onlyOwner {

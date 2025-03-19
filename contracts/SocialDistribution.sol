@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "./interface/ISocialDistribution.sol";
-import "./interface/IPump.sol";
 
 contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistribution {
 
@@ -33,9 +32,12 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
     mapping(address => uint256) public pendingClaimSocialRewards;
     mapping(address => uint256) public totalClaimedSocialRewards;
     mapping(address => uint128) public lastClaimTime;
-    constructor(address[] memory _pumps, address _claimSigner) Ownable(msg.sender) {
+
+
+    constructor(address[] memory _pumps, address _claimSigner, address _feeReceiver) Ownable(msg.sender) {
         pumps = _pumps;
         claimSigner = _claimSigner;
+        feeReceiver = _feeReceiver;
     }
 
     function adminSetPumps(address[] memory _pumps) external onlyOwner {
