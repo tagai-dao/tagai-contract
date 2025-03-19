@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 interface IPump {
     // errors
@@ -35,6 +35,7 @@ interface IPump {
     function getUniswapV2Factory() external view returns (address);
     function getUniswapV2Router() external view returns (address);
     function getWETH() external view returns (address);
+    function createdTicks(string calldata tick) external view returns (bool);
 
     event ClaimDistributedReward(address indexed token, uint256 indexed timestamp, uint256 indexed amount);
     event UserClaimReward(address indexed token, uint256 orderId, address indexed user, uint256 indexed amount);
