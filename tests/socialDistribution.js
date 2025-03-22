@@ -11,7 +11,6 @@ describe("Pump", function () {
     let owner;
     let alice;
     let bob;
-    let socialContract;
     let ipshare;
     let pump1;
     let pump2;
@@ -54,13 +53,37 @@ describe("Pump", function () {
     })
 
     it('admin should create a new token', async () => {
-        await expect(socialContract.adminAddNewToken(testERC20.target, alice.address, [
+
+        await expect(socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
             {
-                startTime: 1,
-                endTime: 86400,
+                startTime: Math.floor(Date.now() / 1000) + 100,
+                endTime: Math.floor(Date.now() / 1000) + 86400,
                 amount: parseAmount(100)    
+            },
+            {
+                startTime: Math.floor(Date.now() / 1000) + 86401,
+                endTime: Math.floor(Date.now() / 1000) + 172800,
+                amount: parseAmount(50)
             }
-        ])).to.be.revertedWith('InvalidPolicy');
+        ])).to.emit(socialDistribution, 'AdminAddNewToken')
+            .withArgs(testERC20.target, alice.address, 'TEST');
+    })
+
+    it('admin can change token dev', async () => {
+        await socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+            {
+                startTime: Math.floor(Date.now() / 1000) + 100,
+                endTime: Math.floor(Date.now() / 1000) + 86400,
+                amount: parseAmount(100)    
+            },
+            {
+                startTime: Math.floor(Date.now() / 1000) + 86401,
+                endTime: Math.floor(Date.now() / 1000) + 172800,
+                amount: parseAmount(50)
+            }
+        ])
+        await socialDistribution.adminUpdateTokenDev(testERC20.target, bob.address);
+        expect(await socialDistribution.getTokenDev(testERC20.target)).to.equal(bob.address);
     })
 
     it('others can not create a new token', async () => {
@@ -72,12 +95,23 @@ describe("Pump", function () {
     })
 
     it('should fail if the token has been created', async () => {
-        await expect(socialContract.adminAddNewToken(testERC202.target, alice.address))
-            .to.be.revertedWithCustomError(socialContract, 'TokenAlreadyExists');
+        await expect(socialDistribution.adminAddNewToken(testERC202.target, alice.address, [
+            {
+                startTime: Math.floor(Date.now() / 1000) + 100,
+                endTime: Math.floor(Date.now() / 1000) + 86400,
+                amount: parseAmount(100)    
+            },
+            {
+                startTime: Math.floor(Date.now() / 1000) + 86401,
+                endTime: Math.floor(Date.now() / 1000) + 172800,
+                amount: parseAmount(50)
+            }
+        ]))
+            .to.be.revertedWithCustomError(socialDistribution, 'TokenAlreadyExists');
     })
 
     it('can transfer token to the social distribution contract', async () => {
-        await testERC20.transfer(socialContract.target, parseAmount(100000000));
+        await testERC20.transfer(socialDistribution.target, parseAmount(100000000));
     })
 
     it('can get token distribution', async () => {

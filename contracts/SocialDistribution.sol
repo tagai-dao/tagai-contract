@@ -92,8 +92,8 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         tickCreated[symbol] = true;
         getTokenDev[token] = dev;
         createdTokens[token] = true;
-
-        delete distributions[token];
+        
+        distributions[token] = new Distribution[](_distributions.length);
     
         for (uint8 i = 0; i < _distributions.length; i++) {
             distributions[token][i].startTime = _distributions[i].startTime;
