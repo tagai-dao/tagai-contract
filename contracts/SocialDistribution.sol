@@ -132,7 +132,7 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
     function calculateRewards(address token, uint128 startTime, uint128 endTime) public view returns (uint256) {
         Distribution[] memory tokenDistributions = distributions[token];
         uint256 rewards = 0;
-        uint128 timestamp = startTime - 1;
+        uint128 timestamp = startTime;
         if (tokenDistributions.length == 0 || uint128(block.timestamp) < tokenDistributions[0].startTime) {
             return rewards;
         }
@@ -176,7 +176,6 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         if (signature.length != 65) {
             revert InvalidSignature();
         }
-
         if (msg.value < claimFee) {
             revert CostFeeFail();
         } else {
@@ -202,9 +201,10 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
 
         pendingClaimSocialRewards[token] -= amount;
         totalClaimedSocialRewards[token] += amount;
-
         claimedOrder[token][orderId] = true;
 
+        uint256 balance = ERC20(token).balanceOf(address(this));
+        
         ERC20(token).transfer(msg.sender, amount);
 
         emit UserClaimReward(token, orderId, msg.sender, amount);
