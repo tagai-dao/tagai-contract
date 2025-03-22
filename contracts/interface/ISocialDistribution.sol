@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 interface ISocialDistribution {
     error InvalidPolicy();
-    error StartTimeNotZero();
+    error MustStartFromNow();
     error PolicyMustBeContinuous();
     error EndTimeMustBeGreaterThanStartTime();
     error TokenAlreadyExists();

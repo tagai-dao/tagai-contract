@@ -19,7 +19,6 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         uint256 amount;
     }
 
-    Distribution[] private defaultDistributions;
     address private claimSigner;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     uint256 private claimFee = 0.001 ether;
@@ -44,47 +43,41 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         pumps = _pumps;
     }
 
-    function adminSetDefaultDistribution(Distribution[] calldata _defaultDistributions) external onlyOwner {
-        uint256 length = _defaultDistributions.length;
+    function checkDistribution(Distribution[] calldata _distributions) public view {
+        uint256 length = _distributions.length;
         if (length == 0) {
             revert InvalidPolicy();
         }
 
-        // clear old default distributions
-        delete defaultDistributions;
-        for (uint8 i = 0; i < length; i++) {
-            uint128 startTime = _defaultDistributions[i].startTime;
-            uint128 endTime = _defaultDistributions[i].endTime;
-            uint256 amount = _defaultDistributions[i].amount;
+        uint128 timeStamp = uint128(block.timestamp);
 
-            if (i == 0 && startTime != 0) {
-                revert StartTimeNotZero();
+        // clear old default distributions
+        for (uint8 i = 0; i < length; i++) {
+            uint128 startTime = _distributions[i].startTime;
+            uint128 endTime = _distributions[i].endTime;
+
+            if (i == 0 && startTime < timeStamp) {
+                revert MustStartFromNow();
             }
-            if (i > 0 && startTime != defaultDistributions[i - 1].endTime) {
+            if (i > 0 && startTime != _distributions[i - 1].endTime + 1) {
                 revert PolicyMustBeContinuous();
             }
 
             if (endTime <= startTime) {
                 revert EndTimeMustBeGreaterThanStartTime();
             }
-
-            defaultDistributions.push(Distribution({
-                startTime: startTime,
-                endTime: endTime,
-                amount: amount
-            }));
         }
-        
-        emit AdminSetDefaultDistribution();
     }
     
-    function adminAddNewToken(address token, address dev) external onlyOwner {
+    function adminAddNewToken(address token, address dev, Distribution[] calldata _distributions) external onlyOwner {
         if (token == address(0)) {
             revert InvalidToken();
         }
         if (getTokenDev[token] != address(0)) {
             revert TokenAlreadyExists();
         }
+
+        checkDistribution(_distributions);
         string memory symbol = ERC20(token).symbol();
         if (tickCreated[symbol]) {
             revert TokenAlreadyExists();
@@ -100,16 +93,12 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         getTokenDev[token] = dev;
         createdTokens[token] = true;
 
-        uint128 timestamp = uint128(block.timestamp);
         delete distributions[token];
     
-        for (uint8 i = 0; i < defaultDistributions.length; i++) {
-            Distribution memory newDist = Distribution({
-                amount: defaultDistributions[i].amount,
-                endTime: defaultDistributions[i].endTime + timestamp,
-                startTime: defaultDistributions[i].startTime + timestamp
-            });
-            distributions[token].push(newDist);
+        for (uint8 i = 0; i < _distributions.length; i++) {
+            distributions[token][i].startTime = _distributions[i].startTime;
+            distributions[token][i].endTime = _distributions[i].endTime;
+            distributions[token][i].amount = _distributions[i].amount;
         }
         
         emit AdminAddNewToken(token, dev, symbol);

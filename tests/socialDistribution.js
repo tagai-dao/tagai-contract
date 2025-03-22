@@ -51,86 +51,29 @@ describe("Pump", function () {
         await pump1.adminCreateTick('TEST2');
         await pump2.adminCreateTick('TEST2');
         await pump3.adminCreateTick('TEST3');
-
-        // create default distributions
-        await socialContract.adminSetDefaultDistribution([
-            {
-                startTime: 0,
-                endTime: 86400,
-                amount: parseAmount(100)
-            },{
-                startTime: 86401,
-                endTime: 172800,
-                amount: parseAmount(50)
-            },{
-                startTime: 172801,
-                endTime: 259200,
-                amount: parseAmount(25)
-            }
-        ])
     })
 
-    it('should update new distribution', async () => {
-        await expect(socialContract.adminSetDefaultDistribution([
-            {
-                startTime: 0,
-                endTime: 864000,
-                amount: parseAmount(1000)
-            },
-            {
-                startTime: 864001,
-                endTime: 1728000,
-                amount: parseAmount(500)
-            }
-        ]))
-        .to.emit(socialContract, 'AdminSetDefaultDistribution')
-
-        await expect(socialContract.adminSetDefaultDistribution([
-            {
-                startTime: 0,
-                endTime: 86400,
-                amount: parseAmount(1000)
-            },
-            {
-                startTime: 86401,
-                endTime: 172800,
-                amount: parseAmount(500)
-            },
-            {
-                startTime: 172801,
-                endTime: 259200,
-                amount: parseAmount(250)
-            },
-            {
-                startTime: 259201,
-                endTime: 3456000000,
-                amount: parseAmount(125)
-            }
-        ]))
-        .to.emit(socialContract, 'AdminSetDefaultDistribution')
-    })
-
-    it('should fail if set a wrong default distribution', async () => {
-        await expect(socialContract.adminSetDefaultDistribution([
+    it('admin should create a new token', async () => {
+        await expect(socialContract.adminAddNewToken(testERC20.target, alice.address, [
             {
                 startTime: 1,
                 endTime: 86400,
                 amount: parseAmount(100)    
-            },{
-                startTime: 86401,
-                endTime: 172800,
-                amount: parseAmount(50)
             }
         ])).to.be.revertedWith('InvalidPolicy');
     })
 
-    it('should create a new token', async () => {
+    it('others can not create a new token', async () => {
+
+    })
+
+    it('should fail if set a wrong default distribution', async () => {
         
     })
 
     it('should fail if the token has been created', async () => {
         await expect(socialContract.adminAddNewToken(testERC202.target, alice.address))
-            .to.be.revertedWith('TokenAlreadyExists');
+            .to.be.revertedWithCustomError(socialContract, 'TokenAlreadyExists');
     })
 
     it('can transfer token to the social distribution contract', async () => {
