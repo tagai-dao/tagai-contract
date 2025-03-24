@@ -21,6 +21,7 @@ describe("Pump", function () {
     let socialDistribution;
     let testERC20;
     let testERC202;
+    let wrappedUniV2;
     let artifacts
     beforeEach(async () => {
         ({ 
@@ -43,6 +44,7 @@ describe("Pump", function () {
             uniswapV2Router02,
             testERC20,
             testERC202,
+            wrappedUniV2,
             artifacts
         } = await loadFixture(deployPumpFactory));
         // create some tokens
@@ -273,6 +275,16 @@ describe("Pump", function () {
             await expect(socialDistribution.connect(alice).userClaim(testERC202.target, orderId, parseAmount(100), signature,{
                 value: parseAmount(0.01)
             })).to.revertedWithCustomError(socialDistribution, 'TokenNotCreated');
+        })
+    })
+
+    describe('buy token with wrapped uni v2', () => {
+        beforeEach(async () => {
+            // add test token liquidity to uniswap v2
+            
+        })
+        it('can buy token with wrapped uni v2', async () => {
+
         })
     })
 })

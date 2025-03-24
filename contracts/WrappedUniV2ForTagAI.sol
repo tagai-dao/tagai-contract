@@ -62,6 +62,9 @@ contract WrappedUniV2ForTagAI is Ownable {
         address _token = path[1];
         if (sellsman == address(0)) {
             sellsman = ISocialDistribution(socialDistribution).getTokenDev(_token);
+            if (sellsman == address(0)) {
+                sellsman = feeAddress;
+            }
         }
 
         uint256 buyFund = msg.value;
@@ -98,6 +101,9 @@ contract WrappedUniV2ForTagAI is Ownable {
         ERC20 token = ERC20(_token);
         if (sellsman == address(0)) {
             sellsman = ISocialDistribution(socialDistribution).getTokenDev(_token);
+            if (sellsman == address(0)) {
+                sellsman = feeAddress;
+            }
         }
 
         IUniswapV2Router02 univ2 = IUniswapV2Router02(uniswapRouter02);
