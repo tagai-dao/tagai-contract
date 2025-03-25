@@ -68,7 +68,7 @@ describe("Pump", function () {
     }
 
     it('admin should create a new token', async () => {
-        await expect(socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+        await expect(socialDistribution.deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -79,12 +79,12 @@ describe("Pump", function () {
                 endTime: Math.floor(Date.now() / 1000) + 172800,
                 amount: parseAmount(50)
             }
-        ])).to.emit(socialDistribution, 'AdminAddNewToken')
+        ])).to.emit(socialDistribution, 'NewTokenDeployed')
             .withArgs(testERC20.target, alice.address, 'TEST');
     })
 
     it('admin can change token dev', async () => {
-        await socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+        await socialDistribution.deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -101,17 +101,17 @@ describe("Pump", function () {
     })
 
     it('others can not create a new token', async () => {
-        await expect(socialDistribution.connect(alice).adminAddNewToken(testERC20.target, alice.address, [
+        await expect(socialDistribution.connect(alice).deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
                 amount: parseAmount(100)    
             }
-        ])).to.be.revertedWithCustomError(socialDistribution, 'OwnableUnauthorizedAccount');
+        ])).to.be.revertedWithCustomError(socialDistribution, 'OnlyDeployer');
     })
 
     it('should fail if set a wrong distribution', async () => {
-        await expect(socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+        await expect(socialDistribution.deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: 1,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -121,7 +121,7 @@ describe("Pump", function () {
     })
 
     it('should fail if the distribution is not continuous', async () => {
-        await expect(socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+        await expect(socialDistribution.deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100, 
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -136,7 +136,7 @@ describe("Pump", function () {
     })
 
     it('should fail if the token has been created', async () => {
-        await expect(socialDistribution.adminAddNewToken(testERC202.target, alice.address, [
+        await expect(socialDistribution.deployNewToken(testERC202.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -156,7 +156,7 @@ describe("Pump", function () {
     })
 
     it('can get token distribution', async () => {
-        await socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+        await socialDistribution.deployNewToken(testERC20.target, alice.address, [
             {
                 startTime: Math.floor(Date.now() / 1000) + 100,
                 endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -180,7 +180,7 @@ describe("Pump", function () {
 
     describe('claim token distribution', () => {
         beforeEach(async () => {
-            await socialDistribution.adminAddNewToken(testERC20.target, alice.address, [
+            await socialDistribution.deployNewToken(testERC20.target, alice.address, [
                 {
                     startTime: Math.floor(Date.now() / 1000) + 100,
                     endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -314,7 +314,7 @@ describe("Pump", function () {
             ).to.changeEtherBalances([alice, donutFeeDestination], [-payAmount, payAmount * 200n / 10000n]);
             
 
-            await socialDistribution.adminAddNewToken(testERC20.target, bob.address, [
+            await socialDistribution.deployNewToken(testERC20.target, bob.address, [
                 {
                     startTime: Math.floor(Date.now() / 1000) + 100,
                     endTime: Math.floor(Date.now() / 1000) + 86400,
@@ -358,7 +358,7 @@ describe("Pump", function () {
                 [expectETHAmount[1] * 9800n / 10000n + 2n, 
                 expectETHAmount[1] * 200n / 10000n - 1n]);
 
-            await socialDistribution.adminAddNewToken(testERC20.target, bob.address, [
+            await socialDistribution.deployNewToken(testERC20.target, bob.address, [
                 {
                     startTime: Math.floor(Date.now() / 1000) + 100,
                     endTime: Math.floor(Date.now() / 1000) + 86400,

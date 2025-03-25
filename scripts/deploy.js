@@ -5,8 +5,10 @@ async function main() {
     const [signer] = await ethers.getSigners();
     console.log("deployer:", signer.address, 'balance:', await signer.provider.getBalance(signer.address), '\n', await signer.provider.getFeeData())
     // return;
-    const ipshare = await ethers.deployContract('IPShare');
-    console.log(1, ipshare.target)
+    const socialDistribution = await ethers.deployContract('SocialDistribution', [
+        
+    ]);
+    console.log(1, socialDistribution.target)
 
     const pump = await ethers.deployContract('Pump', [ipshare.target])
     console.log(2, pump.target)

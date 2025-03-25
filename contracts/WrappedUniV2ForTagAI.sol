@@ -16,15 +16,9 @@ contract WrappedUniV2ForTagAI is Ownable {
     uint16 public tagaiRatio = 100;
 
     constructor(
-        address _socialDistribution,
-        address _uniswapRouter02,
-        address _WETH,
-        address _feeAddress
+        address _socialDistribution
     ) Ownable(msg.sender) {
         socialDistribution = _socialDistribution;
-        uniswapRouter02 = _uniswapRouter02;
-        WETH = _WETH;
-        feeAddress = _feeAddress;
     }
 
     receive() external payable {}

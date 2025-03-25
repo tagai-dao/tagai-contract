@@ -11,7 +11,12 @@ import "./interface/ISocialDistribution.sol";
 
 contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistribution {
 
-    address[] private pumps;
+    address[] private pumps = [
+        0xa77253Ac630502A35A6FcD210A01f613D33ba7cD,
+        0x3DC52C69C3C8be568372E16d50E9F3FEc796610c,
+        0xc9FaA3c05a5178C380d9C28Edffa38d90D606F22,
+        0x0476571a77Cc8Fc28796935Cf173c265F2021448
+    ];
 
     struct Distribution {
         uint128 startTime;
@@ -19,7 +24,8 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         uint256 amount;
     }
 
-    address private claimSigner;
+    address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
+    address private deployer;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     uint256 private claimFee = 0.001 ether;
 
@@ -32,15 +38,46 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
     mapping(address => uint256) public totalClaimedSocialRewards;
     mapping(address => uint128) public lastClaimTime;
 
+    modifier onlyDeployer() {
+        if (msg.sender != deployer) {
+            revert OnlyDeployer();
+        }
+        _;
+    }
 
-    constructor(address[] memory _pumps, address _claimSigner, address _feeReceiver) Ownable(msg.sender) {
-        pumps = _pumps;
-        claimSigner = _claimSigner;
-        feeReceiver = _feeReceiver;
+    constructor() Ownable(msg.sender) {
+        deployer = msg.sender;
     }
 
     function adminSetPumps(address[] memory _pumps) external onlyOwner {
         pumps = _pumps;
+        emit AdminUpdatePumps(_pumps);
+    }
+
+    function adminSetDeployer(address _deployer) external onlyOwner {
+        deployer = _deployer;
+        emit AdminUpdateDeployer(_deployer);
+    }
+
+    function adminUpdateTokenDev(address token, address dev) external onlyOwner {
+        if (!createdTokens[token]) {
+            revert TokenNotCreated();
+        }
+        getTokenDev[token] = dev;
+        emit AdminUpdateTokenDev(token, dev);
+    }
+
+    function adminUpdateSigner(address _claimSigner) external onlyOwner {
+        claimSigner = _claimSigner;
+        emit AdminUpdateSigner(_claimSigner);
+    }
+    
+    function adminUpdateClaimFee(uint256 _claimFee) external onlyOwner {
+        if (_claimFee > 0.05 ether) {
+            revert TooMuchFee();
+        }
+        claimFee = _claimFee;
+        emit AdminUpdateClaimFee(_claimFee);
     }
 
     function checkDistribution(Distribution[] calldata _distributions) public view {
@@ -68,8 +105,9 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
             }
         }
     }
+
     
-    function adminAddNewToken(address token, address dev, Distribution[] calldata _distributions) external onlyOwner {
+    function deployNewToken(address token, address dev, Distribution[] calldata _distributions) external onlyDeployer {
         if (token == address(0)) {
             revert InvalidToken();
         }
@@ -101,28 +139,7 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
             distributions[token][i].amount = _distributions[i].amount;
         }
         
-        emit AdminAddNewToken(token, dev, symbol);
-    }
-    
-    function adminUpdateTokenDev(address token, address dev) external onlyOwner {
-        if (!createdTokens[token]) {
-            revert TokenNotCreated();
-        }
-        getTokenDev[token] = dev;
-        emit AdminUpdateTokenDev(token, dev);
-    }
-
-    function adminUpdateSigner(address _claimSigner) external onlyOwner {
-        claimSigner = _claimSigner;
-        emit AdminUpdateSigner(_claimSigner);
-    }
-    
-    function adminUpdateClaimFee(uint256 _claimFee) external onlyOwner {
-        if (_claimFee > 0.05 ether) {
-            revert TooMuchFee();
-        }
-        claimFee = _claimFee;
-        emit AdminUpdateClaimFee(_claimFee);
+        emit NewTokenDeployed(token, dev, symbol);
     }
 
     function getDistribution(address token) external view returns (Distribution[] memory) {
@@ -202,8 +219,6 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         pendingClaimSocialRewards[token] -= amount;
         totalClaimedSocialRewards[token] += amount;
         claimedOrder[token][orderId] = true;
-
-        uint256 balance = ERC20(token).balanceOf(address(this));
         
         ERC20(token).transfer(msg.sender, amount);
 

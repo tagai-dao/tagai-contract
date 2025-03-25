@@ -42,7 +42,7 @@ async function deployPumpFactory() {
     const pump3 = await Factory.deploy();
 
     const SocialDistribution = await ethers.getContractFactory('SocialDistribution');   
-    const socialDistribution = await SocialDistribution.deploy([pump1.target, pump2.target, pump3.target], owner, donutFeeDestination);
+    const socialDistribution = await SocialDistribution.deploy([pump1.target, pump2.target, pump3.target], owner, donutFeeDestination, owner);
 
     const WrappedUniV2ForTagAI = await ethers.getContractFactory('WrappedUniV2ForTagAI');
     const wrappedUniV2 = await WrappedUniV2ForTagAI.deploy(

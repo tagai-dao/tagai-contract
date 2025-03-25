@@ -14,12 +14,14 @@ interface ISocialDistribution {
     error InvalidClaimAmount();
     error InvalidSignature();
     error ClaimOrderExist();
-
+    error OnlyDeployer();
     event AdminSetDefaultDistribution();
-    event AdminAddNewToken(address indexed token, address indexed dev, string indexed tick);
+    event NewTokenDeployed(address indexed token, address indexed dev, string indexed tick);
     event AdminUpdateTokenDev(address indexed token, address indexed dev);
     event AdminUpdateSigner(address indexed signer);
+    event AdminUpdateDeployer(address indexed deployer);
     event AdminUpdateClaimFee(uint256 indexed claimFee);
+    event AdminUpdatePumps(address[] pumps);
     event ClaimDistributedReward(address indexed token, uint128 indexed timestamp, uint256 indexed amount);
     event UserClaimReward(address indexed token, uint256 orderId, address indexed user, uint256 indexed amount);
 
