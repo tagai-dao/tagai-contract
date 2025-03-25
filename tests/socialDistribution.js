@@ -262,8 +262,8 @@ describe("Pump", function () {
                 value: parseAmount(0.01)
             })
 
-            const { signature, orderId } = await getSignature(testERC20.target, alice.address, parseAmount(6900));
-            await expect(socialDistribution.connect(alice).userClaim(testERC20.target, orderId, parseAmount(6900), signature, {
+            const { signature, orderId } = await getSignature(testERC20.target, alice.address, parseAmount(7000));
+            await expect(socialDistribution.connect(alice).userClaim(testERC20.target, orderId, parseAmount(7000), signature, {
                 value: parseAmount(0.01)
             })).to.revertedWithCustomError(socialDistribution, 'InvalidClaimAmount');
         })
@@ -279,12 +279,105 @@ describe("Pump", function () {
     })
 
     describe('buy token with wrapped uni v2', () => {
+        let pair;
         beforeEach(async () => {
             // add test token liquidity to uniswap v2
-            
+            await uniswapV2Factory.createPair(testERC20.target, weth.target);
+            pair = await uniswapV2Factory.getPair(testERC20.target, weth.target);
+            await testERC20.approve(uniswapV2Router02.target, parseAmount(100000000));
+            await uniswapV2Router02.addLiquidityETH(testERC20.target, parseAmount(100000000), 0, 0, owner.address, Math.floor(Date.now() / 1000) + 100, {
+                value: parseAmount(10)
+            });
         })
-        it('can buy token with wrapped uni v2', async () => {
 
+        it('can buy token with wrapped uni v2', async () => {
+            const payAmount = parseAmount(1);
+            let expectAmount = await uniswapV2Router02.getAmountsOut(payAmount * 9800n / 10000n, [weth.target, testERC20.target]);
+
+            // await wrappedUniV2.connect(alice).buyToken(bob.address, expectAmount[1] - 1n, [weth.target, testERC20.target], alice.address, Math.floor(Date.now() / 1000) + 100, {
+            //     value: payAmount
+            // });
+            // expect(await testERC20.balanceOf(alice.address)).to.equal(expectAmount[1]);
+            await expect(wrappedUniV2.connect(alice)
+                .buyToken(bob.address, expectAmount[1] - 1n, [weth.target, testERC20.target], alice.address, Math.floor(Date.now() / 1000) + 100, {
+                    value: payAmount
+                })
+            ).to.changeEtherBalances([alice, bob, donutFeeDestination], [-payAmount, payAmount * 100n / 10000n, payAmount * 100n / 10000n]);
+
+            expect(await testERC20.balanceOf(alice.address)).to.equal(expectAmount[1]);
+
+            expectAmount = await uniswapV2Router02.getAmountsOut(payAmount * 9800n / 10000n, [weth.target, testERC20.target]);
+            await expect(wrappedUniV2.connect(alice)
+            .buyToken(ethers.ZeroAddress, expectAmount[1] - 1n, [weth.target, testERC20.target], alice.address, Math.floor(Date.now() / 1000) + 100, {
+                value: payAmount
+            })
+            ).to.changeEtherBalances([alice, donutFeeDestination], [-payAmount, payAmount * 200n / 10000n]);
+            
+
+            await socialDistribution.adminAddNewToken(testERC20.target, bob.address, [
+                {
+                    startTime: Math.floor(Date.now() / 1000) + 100,
+                    endTime: Math.floor(Date.now() / 1000) + 86400,
+                    amount: parseAmount(100)    
+                },
+                {
+                    startTime: Math.floor(Date.now() / 1000) + 86401,
+                    endTime: Math.floor(Date.now() / 1000) + 172800,
+                    amount: parseAmount(50)
+                }
+            ])
+
+            expectAmount = await uniswapV2Router02.getAmountsOut(payAmount * 9800n / 10000n, [weth.target, testERC20.target]);
+            await expect(wrappedUniV2.connect(alice)
+            .buyToken(ethers.ZeroAddress, expectAmount[1] - 1n, [weth.target, testERC20.target], alice.address, Math.floor(Date.now() / 1000) + 100, {
+                value: payAmount
+            })
+            ).to.changeEtherBalances([alice, bob, donutFeeDestination], [-payAmount, payAmount * 100n / 10000n, payAmount * 100n / 10000n]);
+        })
+
+        it('can sell token with wrapped uni v2', async () => {
+            await testERC20.transfer(alice.address, parseAmount(10000000));
+            await testERC20.connect(alice).approve(wrappedUniV2.target, parseAmount(10000000));
+            let sellAmount = parseAmount(100000);
+            let expectETHAmount = await uniswapV2Router02.getAmountsOut(sellAmount, [testERC20.target, weth.target]);
+
+            const pairBalance = await weth.balanceOf(pair);
+            await expect(wrappedUniV2.connect(alice)
+            .sellToken(sellAmount, expectETHAmount[1] * 9799n / 10000n, [testERC20.target, weth.target], alice.address, Math.floor(Date.now() / 1000) + 100, bob.address))
+            .to.changeEtherBalances([alice, bob, donutFeeDestination], 
+                [expectETHAmount[1] * 9800n / 10000n + 1n,
+                expectETHAmount[1] * 100n / 10000n, 
+                expectETHAmount[1] * 100n / 10000n]);
+            expect(await weth.balanceOf(pair)).to.equal(pairBalance - expectETHAmount[1]);
+
+            // sells fee to tagai
+            expectETHAmount = await uniswapV2Router02.getAmountsOut(sellAmount, [testERC20.target, weth.target]);
+            await expect(wrappedUniV2.connect(alice)
+            .sellToken(sellAmount, expectETHAmount[1] * 9799n / 10000n, [testERC20.target, weth.target], alice.address, Math.floor(Date.now() / 1000) + 100, ethers.ZeroAddress))
+            .to.changeEtherBalances([alice, donutFeeDestination], 
+                [expectETHAmount[1] * 9800n / 10000n + 2n, 
+                expectETHAmount[1] * 200n / 10000n - 1n]);
+
+            await socialDistribution.adminAddNewToken(testERC20.target, bob.address, [
+                {
+                    startTime: Math.floor(Date.now() / 1000) + 100,
+                    endTime: Math.floor(Date.now() / 1000) + 86400,
+                    amount: parseAmount(100)    
+                },
+                {
+                    startTime: Math.floor(Date.now() / 1000) + 86401,
+                    endTime: Math.floor(Date.now() / 1000) + 172800,
+                    amount: parseAmount(50)
+                }
+            ])
+
+            expectETHAmount = await uniswapV2Router02.getAmountsOut(sellAmount, [testERC20.target, weth.target]);
+            await expect(wrappedUniV2.connect(alice)
+            .sellToken(sellAmount, expectETHAmount[1] * 9799n / 10000n, [testERC20.target, weth.target], alice.address, Math.floor(Date.now() / 1000) + 100, ethers.ZeroAddress))
+            .to.changeEtherBalances([alice, bob, donutFeeDestination], 
+                [expectETHAmount[1] * 9800n / 10000n + 2n, 
+                expectETHAmount[1] * 100n / 10000n,
+                expectETHAmount[1] * 100n / 10000n]);
         })
     })
 })
