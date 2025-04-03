@@ -106,37 +106,50 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         }
     }
 
-    
+    /**
+        @notice Deploy a new token with distributions
+        @param token The address of the token
+        @param dev The address of the token developer, can receive the transaction gas fee
+        @param _distributions The distributions of the token distribution of this era, can set multi era if the last on is over
+     */
     function deployNewToken(address token, address dev, Distribution[] calldata _distributions) external onlyDeployer {
         if (token == address(0)) {
             revert InvalidToken();
         }
-        if (getTokenDev[token] != address(0)) {
-            revert TokenAlreadyExists();
+
+        string memory symbol = ERC20(token).symbol();
+
+        if (createdTokens[token]) {
+            // check distribution finished
+            Distribution[] memory socialDistribution = distributions[token];
+            uint256 length = socialDistribution.length;
+            if (length > 0) {
+                if (socialDistribution[length - 1].endTime > uint128(block.timestamp)) {
+                    revert DistributionNotFinished();
+                }
+            }
+        }else {
+            if (tickCreated[symbol]) {
+                revert TokenAlreadyExists();
+            }
+            for (uint8 i = 0; i < pumps.length; i++) {
+                if (IPump(pumps[i]).createdTicks(symbol)) {
+                    revert TokenAlreadyExists();
+                }
+            }
         }
 
         checkDistribution(_distributions);
-        string memory symbol = ERC20(token).symbol();
-        if (tickCreated[symbol]) {
-            revert TokenAlreadyExists();
-        }
-
-        for (uint8 i = 0; i < pumps.length; i++) {
-            if (IPump(pumps[i]).createdTicks(symbol)) {
-                revert TokenAlreadyExists();
-            }
-        }
+       
 
         tickCreated[symbol] = true;
         getTokenDev[token] = dev;
         createdTokens[token] = true;
         
-        distributions[token] = new Distribution[](_distributions.length);
+        // distributions[token] = new Distribution[](_distributions.length);
     
         for (uint8 i = 0; i < _distributions.length; i++) {
-            distributions[token][i].startTime = _distributions[i].startTime;
-            distributions[token][i].endTime = _distributions[i].endTime;
-            distributions[token][i].amount = _distributions[i].amount;
+            distributions[token].push(_distributions[i]);
         }
         
         emit NewTokenDeployed(token, dev, symbol);
@@ -153,14 +166,14 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         if (tokenDistributions.length == 0 || uint128(block.timestamp) < tokenDistributions[0].startTime) {
             return rewards;
         }
-        
-        if (timestamp < tokenDistributions[0].startTime) {
-            timestamp = tokenDistributions[0].startTime - 1;
-        }
 
         for (uint8 i = 0; i < tokenDistributions.length; i++) {
             if (timestamp > tokenDistributions[i].endTime) {
                 continue;
+            }
+        
+            if (timestamp < tokenDistributions[i].startTime) {
+                timestamp = tokenDistributions[i].startTime - 1;
             }
             if (endTime <= tokenDistributions[i].endTime) {
                 rewards += (endTime - timestamp) * tokenDistributions[i].amount;

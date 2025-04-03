@@ -7,6 +7,7 @@ interface ISocialDistribution {
     error PolicyMustBeContinuous();
     error EndTimeMustBeGreaterThanStartTime();
     error TokenAlreadyExists();
+    error DistributionNotFinished();
     error InvalidToken();
     error TokenNotCreated();
     error TooMuchFee();
