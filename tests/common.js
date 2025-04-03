@@ -47,7 +47,6 @@ async function deployPumpFactory() {
     const WrappedUniV2ForTagAI = await ethers.getContractFactory('WrappedUniV2ForTagAI');
     const wrappedUniV2 = await WrappedUniV2ForTagAI.deploy(
         socialDistribution.target,
-        uniswapV2Router02.target,
         weth.target,
         donutFeeDestination
     )

@@ -7,7 +7,7 @@ import "./interface/ISocialDistribution.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract WrappedUniV2ForTagAI is Ownable {
-    address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
+    // address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
     address public WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address public socialDistribution;
@@ -26,7 +26,6 @@ contract WrappedUniV2ForTagAI is Ownable {
     function adminSetFeeRatio(
         uint16 _sellsmanRatio,
         uint16 _tagaiRatio,
-        address _uniswapRouter02,
         address _WETH,
         address _feeAddress
     ) public onlyOwner {
@@ -36,7 +35,6 @@ contract WrappedUniV2ForTagAI is Ownable {
         );
         sellsmanRatio = _sellsmanRatio;
         tagaiRatio = _tagaiRatio;
-        uniswapRouter02 = _uniswapRouter02;
         WETH = _WETH;
         feeAddress = _feeAddress;
     }
@@ -50,7 +48,8 @@ contract WrappedUniV2ForTagAI is Ownable {
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
+        uint deadline,
+        address uniswapRouter02
     ) public payable {
         require(path[0] == WETH, "wrong path");
         address _token = path[1];
@@ -88,7 +87,8 @@ contract WrappedUniV2ForTagAI is Ownable {
         address[] calldata path,
         address to,
         uint256 deadline,
-        address sellsman
+        address sellsman,
+        address uniswapRouter02
     ) public {
         require(path[1] == WETH, "wrong path");
         address _token = path[0];

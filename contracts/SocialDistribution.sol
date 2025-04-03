@@ -110,9 +110,13 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         @notice Deploy a new token with distributions
         @param token The address of the token
         @param dev The address of the token developer, can receive the transaction gas fee
-        @param _distributions The distributions of the token distribution of this era, can set multi era if the last on is over
+        @param _distributions The distributions of the token distribution of this era, 
+        can set multi era if the last on is over
      */
-    function deployNewToken(address token, address dev, Distribution[] calldata _distributions) external onlyDeployer {
+    function deployNewToken(address token, 
+        address dev, 
+        Distribution[] calldata _distributions) 
+    external onlyDeployer {
         if (token == address(0)) {
             revert InvalidToken();
         }
