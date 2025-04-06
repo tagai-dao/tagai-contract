@@ -155,7 +155,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
             // Step 4: send to user
             IERC20(tokenOut).transfer(user, abi.decode(receiveAmount, (uint256)));
-        }else {
+        } else {
             (bool success, bytes memory receiveAmount) = tokenOut.call{value: amountIn}(
                 abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, sellsman, slippage)
             );
@@ -168,11 +168,11 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
     function externalSwap(
         address user,
-        uint256 amountIn,   // Note should include the cost
+        uint256 amountIn, // Note should include the cost
         uint256 amountOutMin,
         address[] calldata path,
         uint256 deadline,
-        address router,   // for uni or pancakeswap or other v2 dex router
+        address router, // for uni or pancakeswap or other v2 dex router
         address sellsman
     ) external onlyOperator nonReentrant whenNotPaused {
         if (path.length < 2) revert InvalidPath();
@@ -189,15 +189,13 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
         (bool success, ) = feeAddress.call{value: flatformFee}("");
         if (!success) revert CostFeeFailed();
-        
+
         // cost ipshare fee
         if (!IIPShare(ipShare).ipshareCreated(sellsman)) {
             (success, ) = feeAddress.call{value: ipshareFee}("");
             if (!success) revert CostFeeFailed();
-        }else {
-            IIPShare(ipShare).valueCapture{
-                value: ipshareFee
-            }(sellsman);
+        } else {
+            IIPShare(ipShare).valueCapture{value: ipshareFee}(sellsman);
         }
 
         // Step 2: Approve to router
@@ -239,5 +237,10 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         bytes32 info = keccak256(abi.encodePacked(profix, data));
         address addr = ECDSA.recover(info, v, r, s);
         return addr == operator;
+    }
+
+    function setWBNB(address wbnb) external onlyOwner {
+        if (wbnb == address(0)) revert InvalidAddress();
+        WBNB = wbnb;
     }
 }
