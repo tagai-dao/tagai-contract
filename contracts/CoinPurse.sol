@@ -27,7 +27,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         uint256 lastUpdatedDay;
     }
 
-    address public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address private WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address public operator;
     address public ipShare = 0x24328DccA1bA54EeE82e2993F021802e64290486;
@@ -45,7 +45,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
     uint public minFee = 0.0005 ether;
-    uint denominator = 10000;
+    uint private denominator = 10000;
 
     constructor() Ownable(msg.sender) {
         operator = msg.sender;
