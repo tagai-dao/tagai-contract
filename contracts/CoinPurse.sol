@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/ICoinPurse.sol";
+import "./interface/IIPShare.sol";
 interface IWBNB {
     function withdraw(uint wad) external;
 }
@@ -26,10 +27,10 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         uint256 lastUpdatedDay;
     }
 
-    IUniswapV2Router02 public router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
     address public WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address public operator;
+    address public ipShare = 0x24328DccA1bA54EeE82e2993F021802e64290486;
 
     // user => token => limit
     mapping(address => mapping(address => Limit)) public userLimits;
@@ -41,7 +42,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     // X id => address
     mapping(uint => address) public alreadyWithdraw;
 
-    uint public feeRate = 500;
+    // platform fee, ipshare fee
+    uint[2] public feeRates = [100, 100];
     uint public minFee = 0.0005 ether;
     uint denominator = 10000;
 
@@ -66,10 +68,13 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         return block.timestamp / 1 days;
     }
 
-    function _getFee(uint amountIn) internal view returns (uint256) {
-        uint fee = (amountIn * feeRate) / denominator;
-        if (fee < minFee) return minFee;
-        return fee;
+    function _getFee(uint amountIn) internal view returns (uint256 platformFee, uint256 ipshareFee) {
+        platformFee = (amountIn * feeRates[0]) / denominator;
+        if (platformFee < minFee) platformFee = minFee;
+        ipshareFee = (amountIn * feeRates[1]) / denominator;
+        if (ipshareFee + platformFee > amountIn) {
+            revert InsufficientFee();
+        }
     }
 
     function _checkAndUpdateLimit(address user, address token, uint256 amount) internal {
@@ -105,6 +110,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
             hostingAmount[xId][tokens[i]] = 0;
         }
         alreadyWithdraw[xId] = msg.sender;
+        if (!IERC20(WBNB).transferFrom(msg.sender, feeAddress, minFee)) revert TransferFromFailed();
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
@@ -119,6 +125,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
             hostingAmount[toXId][token] += amount;
         }
 
+        if (!IERC20(WBNB).transferFrom(user, feeAddress, minFee)) revert TransferFromFailed();
+
         emit Tip(user, to, token, toXId, amount);
     }
 
@@ -127,7 +135,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         uint256 amountIn,
         address tokenOut,
         address sellsman,
-        uint16 slippage
+        uint16 slippage,
+        uint16 version
     ) external onlyOperator nonReentrant whenNotPaused {
         _checkAndUpdateLimit(user, WBNB, amountIn);
 
@@ -138,13 +147,23 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         IWBNB(WBNB).withdraw(amountIn);
 
         // Step 3: Call swap
-        (bool success, bytes memory receiveAmount) = tokenOut.call{value: amountIn}(
-            abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, sellsman, slippage)
-        );
-        if (!success) revert BuyTokenFailed();
+        if (version == 1) {
+            (bool success, bytes memory receiveAmount) = tokenOut.call{value: amountIn}(
+                abi.encodeWithSignature("buyToken(uint256,address,uint16,address)", 0, sellsman, slippage, user)
+            );
+            if (!success) revert BuyTokenFailed();
 
-        // Step 4: send to user
-        IERC20(tokenOut).transfer(user, abi.decode(receiveAmount, (uint256)));
+            // Step 4: send to user
+            IERC20(tokenOut).transfer(user, abi.decode(receiveAmount, (uint256)));
+        }else {
+            (bool success, bytes memory receiveAmount) = tokenOut.call{value: amountIn}(
+                abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, sellsman, slippage)
+            );
+            if (!success) revert BuyTokenFailed();
+
+            // Step 4: send to user
+            IERC20(tokenOut).transfer(user, abi.decode(receiveAmount, (uint256)));
+        }
     }
 
     function externalSwap(
@@ -152,27 +171,41 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         uint256 amountIn,   // Note should include the cost
         uint256 amountOutMin,
         address[] calldata path,
-        uint256 deadline
+        uint256 deadline,
+        address router,   // for uni or pancakeswap or other v2 dex router
+        address sellsman
     ) external onlyOperator nonReentrant whenNotPaused {
         if (path.length < 2) revert InvalidPath();
         address tokenIn = path[0];
         if (tokenIn != WBNB) revert InvalidPath();
         _checkAndUpdateLimit(user, tokenIn, amountIn);
 
+        (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
+
         // Step 1: Transfer from user
         if (!IERC20(tokenIn).transferFrom(user, address(this), amountIn)) revert TransferFromFailed();
 
-        uint fee = _getFee(amountIn);
-        IWBNB(WBNB).withdraw(fee);
-        (bool success, ) = feeAddress.call{value: fee}("");
+        // cost platform fee
+        IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
+        (bool success, ) = feeAddress.call{value: flatformFee}("");
         if (!success) revert CostFeeFailed();
+        
+        // cost ipshare fee
+        if (!IIPShare(ipShare).ipshareCreated(sellsman)) {
+            (success, ) = feeAddress.call{value: ipshareFee}("");
+            if (!success) revert CostFeeFailed();
+        }else {
+            IIPShare(ipShare).valueCapture{
+                value: ipshareFee
+            }(sellsman);
+        }
 
         // Step 2: Approve to router
-        require(IERC20(tokenIn).approve(address(router), amountIn - fee), "Approve failed");
+        require(IERC20(tokenIn).approve(router, amountIn - flatformFee - ipshareFee), "Approve failed");
 
         // Step 3: Call Uniswap
-        router.swapExactTokensForTokens(
-            amountIn - fee,
+        IUniswapV2Router02(router).swapExactTokensForTokens(
+            amountIn - flatformFee - ipshareFee,
             amountOutMin,
             path,
             user, // Send output back to user
@@ -180,8 +213,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         );
     }
 
-    function setFee(uint _feeRate, uint _minFee) external onlyOwner {
-        feeRate = _feeRate;
+    function setFee(uint[2] calldata _feeRates, uint _minFee) external onlyOwner {
+        feeRates = _feeRates;
         minFee = _minFee;
     }
 
