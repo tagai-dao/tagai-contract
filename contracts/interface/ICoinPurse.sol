@@ -13,5 +13,4 @@ interface ICoinPurse {
     error InvalidPath();
     error CostFeeFailed();
     error InvalidAddress();
-    error InsufficientFee(); 
 }

@@ -73,7 +73,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         if (platformFee < minFee) platformFee = minFee;
         ipshareFee = (amountIn * feeRates[1]) / denominator;
         if (ipshareFee + platformFee > amountIn) {
-            revert InsufficientFee();
+            revert CostFeeFailed();
         }
     }
 
@@ -99,9 +99,15 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         emit LimitSet(user, token, maxPerTx, maxPerDay);
     }
 
-    function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) external whenNotPaused nonReentrant {
+    function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) 
+        external whenNotPaused nonReentrant payable {
         bytes32 data = keccak256(abi.encodePacked(block.chainid, xId, tokens, msg.sender));
         if (!_check(data, signature)) revert InvalidSignature();
+
+        if (msg.value < minFee) revert InsufficientFee();
+
+        (bool success, ) = feeAddress.call{value: msg.value}("");
+        if (!success) revert CostFeeFailed();
 
         uint[] memory amounts;
         for (uint i = 0; i < tokens.length; i++) {
@@ -110,11 +116,11 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
             hostingAmount[xId][tokens[i]] = 0;
         }
         alreadyWithdraw[xId] = msg.sender;
-        if (!IERC20(WBNB).transferFrom(msg.sender, feeAddress, minFee)) revert TransferFromFailed();
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tip(address user, address token, address to, uint256 toXId, uint256 amount) external onlyOperator nonReentrant whenNotPaused {
+    function tip(address user, address token, address to, uint256 toXId, uint256 amount) 
+        external onlyOperator nonReentrant whenNotPaused {
         _checkAndUpdateLimit(user, token, amount);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
