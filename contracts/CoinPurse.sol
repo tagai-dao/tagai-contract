@@ -99,8 +99,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         emit LimitSet(user, token, maxPerTx, maxPerDay);
     }
 
-    function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) 
-        external whenNotPaused nonReentrant payable {
+    function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) external payable whenNotPaused nonReentrant {
         bytes32 data = keccak256(abi.encodePacked(block.chainid, xId, tokens, msg.sender));
         if (!_check(data, signature)) revert InvalidSignature();
 
@@ -119,8 +118,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tip(address user, address token, address to, uint256 toXId, uint256 amount) 
-        external onlyOperator nonReentrant whenNotPaused {
+    function tip(address user, address token, address to, uint256 toXId, uint256 amount) external onlyOperator nonReentrant whenNotPaused {
         _checkAndUpdateLimit(user, token, amount);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
@@ -182,14 +180,13 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         address sellsman
     ) external onlyOperator nonReentrant whenNotPaused {
         if (path.length < 2) revert InvalidPath();
-        address tokenIn = path[0];
-        if (tokenIn != WBNB) revert InvalidPath();
-        _checkAndUpdateLimit(user, tokenIn, amountIn);
+        if (path[0] != WBNB) revert InvalidPath(); // tokenIn
+        _checkAndUpdateLimit(user, path[0], amountIn);
 
         (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
 
         // Step 1: Transfer from user
-        if (!IERC20(tokenIn).transferFrom(user, address(this), amountIn)) revert TransferFromFailed();
+        if (!IERC20(path[0]).transferFrom(user, address(this), amountIn)) revert TransferFromFailed();
 
         // cost platform fee
         IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
@@ -203,18 +200,12 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         } else {
             IIPShare(ipShare).valueCapture{value: ipshareFee}(sellsman);
         }
-
         // Step 2: Approve to router
-        require(IERC20(tokenIn).approve(router, amountIn - flatformFee - ipshareFee), "Approve failed");
+        uint amount = amountIn - flatformFee - ipshareFee;
+        require(IERC20(path[0]).approve(router, amount), "Approve failed");
 
         // Step 3: Call Uniswap
-        IUniswapV2Router02(router).swapExactTokensForTokens(
-            amountIn - flatformFee - ipshareFee,
-            amountOutMin,
-            path,
-            user, // Send output back to user
-            deadline
-        );
+        IUniswapV2Router02(router).swapExactTokensForTokens(amount, amountOutMin, path, user, deadline);
     }
 
     function setFee(uint[2] calldata _feeRates, uint _minFee) external onlyOwner {
