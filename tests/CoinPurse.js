@@ -3,9 +3,50 @@ const { ethers } = require("hardhat");
 const { waffle } = require("hardhat");
 const { loadFixture, mine } = require('@nomicfoundation/hardhat-toolbox/network-helpers');
 const { deployUniswapV2 } = require('./common')
+const { sleep } = require('./helper');
+
+const initContract = async () => {
+    const {
+        weth,
+        uniswapV2Factory,
+        uniswapV2Router02,
+        pump,
+        ipshare,
+        owner, addr1, addr2, operator,
+        donutFeeDestination,
+        dexFeeDestination
+    } = await deployUniswapV2()
+
+    // Deploy mock ERC20 token
+    const ERC20Mock = await ethers.getContractFactory("TestERC20");
+    const EM1 = await ERC20Mock.deploy("ERC20Mock", "EM1");
+
+    // Deploy mock tokenOut contract
+    const MockTokenOut = await ethers.getContractFactory("TestERC20");
+    const EM2 = await MockTokenOut.deploy("ERC20Mock2", "EM2");
+
+    // Deploy the CoinPurse contract
+    const CoinPurse = await ethers.getContractFactory("CoinPurse");
+    const cp = await CoinPurse.deploy();
+    await cp.setIpShare(ipshare)
+
+    return {
+        weth,
+        uniswapV2Factory,
+        uniswapV2Router02,
+        pump,
+        ipshare,
+        owner, addr1, addr2, operator,
+        donutFeeDestination,
+        dexFeeDestination,
+        EM1,
+        EM2,
+        cp,
+        pump
+    }
+}
 
 describe("CoinPurse", function () {
-    let CoinPurse;
     let coinPurse;
     let owner;
     let addr1;
@@ -15,38 +56,62 @@ describe("CoinPurse", function () {
     let WBNB;
     let router;
     let tokenOut;
+    let pump;
+    let pumpToken;
 
     beforeEach(async () => {
-        [owner, addr1, addr2, operator, dexFeeDestination] = await ethers.getSigners();
-
-        // Deploy mock ERC20 token
-        const ERC20Mock = await ethers.getContractFactory("TestERC20");
-        token = await ERC20Mock.deploy();
-
-        token.mint(addr1.address, ethers.parseUnits("1000000", "ether"));
-        token.mint(addr2.address, ethers.parseUnits("1000000", "ether"));
-
-        // Deploy mock WBNB token
-        // Deploy mock UniswapV2Router02
-        const { weth, uniswapV2Router02 } = await loadFixture(deployUniswapV2);
-
-        WBNB = weth;
-        router = uniswapV2Router02;
+        ({
+            weth: WBNB,
+            uniswapV2Factory,
+            uniswapV2Router02: router,
+            pump,
+            ipshare,
+            owner, addr1, addr2, operator,
+            donutFeeDestination,
+            dexFeeDestination,
+            EM1: token,
+            EM2: tokenOut,
+            cp: coinPurse,
+            pump
+        } = await loadFixture(initContract));
 
         await WBNB.connect(owner).deposit({ value: ethers.parseUnits("10", "ether") })
+        await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("10", "ether") })
+        await WBNB.connect(addr2).deposit({ value: ethers.parseUnits("10", "ether") })
 
-        // Deploy mock tokenOut contract
-        const MockTokenOut = await ethers.getContractFactory("TestERC20");
-        tokenOut = await MockTokenOut.deploy();
 
-        // Deploy the CoinPurse contract
-        CoinPurse = await ethers.getContractFactory("CoinPurse");
-        coinPurse = await CoinPurse.deploy();
 
         // Set the operator address and router as defined in the constructor
         await coinPurse.connect(owner).setOperator(operator.address);
         await coinPurse.connect(owner).setWBNB(WBNB.target);
+
+        // approve to CoinPurse
+        await token.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+        await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+
+        await token.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+        await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+
+        await token.connect(addr2).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+        await WBNB.connect(addr2).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
     });
+
+    async function createToken(deployer, tick, createValue) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                pump.on('NewToken', (tick, token) => {
+                    resolve({ token, tick })
+                })
+                await sleep(0.1)
+                const trans = await pump.connect(deployer ?? owner).createToken(tick, {
+                    value: createValue
+                });
+                await pump.adminChangeClaimSigner(owner)
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
 
     describe("Contract Status", () => {
         it("addresses", async () => {
@@ -72,91 +137,104 @@ describe("CoinPurse", function () {
 
     describe("withdraw", () => {
         it("should allow withdrawal when signature is valid", async () => {
-            console.log("owner.address:", owner.address)
+            const fee = ethers.parseUnits("0.0005", "ether");
+            const xId = 1;
+            const tokens = [token.target];
+            const signer = operator;
+            const chainId = (await ethers.provider.getNetwork()).chainId;
+            const data = ethers.solidityPackedKeccak256(
+                ["uint256", "uint256", "address[]", "address"],
+                [chainId, xId, tokens, addr1.address]
+            );
+            const signature = await signer.signMessage(ethers.getBytes(data));
+
+            await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await coinPurse.connect(owner).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
             const tokenBalance = await token.balanceOf(owner.address)
-            console.log("tokenBalance:", tokenBalance)
-            // const xId = 1;
-            // const tokens = [token.target];
-            // const signer = operator;
-            // const chainId = 56;
-            // const data = ethers.solidityPackedKeccak256(
-            //     ["uint256", "uint256", "address[]", "address"],
-            //     [chainId, xId, tokens, addr1.address]
-            // );
-            // const signature = await signer.signMessage(ethers.getBytes(data));
+            const wbnbBalance = await WBNB.balanceOf(owner.address)
+            expect(tokenBalance).to.gte(ethers.parseUnits("50", "ether"))
+            expect(wbnbBalance).to.gte(fee)
+            // Host some tokens for xId
+            await coinPurse.connect(operator).tip(owner.address, token.target, ethers.ZeroAddress, xId, ethers.parseUnits("50", "ether"));
 
-            // // Host some tokens for xId
-            // await token.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-            // await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+            const host = await coinPurse.hostingAmount(xId, token.target)
 
-            // await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
-            // await coinPurse.connect(owner).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            // Withdraw tokens
+            await coinPurse.connect(addr1).withdraw(xId, tokens, signature, { value: fee });
 
-            // const tokenBalance = await token.balanceOf(owner.address)
-            // const wbnbBalance = await WBNB.balanceOf(owner.address)
-            // expect(tokenBalance).to.gte(ethers.parseUnits("50", "ether"))
-            // expect(wbnbBalance).to.gte(ethers.parseUnits("0.0005", "ether"))
-
-            // await coinPurse.connect(operator).tip(owner.address, token.target, ethers.ZeroAddress, xId, ethers.parseUnits("50", "ether"));
-
-            // const host = await coinPurse.hostingAmount(xId, token.target)
-
-            // // Withdraw tokens
-            // await coinPurse.connect(addr1).withdraw(xId, tokens, signature);
-
-            // // Verify that the tokens have been transferred to addr1
-            // const balance = await token.balanceOf(addr1.address);
-            // expect(balance).to.equal(ethers.parseUnits("100", "ether"));
+            // Verify that the tokens have been transferred to addr1
+            const balance = await token.balanceOf(addr1.address);
+            expect(balance).to.equal(ethers.parseUnits("50", "ether"));
         });
     });
 
-    // describe("tip", function () {
-    //     it("should transfer tokens to a given address when to is not zero", async function () {
-    //         const amount = ethers.parseUnits("50", "ether");
-    //         await token.mint(addr1.address, amount);
-    //         await token.connect(addr1).approve(coinPurse.target, amount);
+    describe("tip", function () {
+        it("should transfer tokens to a given address when to is not zero", async function () {
+            const amount = ethers.parseUnits("50", "ether");
+            await token.mint(addr1.address, amount);
+            await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
 
-    //         await coinPurse.connect(operator).tip(addr1.address, token.target, addr2.address, 0, amount);
-    //         const balance = await token.balanceOf(addr2.address);
-    //         expect(balance).to.equal(amount);
-    //     });
+            await coinPurse.connect(operator).tip(addr1.address, token.target, addr2.address, 0, amount);
+            const balance = await token.balanceOf(addr2.address);
+            expect(balance).to.equal(amount);
+        });
 
-    //     it("should host tokens for a given xId when to is zero and toXId is not zero", async function () {
-    //         const amount = ethers.parseUnits("50", "ether");
-    //         const xId = 1;
-    //         await token.mint(addr1.address, amount);
-    //         await token.connect(addr1).approve(coinPurse.target, amount);
+        it("should host tokens for a given xId when to is zero and toXId is not zero", async function () {
+            const amount = ethers.parseUnits("50", "ether");
+            const xId = 1;
+            await token.mint(addr1.address, amount);
+            await token.connect(addr1).approve(coinPurse.target, amount);
+            await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
 
-    //         await coinPurse.connect(operator).tip(addr1.address, token.target, ethers.ZeroAddress, xId, amount);
-    //         const hostedAmount = await coinPurse.hostingAmount(xId, token.target);
-    //         expect(hostedAmount).to.equal(amount);
-    //     });
-    // });
+            await coinPurse.connect(operator).tip(addr1.address, token.target, ethers.ZeroAddress, xId, amount);
+            const hostedAmount = await coinPurse.hostingAmount(xId, token.target);
+            expect(hostedAmount).to.equal(amount);
+        });
+    });
 
-    // describe("internalSwap", function () {
-    //     it("should swap WBNB for another token successfully", async function () {
-    //         const amountIn = ethers.parseUnits("10", "ether");
-    //         const slippage = 100;
-    //         await WBNB.mint(addr1.address, amountIn);
-    //         await WBNB.connect(addr1).approve(coinPurse.address, amountIn);
+    describe("internalSwap", function () {
+        it("should swap WBNB for another token successfully", async function () {
+            pumpToken = await createToken(owner, 'T1', ethers.parseUnits("0.01", "ether"))
+            pumpToken = await ethers.getContractAt('Token', pumpToken.token);
 
-    //         // Call internalSwap
-    //         await coinPurse.connect(operator).internalSwap(addr1.address, amountIn, tokenOut.address, addr2.address, slippage);
-    //     });
-    // });
+            const amountIn = ethers.parseUnits("10", "ether");
+            const slippage = 0;
+            await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("100", "ether") });
+            await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000", "ether"));
+            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
 
-    // describe("externalSwap", function () {
-    //     it("should execute a swap through UniswapV2 router", async function () {
-    //         const amountIn = ethers.parseUnits("10", "ether");
-    //         const amountOutMin = ethers.parseUnits("9", "ether");
-    //         const path = [WBNB.address, token.target];
-    //         const deadline = (await ethers.provider.getBlock("latest")).timestamp + 3600;
+            // Call internalSwap
+            await coinPurse.connect(operator).internalSwap(addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2);
+        });
+    });
 
-    //         await WBNB.mint(addr1.address, amountIn);
-    //         await WBNB.connect(addr1).approve(coinPurse.address, amountIn);
+    describe("externalSwap", function () {
+        it("should execute a swap through UniswapV2 router", async function () {
+            pumpToken = await createToken(owner, 'T1', ethers.parseUnits("0.01", "ether"))
+            pumpToken = await ethers.getContractAt('Token', pumpToken.token);
 
-    //         // Call externalSwap
-    //         await coinPurse.connect(operator).externalSwap(addr1.address, amountIn, amountOutMin, path, deadline);
-    //     });
-    // });
+            // Launch to external disk
+            let buyAmount = ethers.parseEther("650000001")
+            let bondingCurveSupply = await pumpToken.bondingCurveSupply()
+            let needAmount = await pump.getBuyPriceAfterFee(bondingCurveSupply, buyAmount)
+            await pumpToken.connect(owner).buyToken(0, ethers.ZeroAddress, 0, { value: needAmount })
+
+            expect(await pumpToken.listed()).to.equal(true)
+
+
+            const path = [WBNB.target, pumpToken.target];
+            const amountIn = ethers.parseUnits("1", "ether");
+            const [_, amountOutMin] = await router.getAmountsOut(amountIn * 9800n / 10000n, path)
+            const deadline = (await ethers.provider.getBlock("latest")).timestamp + 3600;
+
+            await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("10", "ether") });
+            await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("10", "ether"));
+            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
+            // Call externalSwap
+            await coinPurse.connect(operator).externalSwap(addr1.address, amountIn, amountOutMin, path, deadline, router.target, ethers.ZeroAddress);
+        });
+    });
 });

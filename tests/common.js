@@ -104,6 +104,11 @@ async function deployIPShare() {
 }
 
 async function deployUniswapV2() {
+    const [
+        owner, addr1, addr2, operator,
+        donutFeeDestination,
+        dexFeeDestination
+    ] = await ethers.getSigners();
     // deploy weth
     const wethFactory = await ethers.getContractFactory("WETH9");
     const weth = await wethFactory.deploy();
@@ -116,10 +121,28 @@ async function deployUniswapV2() {
     // deploy router
     let routerFactory = await ethers.getContractFactory("UniswapV2Router02");
     let uniswapV2Router02 = await routerFactory.deploy(uniswapV2Factory, weth);
+
+    // deploy ipshare
+    const ipshareFactory = await ethers.getContractFactory('IPShare');
+    const ipshare = await ipshareFactory.deploy();
+    await ipshare.adminSetDonutFeeDestination(donutFeeDestination);
+
+    // deploy pump
+    const Factory = await ethers.getContractFactory('Pump');
+    const pump = await Factory.deploy(ipshare);
+    
+    await pump.setWETH(weth)
+    await pump.setUniswapV2Factory(uniswapV2Factory)
+    await pump.setUniswapV2Router(uniswapV2Router02)
     return {
         weth,
         uniswapV2Factory,
-        uniswapV2Router02
+        uniswapV2Router02,
+        pump,
+        ipshare,
+        owner, addr1, addr2, operator,
+        donutFeeDestination,
+        dexFeeDestination
     }
 }
 

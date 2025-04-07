@@ -7,8 +7,8 @@ import "./interface/IPump.sol";
 import "./Token.sol";
 import "./interface/IIPShare.sol";
 import "./interface/IBondingCurve.sol";
-import './UniswapV2/FullMath.sol';
-import './solady/src/utils/FixedPointMathLib.sol';
+import "./UniswapV2/FullMath.sol";
+import "./solady/src/utils/FixedPointMathLib.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
@@ -20,12 +20,10 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     uint256 private secondPerDay = 86400;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
-    uint256[2] private feeRatio = [100, 100];  // 0: to tiptag; 1: to salesman
-    address private WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;  // bsc
-    address private uniswapV2Factory 
-        = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;  // bsc
-    address private uniswapV2Router 
-        = 0x10ED43C718714eb63d5aA57B78B54704E256024E;  // bsc   
+    uint256[2] private feeRatio = [100, 100]; // 0: to tiptag; 1: to salesman
+    address private WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; // bsc
+    address private uniswapV2Factory = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73; // bsc
+    address private uniswapV2Router = 0x10ED43C718714eb63d5aA57B78B54704E256024E; // bsc
 
     mapping(address => bool) public createdTokens;
     mapping(string => bool) public createdTicks;
@@ -38,9 +36,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     mapping(address => uint256) public totalClaimedSocialRewards;
     uint256 public totalTokens;
 
-    constructor(
-        address _ipshare
-    ) Ownable(msg.sender) {
+    constructor(address _ipshare) Ownable(msg.sender) {
         ipshare = _ipshare;
     }
 
@@ -86,48 +82,59 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         feeReceiver = _feeReceiver;
     }
 
-    function getIPShare() public override view returns (address) {
+    function getIPShare() public view override returns (address) {
         return ipshare;
     }
 
-    function getFeeReceiver() public override view returns (address) {
+    function getFeeReceiver() public view override returns (address) {
         return feeReceiver;
     }
 
-    function getFeeRatio() public override view returns (uint256[2] memory) {
+    function getFeeRatio() public view override returns (uint256[2] memory) {
         return feeRatio;
     }
-    function getClaimFee() public override view returns (uint256) {
+    function getClaimFee() public view override returns (uint256) {
         return claimFee;
     }
 
-    function getClaimSigner() public override view returns (address) {
+    function getClaimSigner() public view override returns (address) {
         return claimSigner;
     }
 
-    function getUniswapV2Factory() public override view returns (address) {
+    function getUniswapV2Factory() public view override returns (address) {
         return uniswapV2Factory;
     }
 
-    function getUniswapV2Router() public override view returns (address) {
+    function getUniswapV2Router() public view override returns (address) {
         return uniswapV2Router;
     }
 
-    function getWETH() public override view returns (address) {
+    function getWETH() public view override returns (address) {
         return WETH;
     }
 
-    function createToken(string calldata tick)
-        public payable override nonReentrant returns (address) {
+    function setWETH(address addr) external onlyOwner {
+        WETH = addr;
+    }
+
+    function setUniswapV2Router(address addr) external onlyOwner {
+        uniswapV2Router = addr;
+    }
+
+    function setUniswapV2Factory(address addr) external onlyOwner {
+        uniswapV2Factory = addr;
+    }
+
+    function createToken(string calldata tick) public payable override nonReentrant returns (address) {
         if (createdTicks[tick]) {
             revert TickHasBeenCreated();
         }
-        
+
         createdTicks[tick] = true;
 
         // check user created ipshare
         address creator = tx.origin;
-        
+
         if (!IIPShare(ipshare).ipshareCreated(creator)) {
             // create ipshare
             IIPShare(ipshare).createShare(creator);
@@ -143,28 +150,24 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         }
 
         Token token = new Token();
-        address instance  = address(token);
+        address instance = address(token);
 
         emit NewToken(tick, instance, creator);
-        
-        token.initialize(
-            address(this),
-            creator,
-            tick
-        );
+
+        token.initialize(address(this), creator, tick);
 
         // before dawn of today
         lastClaimTime[instance] = block.timestamp - (block.timestamp % secondPerDay) - 1;
 
         if (msg.value > createFee) {
-            (bool success1, bytes memory receiveAmount) = instance.call{
-                value: msg.value - createFee
-            }(abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, creator, 0));
+            (bool success1, bytes memory receiveAmount) = instance.call{value: msg.value - createFee}(
+                abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, creator, 0)
+            );
             if (!success1) {
                 revert PreMineTokenFail();
             }
             uint256 receiveAmountUint = abi.decode(receiveAmount, (uint256));
-            
+
             IERC20(instance).transfer(msg.sender, receiveAmountUint);
             uint256 leftValue = address(this).balance;
             if (leftValue > 0) {
@@ -180,7 +183,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         return instance;
     }
 
-     /********************************** social distribution ********************************/
+    /********************************** social distribution ********************************/
     function calculateReward(uint256 from, uint256 to) public pure returns (uint256 rewards) {
         if (from >= to) return 0;
         return (to - from) * claimAmountPerSecond;
@@ -219,7 +222,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
                 revert CostFeeFail();
             }
         }
-        
+
         bytes32 data = keccak256(abi.encodePacked(block.chainid, token, orderId, msg.sender, amount));
 
         if (!_check(data, signature)) {
@@ -258,8 +261,8 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     }
 
     /********************************** bonding curve ********************************/
-    
-     /**
+
+    /**
      * calculate the eth price when user buy amount tokens
      */
     function getPrice(uint256 supply, uint256 amount) public pure override returns (uint256) {
@@ -267,11 +270,11 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         uint256 a = 6_500_000_000;
         uint256 b = 2.5175516438e26;
         uint256 x = FixedPointMathLib.mulWad(a, b);
-        uint256 e1 = uint256(FixedPointMathLib.expWad(int256((supply + amount) * 1e18 / b)));
-        uint256 e2 = uint256(FixedPointMathLib.expWad(int256((supply) * 1e18 / b)));
+        uint256 e1 = uint256(FixedPointMathLib.expWad(int256(((supply + amount) * 1e18) / b)));
+        uint256 e2 = uint256(FixedPointMathLib.expWad(int256(((supply) * 1e18) / b)));
         return FixedPointMathLib.mulWad(e1 - e2, x);
     }
-    
+
     function getSellPrice(uint256 supply, uint256 amount) public pure override returns (uint256) {
         return getPrice(supply - amount, amount);
     }
@@ -293,7 +296,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         // b * ln(ethAmount / (a*b) + exp(bondingCurveSupply/b)) - bondingCurveSupply;
         uint256 ab = FixedPointMathLib.mulWad(a, b);
         uint256 sab = FixedPointMathLib.divWad(ethAmount, ab);
-        uint256 e = uint256(FixedPointMathLib.expWad(int256(bondingCurveSupply * 1e18 / b)));
+        uint256 e = uint256(FixedPointMathLib.expWad(int256((bondingCurveSupply * 1e18) / b)));
         uint256 ln = uint256(FixedPointMathLib.lnWad(int256(sab + e)));
         return FixedPointMathLib.mulWad(b, ln) - bondingCurveSupply;
     }

@@ -9,6 +9,7 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/ICoinPurse.sol";
 import "./interface/IIPShare.sol";
+
 interface IWBNB {
     function withdraw(uint wad) external;
 }
@@ -50,6 +51,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     constructor() Ownable(msg.sender) {
         operator = msg.sender;
     }
+
+    receive() external payable {}
 
     modifier onlyOperator() {
         require(msg.sender == operator, "Invalid operator");
@@ -108,7 +111,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         (bool success, ) = feeAddress.call{value: msg.value}("");
         if (!success) revert CostFeeFailed();
 
-        uint[] memory amounts;
+        uint[] memory amounts = new uint[](tokens.length);
         for (uint i = 0; i < tokens.length; i++) {
             IERC20(tokens[i]).transfer(msg.sender, hostingAmount[xId][tokens[i]]);
             amounts[i] = hostingAmount[xId][tokens[i]];
@@ -239,5 +242,10 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     function setWBNB(address wbnb) external onlyOwner {
         if (wbnb == address(0)) revert InvalidAddress();
         WBNB = wbnb;
+    }
+
+    function setIpShare(address addr) external onlyOwner {
+        if (addr == address(0)) revert InvalidAddress();
+        ipShare = addr;
     }
 }
