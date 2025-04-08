@@ -30,7 +30,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
     address private WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
-    address public operator;
+    address public operator = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
     address public ipShare = 0x24328DccA1bA54EeE82e2993F021802e64290486;
 
     // user => token => limit
@@ -48,9 +48,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     uint public minFee = 0.0005 ether;
     uint private denominator = 10000;
 
-    constructor() Ownable(msg.sender) {
-        operator = msg.sender;
-    }
+    constructor() Ownable(msg.sender) {}
 
     receive() external payable {}
 
