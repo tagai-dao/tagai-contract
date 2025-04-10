@@ -1,14 +1,14 @@
 
-require('@nomicfoundation/hardhat-toolbox') 
+require('@nomicfoundation/hardhat-toolbox')
 require('hardhat-deploy')
 require('hardhat-gas-reporter')
 require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: 
+  solidity:
   {
-    compilers:[
+    compilers: [
       {
         version: "0.8.20",
         settings: {
@@ -28,27 +28,33 @@ module.exports = {
           }
         }
       },
-      {version: "0.5.0",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 1000
-        }
-      }},
-      {version: "0.6.12",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 1000
-        }
-      }},
-      {version: "0.7.6",
+      {
+        version: "0.5.0",
         settings: {
           optimizer: {
             enabled: true,
             runs: 1000
           }
-        }}
+        }
+      },
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          }
+        }
+      },
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          }
+        }
+      }
     ],
     overrides: {
       "contracts/UniswapV2/SushiswapFactoryV2.sol": {
@@ -109,7 +115,7 @@ module.exports = {
     }
   },
   etherscan: {
-    apiKey:{
+    apiKey: {
       base: process.env.BASE_API_KEY,
       bsc: process.env.BSC_API_KEY
     }

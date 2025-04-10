@@ -105,7 +105,7 @@ async function deployIPShare() {
 
 async function deployUniswapV2() {
     const [
-        owner, addr1, addr2, operator,
+        owner, addr1, addr2,operator,
         donutFeeDestination,
         dexFeeDestination
     ] = await ethers.getSigners();

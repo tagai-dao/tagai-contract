@@ -5,6 +5,11 @@ const { loadFixture, mine } = require('@nomicfoundation/hardhat-toolbox/network-
 const { deployUniswapV2 } = require('./common')
 const { sleep } = require('./helper');
 
+
+const getOperatorWallet = (u) => {
+    return new ethers.Wallet(process.env.KEY, u.provider)
+}
+
 const initContract = async () => {
     const {
         weth,
@@ -72,6 +77,10 @@ describe("CoinPurse", function () {
             EM2: tokenOut,
             cp: coinPurse
         } = await loadFixture(initContract));
+
+        operator = getOperatorWallet(operator)
+
+        await owner.sendTransaction({ to: operator, value: ethers.parseUnits("10", "ether") })
 
         await WBNB.connect(owner).deposit({ value: ethers.parseUnits("10", "ether") })
         await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("10", "ether") })
@@ -208,6 +217,72 @@ describe("CoinPurse", function () {
         });
     });
 
+    describe("tryAggregate", function () {
+        it("All tryAggregate calls succeeded", async () => {
+            const amount = ethers.parseUnits("100", "ether")
+
+            await token.mint(owner.address, amount)
+            await token.connect(owner).approve(coinPurse.target, amount);
+            await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
+            const tipIds = [randomUint256(), randomUint256()]
+            const toUsers = [addr1.address, addr2.address]
+            const calls = []
+            for (let i = 0; i < tipIds.length; i++) {
+                const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
+                calls.push(call)
+            }
+            const result = await coinPurse.connect(operator).tryAggregate(true, tipIds, calls)
+            await result.wait()
+
+            const [b1, b2] = await Promise.all([
+                token.balanceOf(addr1.address),
+                token.balanceOf(addr2.address)
+            ])
+            expect(b1).to.equal(amount / BigInt(tipIds.length))
+            expect(b2).to.equal(amount / BigInt(tipIds.length))
+        })
+
+        it("One of the tryAggregate will fail", async () => {
+            const amount = ethers.parseUnits("100", "ether")
+
+            await token.mint(owner.address, amount)
+            await token.connect(owner).approve(coinPurse.target, amount);
+            await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("50", "ether"), ethers.parseUnits("99", "ether"))
+
+            const tipIds = [randomUint256(), randomUint256()]
+            const toUsers = [addr1.address, addr2.address]
+            const calls = []
+            for (let i = 0; i < tipIds.length; i++) {
+                const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
+                calls.push(call)
+            }
+
+            // const result = await coinPurse.connect(operator).tryAggregate(true, tipIds, calls)
+            // const receipt = await result.wait()
+
+            // receipt.logs.forEach((v)=>{
+            //     console.log(coinPurse.interface.parseLog(v))
+            // })
+            // coinPurse.interface.fragments.forEach((v) => {
+            //     if (v.type === "error") {
+            //         console.log(v.name, ethers.id(`${v.name}()`).slice(0, 10))
+            //     }
+            // })
+
+            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
+                .to.emit(coinPurse, "MultiCallResult")
+                .withArgs(false,tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0,10));
+
+            const [b1, b2] = await Promise.all([
+                token.balanceOf(addr1.address),
+                token.balanceOf(addr2.address)
+            ])
+            expect(b1).to.equal(amount / BigInt(tipIds.length))
+            expect(b2).to.equal(0)
+        })
+    })
+
     describe("internalSwap", function () {
         beforeEach(async function () {
             await coinPurse.connect(owner).setFeeAddress(donutFeeDestination.address)
@@ -230,7 +305,7 @@ describe("CoinPurse", function () {
 
             await expect(coinPurse.connect(operator).internalSwap(randomUint256(), addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2))
                 .to.changeEtherBalance(donutFeeDestination, amountIn * 100n / 10000n + amountIn * 100n * 250n / 100000000n)
-            
+
         });
 
         it("should revert if swapId is used", async function () {
