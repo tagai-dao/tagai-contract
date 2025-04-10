@@ -21,11 +21,18 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
     event Withdraw(uint indexed xId, address indexed user, address[] tokens, uint[] amounts);
 
+    event MultiCallResult(bool success, uint256 indexed index, bytes result);
+
     struct Limit {
         uint256 maxPerTx;
         uint256 maxPerDay;
         uint256 spentToday;
         uint256 lastUpdatedDay;
+    }
+
+    struct MulticallResult {
+        bool success;
+        bytes returnData;
     }
 
     address private WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
@@ -42,6 +49,9 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
     // X id => address
     mapping(uint => address) public alreadyWithdraw;
+
+    mapping(uint256 => bool) private tipIdUsed;
+    mapping(uint256 => bool) private swapIdUsed;
 
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
@@ -119,7 +129,22 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tip(address user, address token, address to, uint256 toXId, uint256 amount) external onlyOperator nonReentrant whenNotPaused {
+    function tryAggregate(bool requireSuccess, uint256[] calldata ids, bytes[] calldata calls) public onlyOperator nonReentrant returns (MulticallResult[] memory returnData) {
+        returnData = new MulticallResult[](calls.length);
+        for(uint256 i = 0; i < calls.length; i++) {
+            (bool success, bytes memory ret) = address(this).call(calls[i]);
+            if (!requireSuccess && !success) {
+                revert MulticallFailed();
+            }
+            returnData[i] = MulticallResult(success, ret);
+            emit MultiCallResult(success, ids[i], ret);
+        }
+        return returnData;
+    }
+
+    function tip(uint256 tipId, address user, address token, address to, uint256 toXId, uint256 amount) public onlyOperator nonReentrant whenNotPaused {
+        if (tipIdUsed[tipId]) revert TipIdUsed();
+        tipIdUsed[tipId] = true;
         _checkAndUpdateLimit(user, token, amount);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
@@ -136,13 +161,16 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     }
 
     function internalSwap(
+        uint256 swapId,
         address user,
         uint256 amountIn,
         address tokenOut,
         address sellsman,
         uint16 slippage,
         uint16 version
-    ) external onlyOperator nonReentrant whenNotPaused {
+    ) public onlyOperator nonReentrant whenNotPaused {
+        if (swapIdUsed[swapId]) revert SwapIdUsed();
+        swapIdUsed[swapId] = true;
         _checkAndUpdateLimit(user, WBNB, amountIn);
 
         // Step 1: Transfer from user
@@ -172,6 +200,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     }
 
     function externalSwap(
+        uint256 swapId,
         address user,
         uint256 amountIn, // Note should include the cost
         uint256 amountOutMin,
@@ -179,7 +208,9 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
         uint256 deadline,
         address router, // for uni or pancakeswap or other v2 dex router
         address sellsman
-    ) external onlyOperator nonReentrant whenNotPaused {
+    ) public onlyOperator nonReentrant whenNotPaused {
+        if (swapIdUsed[swapId]) revert SwapIdUsed();
+        swapIdUsed[swapId] = true;
         if (path.length < 2) revert InvalidPath();
         if (path[0] != WBNB) revert InvalidPath(); // tokenIn
         _checkAndUpdateLimit(user, path[0], amountIn);

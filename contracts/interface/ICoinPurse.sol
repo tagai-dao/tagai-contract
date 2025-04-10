@@ -14,4 +14,7 @@ interface ICoinPurse {
     error CostFeeFailed();
     error InvalidAddress();
     error InsufficientFee();
+    error MulticallFailed();
+    error TipIdUsed();
+    error SwapIdUsed();
 }
