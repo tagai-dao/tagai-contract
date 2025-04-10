@@ -124,7 +124,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
     function tryAggregate(bool requireSuccess, uint256[] calldata ids, bytes[] calldata calls) public onlyOperator nonReentrant returns (MulticallResult[] memory returnData) {
         returnData = new MulticallResult[](calls.length);
         for(uint256 i = 0; i < calls.length; i++) {
-            (bool success, bytes memory ret) = address(this).call(calls[i]);
+            (bool success, bytes memory ret) = address(this).delegatecall(calls[i]);
             if (!requireSuccess && !success) {
                 revert MulticallFailed();
             }
