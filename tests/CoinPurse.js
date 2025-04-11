@@ -232,7 +232,7 @@ describe("CoinPurse", function () {
                 const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
                 calls.push(call)
             }
-            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
+            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
                 .to.changeTokenBalances(token, [addr1.address, addr2.address], 
                     [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
@@ -274,9 +274,9 @@ describe("CoinPurse", function () {
 
             })
             await sleep(0.1)
-            // await coinPurse.connect(operator).tryAggregate(true, tipIds, calls)
+            // await coinPurse.connect(operator).tryAggregate(false, tipIds, calls)
 
-            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
+            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
                 .to.emit(coinPurse, "MultiCallResult")
                 .withArgs(false, tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0, 10));
 
