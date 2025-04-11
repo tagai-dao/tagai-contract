@@ -44,8 +44,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     // X id => address
     mapping(uint => address) public alreadyWithdraw;
 
-    mapping(uint256 => bool) private tipIdUsed;
-    mapping(uint256 => bool) private swapIdUsed;
+    mapping(uint256 => bool) public tipIdUsed;
+    mapping(uint256 => bool) public swapIdUsed;
 
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
