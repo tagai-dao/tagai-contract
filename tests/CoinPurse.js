@@ -232,7 +232,7 @@ describe("CoinPurse", function () {
                 const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
                 calls.push(call)
             }
-            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
+            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
                 .to.changeTokenBalances(token, [addr1.address, addr2.address], 
                     [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
@@ -264,10 +264,25 @@ describe("CoinPurse", function () {
             //     }
             // })
 
+            let proceds = 0
+            coinPurse.on("MultiCallResult", async (success, id, result, event) => {
+                proceds += 1
+                if (!success) {
+                    const err = coinPurse.interface.parseError(result)
+                    console.log(success, id, result, err?.name, event.log.transactionHash)
+                }
+
+            })
+            await sleep(0.1)
+            // await coinPurse.connect(operator).tryAggregate(false, tipIds, calls)
+
             await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
                 .to.emit(coinPurse, "MultiCallResult")
-                .withArgs(false,tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0,10));
+                .withArgs(false, tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0, 10));
 
+            while (proceds < tipIds.length) {
+                await sleep(0.1)
+            }
             const [b1, b2] = await Promise.all([
                 token.balanceOf(addr1.address),
                 token.balanceOf(addr2.address)
