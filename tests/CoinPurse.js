@@ -232,15 +232,9 @@ describe("CoinPurse", function () {
                 const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
                 calls.push(call)
             }
-            const result = await coinPurse.connect(operator).tryAggregate(true, tipIds, calls)
-            await result.wait()
-
-            const [b1, b2] = await Promise.all([
-                token.balanceOf(addr1.address),
-                token.balanceOf(addr2.address)
-            ])
-            expect(b1).to.equal(amount / BigInt(tipIds.length))
-            expect(b2).to.equal(amount / BigInt(tipIds.length))
+            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
+                .to.changeTokenBalances(token, [addr1.address, addr2.address], 
+                    [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
 
         it("One of the tryAggregate will fail", async () => {
@@ -270,7 +264,7 @@ describe("CoinPurse", function () {
             //     }
             // })
 
-            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
+            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
                 .to.emit(coinPurse, "MultiCallResult")
                 .withArgs(false,tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0,10));
 
@@ -280,6 +274,13 @@ describe("CoinPurse", function () {
             ])
             expect(b1).to.equal(amount / BigInt(tipIds.length))
             expect(b2).to.equal(0)
+        })
+
+        it('only operator can call tryAggregate', async () => {
+            await expect(coinPurse.connect(addr1).tryAggregate(false, 
+                [randomUint256()], 
+                [coinPurse.interface.encodeFunctionData("tip", [randomUint256(), owner.address, token.target, addr1.address, 0, ethers.parseUnits("100", "ether")])]))
+                .to.be.revertedWith("Invalid operator");
         })
     })
 
