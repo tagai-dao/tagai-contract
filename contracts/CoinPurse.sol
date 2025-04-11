@@ -9,12 +9,13 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/ICoinPurse.sol";
 import "./interface/IIPShare.sol";
+import "./interface/ITagAIErrors.sol";
 
 interface IWBNB {
     function withdraw(uint wad) external;
 }
 
-contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
+contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIErrors {
     struct Limit {
         uint256 maxPerTx;
         uint256 maxPerDay;
@@ -24,6 +25,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
 
     struct MulticallResult {
         bool success;
+        uint256 index;
         bytes returnData;
     }
 
@@ -128,7 +130,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse {
             if (requireSuccess && !success) {
                 revert MulticallFailed();
             }
-            returnData[i] = MulticallResult(success, ret);
+            returnData[i] = MulticallResult(success, ids[i], ret);
             emit MultiCallResult(success, ids[i], ret);
         }
         return returnData;

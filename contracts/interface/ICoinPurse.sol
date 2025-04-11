@@ -2,22 +2,6 @@
 pragma solidity 0.8.20;
 
 interface ICoinPurse {
-    error ExceedsPerLimit();
-    error ExceedsDailyLimit();
-    error InvalidSignature();
-    error InvalidToXId();
-    error AlreadyWithdraw();
-    error TransferFailed();
-    error TransferFromFailed();
-    error BuyTokenFailed();
-    error InvalidPath();
-    error CostFeeFailed();
-    error InvalidAddress();
-    error InsufficientFee();
-    error MulticallFailed();
-    error TipIdUsed();
-    error SwapIdUsed();
-
     event Tip(address indexed from, address indexed to, address indexed token, uint toXId, uint amount);
 
     event LimitSet(address indexed user, address indexed token, uint256 maxPerTx, uint256 maxPerDay);
