@@ -1,9 +1,10 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const hh = require("hardhat");
 const { waffle } = require("hardhat");
 const { loadFixture, mine } = require('@nomicfoundation/hardhat-toolbox/network-helpers');
 const { deployUniswapV2 } = require('./common')
 const { sleep } = require('./helper');
+const { ethers } = hh;
 
 
 const getOperatorWallet = (u) => {
@@ -94,7 +95,7 @@ describe("CoinPurse", function () {
 
         // approve to CoinPurse
         await token.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-        // await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+        await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
 
         await token.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
         await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
@@ -233,7 +234,7 @@ describe("CoinPurse", function () {
                 calls.push(call)
             }
             await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
-                .to.changeTokenBalances(token, [addr1.address, addr2.address], 
+                .to.changeTokenBalances(token, [addr1.address, addr2.address],
                     [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
 
@@ -292,8 +293,8 @@ describe("CoinPurse", function () {
         })
 
         it('only operator can call tryAggregate', async () => {
-            await expect(coinPurse.connect(addr1).tryAggregate(false, 
-                [randomUint256()], 
+            await expect(coinPurse.connect(addr1).tryAggregate(false,
+                [randomUint256()],
                 [coinPurse.interface.encodeFunctionData("tip", [randomUint256(), owner.address, token.target, addr1.address, 0, ethers.parseUnits("100", "ether")])]))
                 .to.be.revertedWith("Invalid operator");
         })

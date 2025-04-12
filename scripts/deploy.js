@@ -8,9 +8,6 @@ async function main() {
     const coinPurse = await ethers.deployContract('CoinPurse')
     console.log(2, coinPurse.target)
 
-    const WETH9 = await ethers.deployContract('WETH9')
-    console.log(2, WETH9.target)
-
 }
 
 main().catch(error => {

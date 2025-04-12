@@ -1,7 +1,8 @@
-const { ethers } = require("hardhat");
+const hh = require("hardhat");
 const { parseAmount } = require("./helper");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 const { UniswapV3Deployer } = require("./vendor/UniswapV3Deployer");
+const { ethers } = hh;
 
 async function deployPumpFactory() {
     const {
@@ -105,13 +106,22 @@ async function deployIPShare() {
 
 async function deployUniswapV2() {
     const [
-        owner, addr1, addr2,operator,
+        owner, addr1, addr2, operator,
         donutFeeDestination,
         dexFeeDestination
     ] = await ethers.getSigners();
+
     // deploy weth
-    const wethFactory = await ethers.getContractFactory("WETH9");
-    const weth = await wethFactory.deploy();
+    let weth;
+    switch (hh.network.name) {
+        case "chapel":
+            weth = await ethers.getContractAt("WETH9", "0xae13d989dac2f0debff460ac112a837c89baa7cd")
+            break;
+        default:
+            const wethFactory = await ethers.getContractFactory("WETH9")
+            weth = await wethFactory.deploy();
+            break;
+    }
 
     // deploy dex
     const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
@@ -130,7 +140,7 @@ async function deployUniswapV2() {
     // deploy pump
     const Factory = await ethers.getContractFactory('Pump');
     const pump = await Factory.deploy(ipshare);
-    
+
     await pump.setWETH(weth)
     await pump.setUniswapV2Factory(uniswapV2Factory)
     await pump.setUniswapV2Router(uniswapV2Router02)

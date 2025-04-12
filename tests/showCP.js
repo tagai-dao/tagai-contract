@@ -1,10 +1,10 @@
 const { ethers } = require('hardhat');
 
-const coinPurseAddr = "0xBE7FC55435677d3d41995988266FBD8E27ea2A14"
+const coinPurseAddr = "0xf29BB860d5067a848Aed3cFdba1d7DC68BaBD23c"
 const addr1 = "0x6f0Def5929EAf5f11d6A9A064f388cA14AA28707"
 const addr2 = "0x8F3245A0bD40ca4985D7Cc9f0cF82771B58b99a7"
 const testToken = "0xcB855C87bbF3A4853720578C67edf265856FA026"
-const WBNBAddr = "0xf3439081742F8c194A94DdeF8f06C472E5C28dac"
+const WBNBAddr = "0xae13d989dac2f0debff460ac112a837c89baa7cd"
 const operator = "0x000000422a69dfB418c7D4093ad50f154325F5f8"
 
 async function show() {
@@ -12,8 +12,6 @@ async function show() {
     const coinPurse = await ethers.getContractAt("CoinPurse", coinPurseAddr, signer)
     const token = await ethers.getContractAt("TestERC20", testToken, signer)
     const WBNB = await ethers.getContractAt("WETH9", WBNBAddr, signer)
-
-
 
     console.log("addr1:", addr1)
     const b1 = await token.balanceOf(addr1)
