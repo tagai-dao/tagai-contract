@@ -94,7 +94,7 @@ describe("CoinPurse", function () {
 
         // approve to CoinPurse
         await token.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-        await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
+        // await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
 
         await token.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
         await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
@@ -232,7 +232,7 @@ describe("CoinPurse", function () {
                 const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], owner.address, token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
                 calls.push(call)
             }
-            await expect(coinPurse.connect(operator).tryAggregate(true, tipIds, calls))
+            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
                 .to.changeTokenBalances(token, [addr1.address, addr2.address], 
                     [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
