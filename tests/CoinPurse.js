@@ -213,7 +213,7 @@ describe("CoinPurse", function () {
             const tipId = randomUint256();
             await coinPurse.connect(operator).tip(tipId, addr1.address, token.target, ethers.ZeroAddress, xId, amount);
             await expect(coinPurse.connect(operator).tip(tipId, addr1.address, token.target, ethers.ZeroAddress, xId, amount))
-                .to.be.revertedWithCustomError(coinPurse, "TipIdUsed()");
+                .to.be.revertedWithCustomError(coinPurse, "OrderIdUsed()");
         });
     });
 
@@ -265,24 +265,24 @@ describe("CoinPurse", function () {
             // })
 
             let proceds = 0
-            coinPurse.on("MultiCallResult", async (success, id, result, event) => {
-                proceds += 1
-                if (!success) {
-                    const err = coinPurse.interface.parseError(result)
-                    console.log(success, id, result, err?.name, event.log.transactionHash)
-                }
+            // coinPurse.on("MultiCallResult", async (success, id, result, event) => {
+            //     proceds += 1
+            //     if (!success) {
+            //         const err = coinPurse.interface.parseError(result)
+            //         console.log(success, id, result, err?.name, event.log.transactionHash)
+            //     }
 
-            })
-            await sleep(0.1)
+            // })
+            // await sleep(0.1)
             // await coinPurse.connect(operator).tryAggregate(false, tipIds, calls)
 
-            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
-                .to.emit(coinPurse, "MultiCallResult")
-                .withArgs(false, tipIds[1], ethers.id("ExceedsDailyLimit()").slice(0, 10));
+            await coinPurse.connect(operator).tryAggregate(false, tipIds, calls)
 
-            while (proceds < tipIds.length) {
-                await sleep(0.1)
-            }
+            expect(await coinPurse.orderIdUsed(tipIds[0])).to.equal(true)
+            expect(await coinPurse.orderIdError(tipIds[0])).to.equal(ethers.zeroPadBytes('0x', 0))
+            expect(await coinPurse.orderIdUsed(tipIds[1])).to.equal(true)
+            expect(await coinPurse.orderIdError(tipIds[1])).to.equal(ethers.id("ExceedsDailyLimit()").slice(0, 10))
+
             const [b1, b2] = await Promise.all([
                 token.balanceOf(addr1.address),
                 token.balanceOf(addr2.address)
@@ -336,7 +336,7 @@ describe("CoinPurse", function () {
             const swapId = randomUint256();
             await coinPurse.connect(operator).internalSwap(swapId, addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2);
             await expect(coinPurse.connect(operator).internalSwap(swapId, addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2))
-                .to.be.revertedWithCustomError(coinPurse, "SwapIdUsed()");
+                .to.be.revertedWithCustomError(coinPurse, "OrderIdUsed()");
         });
     });
 

@@ -15,8 +15,7 @@ interface TagAIErrors {
     error InvalidAddress();
     error InsufficientFee();
     error MulticallFailed();
-    error TipIdUsed();
-    error SwapIdUsed();
+    error OrderIdUsed();
     error ERC20InsufficientAllowance(address spender, uint256 currentAllowance, uint256 value);
     error ERC20InsufficientBalance(address from, uint256 fromBalance, uint256 value);
     error InsufficientBalance();

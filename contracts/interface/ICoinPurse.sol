@@ -7,6 +7,4 @@ interface ICoinPurse {
     event LimitSet(address indexed user, address indexed token, uint256 maxPerTx, uint256 maxPerDay);
 
     event Withdraw(uint indexed xId, address indexed user, address[] tokens, uint[] amounts);
-
-    event MultiCallResult(bool success, uint256 indexed index, bytes result);
 }

@@ -25,7 +25,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
     struct MulticallResult {
         bool success;
-        uint256 index;
+        uint256 orderId;
         bytes returnData;
     }
 
@@ -44,8 +44,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     // X id => address
     mapping(uint => address) public alreadyWithdraw;
 
-    mapping(uint256 => bool) public tipIdUsed;
-    mapping(uint256 => bool) public swapIdUsed;
+    mapping(uint256 => bool) public orderIdUsed;
+    mapping(uint256 => bytes) public orderIdError;
 
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
@@ -123,22 +123,25 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tryAggregate(bool requireSuccess, uint256[] calldata ids, bytes[] calldata calls) public onlyOperator returns (MulticallResult[] memory returnData) {
+    function tryAggregate(bool requireSuccess, uint256[] calldata orderIds, bytes[] calldata calls) public onlyOperator returns (MulticallResult[] memory returnData) {
         returnData = new MulticallResult[](calls.length);
         for(uint256 i = 0; i < calls.length; i++) {
             (bool success, bytes memory ret) = address(this).delegatecall(calls[i]);
             if (requireSuccess && !success) {
                 revert MulticallFailed();
             }
-            returnData[i] = MulticallResult(success, ids[i], ret);
-            emit MultiCallResult(success, ids[i], ret);
+            returnData[i] = MulticallResult(success, orderIds[i], ret);
+            if (!success) {
+                orderIdUsed[orderIds[i]] = true;
+                orderIdError[orderIds[i]] = ret;
+            }
         }
         return returnData;
     }
 
-    function tip(uint256 tipId, address user, address token, address to, uint256 toXId, uint256 amount) public onlyOperator nonReentrant whenNotPaused {
-        if (tipIdUsed[tipId]) revert TipIdUsed();
-        tipIdUsed[tipId] = true;
+    function tip(uint256 orderId, address user, address token, address to, uint256 toXId, uint256 amount) public onlyOperator nonReentrant whenNotPaused {
+        if (orderIdUsed[orderId]) revert OrderIdUsed();
+        orderIdUsed[orderId] = true;
         _checkAndUpdateLimit(user, token, amount);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
@@ -155,7 +158,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     }
 
     function internalSwap(
-        uint256 swapId,
+        uint256 orderId,
         address user,
         uint256 amountIn,
         address tokenOut,
@@ -163,8 +166,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         uint16 slippage,
         uint16 version
     ) public onlyOperator nonReentrant whenNotPaused {
-        if (swapIdUsed[swapId]) revert SwapIdUsed();
-        swapIdUsed[swapId] = true;
+        if (orderIdUsed[orderId]) revert OrderIdUsed();
+        orderIdUsed[orderId] = true;
         _checkAndUpdateLimit(user, WBNB, amountIn);
 
         // Step 1: Transfer from user
@@ -194,7 +197,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     }
 
     function externalSwap(
-        uint256 swapId,
+        uint256 orderId,
         address user,
         uint256 amountIn, // Note should include the cost
         uint256 amountOutMin,
@@ -203,8 +206,8 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         address router, // for uni or pancakeswap or other v2 dex router
         address sellsman
     ) public onlyOperator nonReentrant whenNotPaused {
-        if (swapIdUsed[swapId]) revert SwapIdUsed();
-        swapIdUsed[swapId] = true;
+        if (orderIdUsed[orderId]) revert OrderIdUsed();
+        orderIdUsed[orderId] = true;
         if (path.length < 2) revert InvalidPath();
         if (path[0] != WBNB) revert InvalidPath(); // tokenIn
         _checkAndUpdateLimit(user, path[0], amountIn);
