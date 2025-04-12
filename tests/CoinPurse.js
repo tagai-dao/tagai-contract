@@ -292,6 +292,27 @@ describe("CoinPurse", function () {
             expect(b2).to.equal(0)
         })
 
+        it('should keep the original error when the id is reused', async () => {
+            const amount = ethers.parseUnits("100", "ether")
+
+            await token.mint(owner.address, amount)
+            await token.connect(owner).approve(coinPurse.target, amount);
+            await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
+            const tipId = randomUint256()
+            const toUsers = [addr1.address, addr2.address]
+            const calls = []
+            for (let i = 0; i < 2; i++) {
+                const call = coinPurse.interface.encodeFunctionData("tip", [tipId, owner.address, token.target, toUsers[i], 0, amount / BigInt(2)])
+                calls.push(call)
+            }
+            await expect(coinPurse.connect(operator).tryAggregate(false, [tipId, tipId], calls))
+                .to.changeTokenBalances(token, [addr1.address, addr2.address],
+                    [amount / BigInt(2), 0])
+
+            expect(await coinPurse.orderIdError(tipId)).to.equal(ethers.zeroPadBytes('0x', 0))
+        })
+
         it('only operator can call tryAggregate', async () => {
             await expect(coinPurse.connect(addr1).tryAggregate(false,
                 [randomUint256()],
