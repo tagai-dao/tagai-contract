@@ -133,7 +133,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
             returnData[i] = MulticallResult(success, orderIds[i], ret);
             if (!success) {
                 orderIdUsed[orderIds[i]] = true;
-                orderIdError[orderIds[i]] = ret;
+                orderIdError[orderIds[i]] = ret.length == 0 ? bytes("0x01") : ret;
             }
         }
         return returnData;
