@@ -153,6 +153,13 @@ describe("CoinPurse", function () {
             const limit = await coinPurse.userLimits(addr1, ethers.ZeroAddress);
             expect(limit.maxPerTx).to.equal(maxPerTx);
         });
+
+        it('can withdraw bnb', async () => {
+            const amount = ethers.parseUnits("1", "ether")
+            await setBnbLimit(addr1, amount, amount, amount)
+            await expect(coinPurse.connect(addr1).withdrawBNB(amount))
+            .to.changeEtherBalance(addr1, amount);
+        })
     });
 
     describe("withdraw", () => {
