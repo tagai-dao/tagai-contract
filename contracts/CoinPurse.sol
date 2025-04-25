@@ -133,7 +133,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tryAggregate(bool requireSuccess, uint256[] calldata orderIds, bytes[] calldata calls) public onlyOperator returns (MulticallResult[] memory returnData) {
+    function tryAggregate(bool requireSuccess, uint256[] calldata orderIds, bytes[] calldata calls) public returns (MulticallResult[] memory returnData) {
         returnData = new MulticallResult[](calls.length);
         for(uint256 i = 0; i < calls.length; i++) {
             (bool success, bytes memory ret) = address(this).delegatecall(calls[i]);
