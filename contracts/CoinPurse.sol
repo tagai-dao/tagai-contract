@@ -96,15 +96,15 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         limit.spentToday += amount;
     }
 
-    function checkLimit(address user, address token, uint256 amount) public view returns (bool) {
+    function checkLimit(address user, address token, uint256 amount) public view returns (uint256) {
         Limit storage limit = userLimits[user][token];
         if (amount > limit.maxPerTx) {
-            return false;
+            return 1;
         }
         if (limit.spentToday + amount > limit.maxPerDay) {
-            return false;
+            return 2;
         }
-        return true;
+        return 0;
     }
 
     function setLimit(address token, uint256 maxPerTx, uint256 maxPerDay) external payable {
