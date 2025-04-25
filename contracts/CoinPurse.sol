@@ -46,6 +46,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
     mapping(uint256 => bool) public orderIdUsed;
     mapping(uint256 => bytes) public orderIdError;
+    mapping(address => uint256) public userBalances;
 
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
@@ -94,6 +95,21 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
         if (limit.spentToday + amount > limit.maxPerDay) revert ExceedsDailyLimit();
         limit.spentToday += amount;
+    }
+
+    // INSERT_YOUR_REWRITE_HERE
+    function setBNBLimit(uint256 maxPerTx, uint256 maxPerDay) external onlyOwner payable {
+        userBalances[msg.sender] += msg.value;
+        userLimits[msg.sender][address(0)].maxPerTx = maxPerTx;
+        userLimits[msg.sender][address(0)].maxPerDay = maxPerDay;
+        emit LimitSet(msg.sender, address(0), maxPerTx, maxPerDay);
+    }
+
+    function withdrawBNB(uint256 amount) external {
+        if (userBalances[msg.sender] < amount) revert InsufficientBalance();
+        (bool success, ) = msg.sender.call{value: amount}("");
+        if (!success) revert TransferFailed();
+        userBalances[msg.sender] -= amount;
     }
 
     function setLimit(address token, uint256 maxPerTx, uint256 maxPerDay) external {
@@ -145,6 +161,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     function tip(uint256 orderId, address user, address token, address to, uint256 toXId, uint256 amount) public onlyOperator nonReentrant whenNotPaused {
         if (orderIdUsed[orderId]) revert OrderIdUsed();
         orderIdUsed[orderId] = true;
+        if (userBalances[user] < minFee) revert InsufficientBalance();
         _checkAndUpdateLimit(user, token, amount);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
@@ -154,8 +171,9 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
             if (!IERC20(token).transferFrom(user, address(this), amount)) revert TransferFromFailed();
             hostingAmount[toXId][token] += amount;
         }
-        _checkWBNBTransferFrom(user, minFee);
-        if (!IERC20(WBNB).transferFrom(user, feeAddress, minFee)) revert TransferFromFailed();
+        userBalances[user] -= minFee;
+        (bool success, ) = feeAddress.call{value: minFee}("");
+        if (!success) revert CostFeeFailed();
 
         emit Tip(user, to, token, toXId, amount);
     }
@@ -171,14 +189,14 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
     ) public onlyOperator nonReentrant whenNotPaused {
         if (orderIdUsed[orderId]) revert OrderIdUsed();
         orderIdUsed[orderId] = true;
-        _checkAndUpdateLimit(user, WBNB, amountIn);
+        // Step 1: check balance
+        if (userBalances[user] < amountIn) revert InsufficientBalance();
 
-        // Step 1: Transfer from user
-        _checkWBNBTransferFrom(user, amountIn);
-        if (!IERC20(WBNB).transferFrom(user, address(this), amountIn)) revert TransferFromFailed();
+        // Step 2: update balance
+        userBalances[user] -= amountIn;
+        
 
-        // Step 2: Extract to bnb
-        IWBNB(WBNB).withdraw(amountIn);
+        _checkAndUpdateLimit(user, address(0), amountIn);
 
         // Step 3: Call swap
         if (version == 1) {
@@ -214,16 +232,22 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         orderIdUsed[orderId] = true;
         if (path.length < 2) revert InvalidPath();
         if (path[0] != WBNB) revert InvalidPath(); // tokenIn
-        _checkAndUpdateLimit(user, path[0], amountIn);
+
+        // Step 1: check balance
+        if (userBalances[user] < amountIn) revert InsufficientBalance();
+
+        // Step 2: update balance
+        userBalances[user] -= amountIn;
+
+        _checkAndUpdateLimit(user, address(0), amountIn);
+
 
         (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
 
         // Step 1: Transfer from user
-        _checkWBNBTransferFrom(user, amountIn);
-        if (!IERC20(path[0]).transferFrom(user, address(this), amountIn)) revert TransferFromFailed();
 
         // cost platform fee
-        IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
+        // IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
         (bool success, ) = feeAddress.call{value: flatformFee}("");
         if (!success) revert CostFeeFailed();
 
@@ -234,12 +258,11 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         } else {
             IIPShare(ipShare).valueCapture{value: ipshareFee}(sellsman);
         }
-        // Step 2: Approve to router
         uint amount = amountIn - flatformFee - ipshareFee;
-        require(IERC20(path[0]).approve(router, amount), "Approve failed");
 
-        // Step 3: Call Uniswap
-        IUniswapV2Router02(router).swapExactTokensForTokens(amount, amountOutMin, path, user, deadline);
+        IUniswapV2Router02(router).swapExactETHForTokens{
+            value: amount
+        }(amountOutMin, path, user, deadline);
     }
 
     function setFee(uint[2] calldata _feeRates, uint _minFee) external onlyOwner {
@@ -268,16 +291,6 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         bytes32 info = keccak256(abi.encodePacked(profix, data));
         address addr = ECDSA.recover(info, v, r, s);
         return addr == operator;
-    }
-
-    function _checkWBNBTransferFrom(address user, uint256 amount) internal view {
-        if (IERC20(WBNB).balanceOf(user) < amount) revert InsufficientBalance();
-        if (IERC20(WBNB).allowance(user, address(this)) < amount) revert InsufficientAllowance();
-    }
-
-    function setWBNB(address wbnb) external onlyOwner {
-        if (wbnb == address(0)) revert InvalidAddress();
-        WBNB = wbnb;
     }
 
     function setIpShare(address addr) external onlyOwner {
