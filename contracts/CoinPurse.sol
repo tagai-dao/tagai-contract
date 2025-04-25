@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/ICoinPurse.sol";
 import "./interface/IIPShare.sol";
 import "./interface/ITagAIErrors.sol";
-
 interface IWBNB {
     function withdraw(uint wad) external;
 }
@@ -97,27 +96,22 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         limit.spentToday += amount;
     }
 
-    // INSERT_YOUR_REWRITE_HERE
-    function setBNBLimit(uint256 maxPerTx, uint256 maxPerDay) external onlyOwner payable {
-        userBalances[msg.sender] += msg.value;
-        userLimits[msg.sender][address(0)].maxPerTx = maxPerTx;
-        userLimits[msg.sender][address(0)].maxPerDay = maxPerDay;
-        emit LimitSet(msg.sender, address(0), maxPerTx, maxPerDay);
-    }
-
-    function withdrawBNB(uint256 amount) external {
-        if (userBalances[msg.sender] < amount) revert InsufficientBalance();
-        (bool success, ) = msg.sender.call{value: amount}("");
-        if (!success) revert TransferFailed();
-        userBalances[msg.sender] -= amount;
-    }
-
-    function setLimit(address token, uint256 maxPerTx, uint256 maxPerDay) external {
+    function setLimit(address token, uint256 maxPerTx, uint256 maxPerDay) external payable {
         address user = msg.sender;
         Limit storage limit = userLimits[user][token];
         limit.maxPerTx = maxPerTx;
         limit.maxPerDay = maxPerDay;
+        if (token == address(0)) {
+            userBalances[user] += msg.value;
+        }
         emit LimitSet(user, token, maxPerTx, maxPerDay);
+    }
+
+    function withdrawBNB(uint256 amount) external whenNotPaused {
+        if (userBalances[msg.sender] < amount) revert InsufficientBalance();
+        userBalances[msg.sender] -= amount;
+        (bool success, ) = msg.sender.call{value: amount}("");
+        if (!success) revert TransferFailed();
     }
 
     function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) external payable whenNotPaused nonReentrant {

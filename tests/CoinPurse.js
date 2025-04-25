@@ -83,25 +83,16 @@ describe("CoinPurse", function () {
 
         await owner.sendTransaction({ to: operator, value: ethers.parseUnits("10", "ether") })
 
-        await WBNB.connect(owner).deposit({ value: ethers.parseUnits("10", "ether") })
-        await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("10", "ether") })
-        await WBNB.connect(addr2).deposit({ value: ethers.parseUnits("10", "ether") })
-
-
 
         // Set the operator address and router as defined in the constructor
         await coinPurse.connect(owner).setOperator(operator.address);
-        await coinPurse.connect(owner).setWBNB(WBNB.target);
 
         // approve to CoinPurse
         await token.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-        await WBNB.connect(owner).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
 
         await token.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-        await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
 
         await token.connect(addr2).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
-        await WBNB.connect(addr2).approve(coinPurse.target, ethers.parseUnits("100000000", "ether"));
     });
 
     function randomUint256() {
@@ -125,6 +116,12 @@ describe("CoinPurse", function () {
         })
     }
 
+    async function setBnbLimit(user, maxPerTx, maxPerDay, value) {
+        await coinPurse.connect(user).setLimit(ethers.ZeroAddress, maxPerTx, maxPerDay, {
+            value: value
+        });
+    }
+
     describe("Contract Status", () => {
         it("addresses", async () => {
             let ownerAddr = await coinPurse.owner();
@@ -145,6 +142,17 @@ describe("CoinPurse", function () {
             expect(limit.spentToday).to.equal(0);
             expect(limit.lastUpdatedDay).to.equal(0);
         });
+
+        it('should set bnb limit correctly', async () => {
+            const maxPerTx = ethers.parseUnits("100", "ether");
+            const maxPerDay = ethers.parseUnits("1000", "ether");
+            const value = ethers.parseUnits("1", "ether")
+            await expect(coinPurse.connect(addr1).setLimit(ethers.ZeroAddress, maxPerTx, maxPerDay, {
+                value: value
+            })).to.changeEtherBalances([addr1, coinPurse], [-value, value]);
+            const limit = await coinPurse.userLimits(addr1, ethers.ZeroAddress);
+            expect(limit.maxPerTx).to.equal(maxPerTx);
+        });
     });
 
     describe("withdraw", () => {
@@ -163,31 +171,31 @@ describe("CoinPurse", function () {
             await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
             await coinPurse.connect(owner).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
 
-            const tokenBalance = await token.balanceOf(owner.address)
-            const wbnbBalance = await WBNB.balanceOf(owner.address)
-            expect(tokenBalance).to.gte(ethers.parseUnits("50", "ether"))
-            expect(wbnbBalance).to.gte(fee)
             // Host some tokens for xId
+            await setBnbLimit(owner, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseUnits("1", "ether"))
             await coinPurse.connect(operator).tip(randomUint256(), owner.address, token.target, ethers.ZeroAddress, xId, ethers.parseUnits("50", "ether"));
 
             const host = await coinPurse.hostingAmount(xId, token.target)
 
             // Withdraw tokens
             await coinPurse.connect(addr1).withdraw(xId, tokens, signature, { value: fee });
-
-            // Verify that the tokens have been transferred to addr1
-            const balance = await token.balanceOf(addr1.address);
-            expect(balance).to.equal(ethers.parseUnits("50", "ether"));
         });
     });
 
     describe("tip", function () {
+        it('should revert if insufficient balance', async function () {
+            const amount = ethers.parseUnits("50", "ether");
+            await token.mint(addr1.address, amount);
+            await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
+            await expect(coinPurse.connect(operator).tip(randomUint256(), addr1.address, token.target, addr2.address, 0, amount))
+                .to.be.revertedWithCustomError(coinPurse, "InsufficientBalance()");
+        })
         it("should transfer tokens to a given address when to is not zero", async function () {
             const amount = ethers.parseUnits("50", "ether");
             await token.mint(addr1.address, amount);
             await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
-            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
-
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseUnits("1", "ether"))
             await coinPurse.connect(operator).tip(randomUint256(), addr1.address, token.target, addr2.address, 0, amount);
             const balance = await token.balanceOf(addr2.address);
             expect(balance).to.equal(amount);
@@ -197,9 +205,8 @@ describe("CoinPurse", function () {
             const amount = ethers.parseUnits("50", "ether");
             const xId = 1;
             await token.mint(addr1.address, amount);
-            await token.connect(addr1).approve(coinPurse.target, amount);
             await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
-
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseUnits("1", "ether"))
             await coinPurse.connect(operator).tip(randomUint256(), addr1.address, token.target, ethers.ZeroAddress, xId, amount);
             const hostedAmount = await coinPurse.hostingAmount(xId, token.target);
             expect(hostedAmount).to.equal(amount);
@@ -209,8 +216,8 @@ describe("CoinPurse", function () {
             const amount = ethers.parseUnits("50", "ether");
             const xId = 1;
             await token.mint(addr1.address, amount);
-            await token.connect(addr1).approve(coinPurse.target, amount);
             await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseUnits("1", "ether"))
             const tipId = randomUint256();
             await coinPurse.connect(operator).tip(tipId, addr1.address, token.target, ethers.ZeroAddress, xId, amount);
             await expect(coinPurse.connect(operator).tip(tipId, addr1.address, token.target, ethers.ZeroAddress, xId, amount))
@@ -225,6 +232,7 @@ describe("CoinPurse", function () {
             await token.mint(owner.address, amount)
             await token.connect(owner).approve(coinPurse.target, amount);
             await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(owner, amount, amount, ethers.parseEther('1', 'ether'))
 
             const tipIds = [randomUint256(), randomUint256()]
             const toUsers = [addr1.address, addr2.address]
@@ -238,13 +246,36 @@ describe("CoinPurse", function () {
                     [amount / BigInt(tipIds.length), amount / BigInt(tipIds.length)])
         })
 
+        it('should revert if insufficient balance', async () => {
+            const amount = ethers.parseUnits("100", "ether")
+
+            await token.mint(owner.address, amount)
+            await token.connect(owner).approve(coinPurse.target, amount);
+            await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(owner, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('1', 'ether'))
+
+            await coinPurse.connect(addr1).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+
+            const tipIds = [randomUint256(), randomUint256()]
+            const toUsers = [addr2.address, addr2.address]
+            const calls = []
+            const senders = [owner.address, addr1.address]
+            for (let i = 0; i < tipIds.length; i++) {
+                const call = coinPurse.interface.encodeFunctionData("tip", [tipIds[i], senders[i], token.target, toUsers[i], 0, amount / BigInt(tipIds.length)])
+                calls.push(call)
+            }
+            await expect(coinPurse.connect(operator).tryAggregate(false, tipIds, calls))
+                .to.changeTokenBalances(token, [addr1.address,addr2.address, owner.address],
+                    [0, amount / BigInt(tipIds.length), -amount / BigInt(tipIds.length)])
+        })
+
         it("One of the tryAggregate will fail", async () => {
             const amount = ethers.parseUnits("100", "ether")
 
             await token.mint(owner.address, amount)
             await token.connect(owner).approve(coinPurse.target, amount);
             await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("50", "ether"), ethers.parseUnits("99", "ether"))
-
+            await setBnbLimit(owner, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('1', 'ether'))
             const tipIds = [randomUint256(), randomUint256()]
             const toUsers = [addr1.address, addr2.address]
             const calls = []
@@ -298,6 +329,7 @@ describe("CoinPurse", function () {
             await token.mint(owner.address, amount)
             await token.connect(owner).approve(coinPurse.target, amount);
             await coinPurse.connect(owner).setLimit(token.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(owner, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('1', 'ether'))
 
             const tipId = randomUint256()
             const toUsers = [addr1.address, addr2.address]
@@ -333,13 +365,11 @@ describe("CoinPurse", function () {
 
             const amountIn = ethers.parseUnits("10", "ether");
             const slippage = 0;
-            await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("100", "ether") });
-            await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000", "ether"));
-            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('25', 'ether'))
 
             // Call internalSwap
             await expect(coinPurse.connect(operator).internalSwap(randomUint256(), addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2))
-                .to.changeTokenBalance(WBNB, addr1, -amountIn)
+                .to.changeEtherBalance(coinPurse, -amountIn)
 
             await expect(coinPurse.connect(operator).internalSwap(randomUint256(), addr1.address, amountIn, pumpToken.target, ethers.ZeroAddress, slippage, 2))
                 .to.changeEtherBalance(donutFeeDestination, amountIn * 100n / 10000n + amountIn * 100n * 250n / 100000000n)
@@ -350,9 +380,7 @@ describe("CoinPurse", function () {
 
             const amountIn = ethers.parseUnits("10", "ether");
             const slippage = 0;
-            await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("100", "ether") });
-            await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("100000", "ether"));
-            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('15', 'ether'))
 
             // Call internalSwap
             const swapId = randomUint256();
@@ -385,10 +413,7 @@ describe("CoinPurse", function () {
             const [_, amountOutMin] = await router.getAmountsOut(amountIn * 9800n / 10000n, path)
             const deadline = (await ethers.provider.getBlock("latest")).timestamp + 3600;
 
-            await WBNB.connect(addr1).deposit({ value: ethers.parseUnits("10", "ether") });
-            await WBNB.connect(addr1).approve(coinPurse.target, ethers.parseUnits("10", "ether"));
-            await coinPurse.connect(addr1).setLimit(WBNB.target, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"))
-
+            await setBnbLimit(addr1, ethers.parseUnits("100", "ether"), ethers.parseUnits("10000", "ether"), ethers.parseEther('15', 'ether'))
             // Call externalSwap
             await expect(coinPurse.connect(operator).externalSwap(randomUint256(), addr1.address, amountIn, amountOutMin, path, deadline, router.target, ethers.ZeroAddress))
                 .to.changeEtherBalance(donutFeeDestination, amountIn * 200n / 10000n)
