@@ -96,6 +96,17 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         limit.spentToday += amount;
     }
 
+    function checkLimit(address user, address token, uint256 amount) public view returns (bool) {
+        Limit storage limit = userLimits[user][token];
+        if (amount > limit.maxPerTx) {
+            return false;
+        }
+        if (limit.spentToday + amount > limit.maxPerDay) {
+            return false;
+        }
+        return true;
+    }
+
     function setLimit(address token, uint256 maxPerTx, uint256 maxPerDay) external payable {
         address user = msg.sender;
         Limit storage limit = userLimits[user][token];
@@ -135,7 +146,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
     function tryAggregate(bool requireSuccess, uint256[] calldata orderIds, bytes[] calldata calls) public returns (MulticallResult[] memory returnData) {
         returnData = new MulticallResult[](calls.length);
-        for(uint256 i = 0; i < calls.length; i++) {
+        for (uint256 i = 0; i < calls.length; i++) {
             (bool success, bytes memory ret) = address(this).delegatecall(calls[i]);
             if (requireSuccess && !success) {
                 revert MulticallFailed();
@@ -157,6 +168,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         orderIdUsed[orderId] = true;
         if (userBalances[user] < minFee) revert InsufficientBalance();
         _checkAndUpdateLimit(user, token, amount);
+        _checkAndUpdateLimit(user, address(0), minFee);
         if (to != address(0)) {
             if (!IERC20(token).transferFrom(user, to, amount)) revert TransferFailed();
         } else {
@@ -188,7 +200,6 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
         // Step 2: update balance
         userBalances[user] -= amountIn;
-        
 
         _checkAndUpdateLimit(user, address(0), amountIn);
 
@@ -235,7 +246,6 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
         _checkAndUpdateLimit(user, address(0), amountIn);
 
-
         (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
 
         // Step 1: Transfer from user
@@ -254,9 +264,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         }
         uint amount = amountIn - flatformFee - ipshareFee;
 
-        IUniswapV2Router02(router).swapExactETHForTokens{
-            value: amount
-        }(amountOutMin, path, user, deadline);
+        IUniswapV2Router02(router).swapExactETHForTokens{value: amount}(amountOutMin, path, user, deadline);
     }
 
     function setFee(uint[2] calldata _feeRates, uint _minFee) external onlyOwner {
