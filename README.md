@@ -12,8 +12,7 @@ npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
 
-更换了bonding curve为y=a*exp(x/b)
-list的dex换成uni v3
+完成Twitter Tip合约，即社交钱包
 
 
 ### Contract
