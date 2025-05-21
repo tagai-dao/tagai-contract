@@ -10,9 +10,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/ICoinPurse.sol";
 import "./interface/IIPShare.sol";
 import "./interface/ITagAIErrors.sol";
-interface IWBNB {
-    function withdraw(uint wad) external;
-}
+import "./interface/IUniswapV3Router.sol";
+import "./interface/IWETH.sol";
 
 contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIErrors {
     struct Limit {
@@ -265,6 +264,65 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         uint amount = amountIn - flatformFee - ipshareFee;
 
         IUniswapV2Router02(router).swapExactETHForTokens{value: amount}(amountOutMin, path, user, deadline);
+    }
+
+    function externalSwapV3(
+        uint256 orderId,
+        address user,
+        uint256 amountIn, // Note should include the cost
+        uint256 amountOutMin,
+        address outToken,
+        uint24 poolFee,
+        uint256 deadline,
+        address router, // for uni or pancakeswap or other v3 dex router
+        address sellsman
+    ) public onlyOperator nonReentrant whenNotPaused {
+        if (orderIdUsed[orderId]) revert OrderIdUsed();
+        orderIdUsed[orderId] = true;
+
+        // Step 1: check balance
+        if (userBalances[user] < amountIn) revert InsufficientBalance();
+
+        // Step 2: update balance
+        userBalances[user] -= amountIn;
+
+        _checkAndUpdateLimit(user, address(0), amountIn);
+
+        (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
+
+        // Step 1: Transfer from user
+
+        // cost platform fee
+        (bool success, ) = feeAddress.call{value: flatformFee}("");
+        if (!success) revert CostFeeFailed();
+
+        // cost ipshare fee
+        if (!IIPShare(ipShare).ipshareCreated(sellsman)) {
+            (success, ) = feeAddress.call{value: ipshareFee}("");
+            if (!success) revert CostFeeFailed();
+        } else {
+            IIPShare(ipShare).valueCapture{value: ipshareFee}(sellsman);
+        }
+        uint amount = amountIn - flatformFee - ipshareFee;
+
+        // 1. Wrap BNB to WBNB
+        IWETH(WBNB).deposit{value: amount}();
+
+        // 2. Approve Router
+        IWETH(WBNB).approve(router, amount);
+
+        // 3. Call exactInputSingle
+        IUniswapV3Router.ExactInputSingleParams memory params = IUniswapV3Router.ExactInputSingleParams({
+            tokenIn: WBNB,
+            tokenOut: outToken,
+            fee: poolFee,
+            recipient: user,
+            deadline: deadline,
+            amountIn: amount,
+            amountOutMinimum: amountOutMin,
+            sqrtPriceLimitX96: 0
+        });
+        IUniswapV3Router(router).exactInputSingle(params);
     }
 
     function setFee(uint[2] calldata _feeRates, uint _minFee) external onlyOwner {
