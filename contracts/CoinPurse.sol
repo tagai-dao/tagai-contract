@@ -290,8 +290,6 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
         (uint flatformFee, uint ipshareFee) = _getFee(amountIn);
 
-        // Step 1: Transfer from user
-
         // cost platform fee
         (bool success, ) = feeAddress.call{value: flatformFee}("");
         if (!success) revert CostFeeFailed();
