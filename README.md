@@ -20,4 +20,5 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 IPShare:0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0
 Pump:0xa77253Ac630502A35A6FcD210A01f613D33ba7cD
 CoinPurse: 0xAD8D3Bbeb4eD9cd20923fE785407Ad9EbC9E3caD
+NewCoinPuesewithV3: 0x6C818c610F3D9db65f5e0c0838f3F68600b80C85
 ```
