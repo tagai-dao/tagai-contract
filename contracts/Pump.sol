@@ -20,6 +20,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     uint256 private secondPerDay = 86400;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
+    address private tradeSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
     uint256[2] private feeRatio = [100, 100];  // 0: to tiptag; 1: to salesman
     address private WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;  // bsc
     address private uniswapV2Factory 
@@ -73,6 +74,11 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         claimSigner = signer;
     }
 
+    function adminChangeTradeSigner(address signer) public onlyOwner {
+        emit TradeSignerChanged(tradeSigner, signer);
+        tradeSigner = signer;
+    }
+
     function adminSetClaimFee(uint256 _claimFee) public onlyOwner {
         if (_claimFee > 0.02 ether) {
             revert TooMuchFee();
@@ -103,6 +109,10 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
     function getClaimSigner() public override view returns (address) {
         return claimSigner;
+    }
+
+    function getTradeSigner() public override view returns (address) {
+        return tradeSigner;
     }
 
     function getUniswapV2Factory() public override view returns (address) {
@@ -159,7 +169,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         if (msg.value > createFee) {
             (bool success1, bytes memory receiveAmount) = instance.call{
                 value: msg.value - createFee
-            }(abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, creator, 0));
+            }(abi.encodeWithSignature("buyToken(uint256,address,uint16,bytes)", 0, creator, 0, '0x00'));
             if (!success1) {
                 revert PreMineTokenFail();
             }

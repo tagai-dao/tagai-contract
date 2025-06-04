@@ -12,12 +12,10 @@ npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
 
-更换了bonding curve为y=a*exp(x/b)
-list的dex换成uni v3
-
+更新了内盘的购买权限，只有tagai授权的地址才可以进行内盘购买操作
 
 ### Contract
 ```javascript
-IPShare:0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0
-Pump:0xa77253Ac630502A35A6FcD210A01f613D33ba7cD
+IPShare:0x24328DccA1bA54EeE82e2993F021802e64290486
+Pump:0x2cAbfDE43f93422fFb070f0Fa03d2951dbBC7749
 ```

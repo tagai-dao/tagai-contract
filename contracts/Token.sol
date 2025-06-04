@@ -13,6 +13,8 @@ import "./interface/IUniswapV2Factory.sol";
 import "./interface/IUniswapV2Pair.sol";
 import "./interface/IBondingCurve.sol";
 import "./interface/INonfungiblePositionManager.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+
 
 contract Token is IToken, ERC20, ReentrancyGuard {
     string private _name;
@@ -39,7 +41,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
     receive() external payable {
         if (!listed) {
-            buyToken(0, address(0), 0);
+            revert TokenNotListed();
         }
     }
 
@@ -76,21 +78,25 @@ contract Token is IToken, ERC20, ReentrancyGuard {
     function buyToken(
         uint256 expectAmount,
         address sellsman,
-        uint16 slippage
+        uint16 slippage,
+        bytes calldata signature
     ) public payable nonReentrant returns (uint256) {
         require(msg.sender != pair, "can't buy token to pair");
         sellsman = _checkBondingCurveState(sellsman);
         uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
-        uint256 buyFunds = msg.value;
         uint256 tiptagFee = (msg.value * feeRatio[0]) / divisor;
         uint256 sellsmanFee = (msg.value * feeRatio[1]) / divisor;
+
+        if(msg.sender != manager && !_check(signature)) {
+            revert InvalidGatePermission();
+        }
 
          if (sellsmanFee < 100000000) {
             revert DustIssue();
         }
 
         uint256 tokenReceived = bondingCurve
-            .getBuyAmountByValue(bondingCurveSupply, buyFunds - tiptagFee - sellsmanFee);
+            .getBuyAmountByValue(bondingCurveSupply, msg.value - tiptagFee - sellsmanFee);
 
         address tiptapFeeAddress = IPump(manager).getFeeReceiver();
 
@@ -116,7 +122,6 @@ contract Token is IToken, ERC20, ReentrancyGuard {
                 }
             }
 
-            buyFunds = usedEth;
             tiptagFee = (usedEth * feeRatio[0]) / divisor;
             sellsmanFee = (usedEth * feeRatio[1]) / divisor;
 
@@ -154,7 +159,12 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         }
     }
 
-    function sellToken(uint256 amount, uint256 expectReceive, address sellsman, uint16 slippage) public nonReentrant {
+    function sellToken(
+        uint256 amount, 
+        uint256 expectReceive, 
+        address sellsman, 
+        uint16 slippage
+    ) public nonReentrant {
         sellsman = _checkBondingCurveState(sellsman);
 
         uint256 sellAmount = amount;
@@ -233,6 +243,21 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
         listed = true;
         emit TokenListedToDex(pair);
+    }
+
+    function _check(bytes calldata sign) internal view returns (bool) {
+        bytes32 data = keccak256(abi.encodePacked(block.chainid, msg.sender));
+
+        bytes32 r = abi.decode(sign[:32], (bytes32));
+        bytes32 s = abi.decode(sign[32:64], (bytes32));
+        uint8 v = uint8(sign[64]);
+        if (v < 27) {
+            if (v == 0 || v == 1) v += 27;
+        }
+        bytes memory profix = "\x19Ethereum Signed Message:\n32";
+        bytes32 info = keccak256(abi.encodePacked(profix, data));
+        address addr = ECDSA.recover(info, v, r, s);
+        return addr == IPump(manager).getTradeSigner();
     }
 
     /********************************** erc20 function ********************************/

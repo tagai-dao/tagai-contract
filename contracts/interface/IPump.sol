@@ -26,12 +26,15 @@ interface IPump {
     event FeeRatiosChanged(uint256 indexed donutFee, uint256 indexed sellsmanFee);
     event ClaimSignerChanged(address indexed oldSigner, address indexed newSigner);
     event ClaimFeeChanged(uint256 indexed oldFee, uint256 indexed newFee);
+    event TradeSignerChanged(address indexed oldSigner, address indexed newSigner);
+    
     function getIPShare() external view returns (address);
     function getFeeReceiver() external view returns (address);
     function getFeeRatio() external view returns (uint256[2] memory);
     function getClaimFee() external view returns (uint256);
     function createToken(string calldata tick) external payable returns (address);
     function getClaimSigner() external view returns (address);
+    function getTradeSigner() external view returns (address);
     function getUniswapV2Factory() external view returns (address);
     function getUniswapV2Router() external view returns (address);
     function getWETH() external view returns (address);

@@ -14,6 +14,7 @@ interface IToken {
     error RefundFail();
     error CostFeeFail();
     error DustIssue();
+    error InvalidGatePermission();
 
     event Trade(
         address indexed buyer,
