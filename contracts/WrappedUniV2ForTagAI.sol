@@ -7,6 +7,7 @@ import "./interface/ISocialDistribution.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interface/IUniswapV3Router.sol";
+import "./interface/IWETH.sol";
 
 contract WrappedUniV2ForTagAI is Ownable, ReentrancyGuard {
     // address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
@@ -198,6 +199,70 @@ contract WrappedUniV2ForTagAI is Ownable, ReentrancyGuard {
             (bool success, ) = to.call{value: address(this).balance}("");
             require(success, "Transfer to failed");
         }
+    }
+
+    function sellTokenV3(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address token,
+        address to,
+        uint256 deadline,
+        address sellsman,
+        address uniswapRouterv3,
+        uint24 poolFee
+    ) public nonReentrant {
+        // 获取代币开发者地址
+        if (sellsman == address(0)) {
+            sellsman = ISocialDistribution(socialDistribution).getTokenDev(token);
+            if (sellsman == address(0)) {
+                sellsman = feeAddress;
+            }
+        }
+
+        // 转移代币到合约
+        ERC20(token).transferFrom(msg.sender, address(this), amountIn);
+
+        // 授权 Uniswap V3 Router 使用代币
+        require(ERC20(token).approve(uniswapRouterv3, amountIn), "Approve failed");
+
+        // 调用 exactInputSingle 进行代币交换，将代币换成 WETH
+        IUniswapV3Router.ExactInputSingleParams memory params = IUniswapV3Router.ExactInputSingleParams({
+            tokenIn: token,
+            tokenOut: WETH,
+            fee: poolFee,
+            recipient: address(this),
+            deadline: deadline,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMin,
+            sqrtPriceLimitX96: 0
+        });
+
+        IUniswapV3Router(uniswapRouterv3).exactInputSingle(params);
+
+        // 将 WETH 换成 ETH
+        uint256 wethBalance = IERC20(WETH).balanceOf(address(this));
+        if (wethBalance > 0) {
+            IWETH(WETH).withdraw(wethBalance);
+        }
+
+        // 处理手续费
+        uint256 amount = address(this).balance;
+        if (sellsmanRatio > 0) {
+            uint256 sellsmanFee = (amount * sellsmanRatio) / 10000;
+            amount -= sellsmanFee;
+            (bool success, ) = sellsman.call{value: sellsmanFee}("");
+            require(success, "Pay sellsman fee fail");
+        }
+        if (tagaiRatio > 0) {
+            uint256 tagaiFee = (amount * tagaiRatio) / 10000;
+            amount -= tagaiFee;
+            (bool success, ) = feeAddress.call{value: tagaiFee}("");
+            require(success, "Pay fee fail");
+        }
+
+        // 将剩余的 ETH 转给用户
+        (bool success, ) = to.call{value: amount}("");
+        require(success, "Transfer to failed");
     }
 
 }
