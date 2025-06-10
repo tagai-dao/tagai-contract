@@ -15,7 +15,8 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         0xa77253Ac630502A35A6FcD210A01f613D33ba7cD,
         0x3DC52C69C3C8be568372E16d50E9F3FEc796610c,
         0xc9FaA3c05a5178C380d9C28Edffa38d90D606F22,
-        0x0476571a77Cc8Fc28796935Cf173c265F2021448
+        0x0476571a77Cc8Fc28796935Cf173c265F2021448,
+        0x2cAbfDE43f93422fFb070f0Fa03d2951dbBC7749
     ];
 
     struct Distribution {
