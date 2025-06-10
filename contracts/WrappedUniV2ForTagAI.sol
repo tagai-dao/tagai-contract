@@ -5,8 +5,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IUniswapV2Router02.sol";
 import "./interface/ISocialDistribution.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./interface/IUniswapV3Router.sol";
 
-contract WrappedUniV2ForTagAI is Ownable {
+contract WrappedUniV2ForTagAI is Ownable, ReentrancyGuard {
     // address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
     address public WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
@@ -50,7 +52,7 @@ contract WrappedUniV2ForTagAI is Ownable {
         address to,
         uint deadline,
         address uniswapRouter02
-    ) public payable {
+    ) public payable nonReentrant {
         require(path[0] == WETH, "wrong path");
         address _token = path[1];
         if (sellsman == address(0)) {
@@ -89,7 +91,7 @@ contract WrappedUniV2ForTagAI is Ownable {
         uint256 deadline,
         address sellsman,
         address uniswapRouter02
-    ) public {
+    ) public nonReentrant {
         require(path[1] == WETH, "wrong path");
         address _token = path[0];
         ERC20 token = ERC20(_token);
@@ -142,4 +144,60 @@ contract WrappedUniV2ForTagAI is Ownable {
             require(success, "Transfer to failed");
         }
     }
+
+    function buyTokenV3(
+        address sellsman,
+        uint256 amountOutMin,
+        address token,
+        address to,
+        uint256 deadline,
+        address uniswapRouterv3,
+        uint24 poolFee
+    ) public payable nonReentrant {
+        // cost platform fee 
+        if (sellsman == address(0)) {
+            sellsman = ISocialDistribution(socialDistribution).getTokenDev(token);
+            if (sellsman == address(0)) {
+                sellsman = feeAddress;
+            }
+        }
+
+        // cost ipshare fee
+        uint256 buyFund = msg.value;
+
+        if (sellsmanRatio > 0) {
+            uint256 sellsmanFee = (msg.value * sellsmanRatio) / 10000;
+            buyFund = buyFund - sellsmanFee;
+
+            (bool success, ) = sellsman.call{value: sellsmanFee}("");
+            require(success, "Pay sellsman fee fail");
+        }
+        if (tagaiRatio > 0) {
+            uint256 tagaiFee = (msg.value * tagaiRatio) / 10000;
+            buyFund = buyFund - tagaiFee;
+            (bool success, ) = feeAddress.call{value: tagaiFee}("");
+            require(success, "Pay fee fail");
+        }
+
+        // Call exactInputSingle
+        IUniswapV3Router.ExactInputSingleParams memory params = IUniswapV3Router.ExactInputSingleParams({
+            tokenIn: WETH,
+            tokenOut: token,
+            fee: poolFee,
+            recipient: to,
+            deadline: deadline,
+            amountIn: buyFund,
+            amountOutMinimum: amountOutMin,
+            sqrtPriceLimitX96: 0
+        });
+        IUniswapV3Router(uniswapRouterv3).exactInputSingle{
+            value: buyFund
+        }(params);
+        IUniswapV3Router(uniswapRouterv3).refundETH();
+        if (address(this).balance > 0) {
+            (bool success, ) = to.call{value: address(this).balance}("");
+            require(success, "Transfer to failed");
+        }
+    }
+
 }
