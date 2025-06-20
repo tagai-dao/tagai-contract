@@ -14,6 +14,7 @@ interface ISocialDistribution {
     error CostFeeFail();
     error InvalidClaimAmount();
     error InvalidSignature();
+    error InsufficientBalance();
     error ClaimOrderExist();
     error OnlyDeployer();
     event AdminSetDefaultDistribution();

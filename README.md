@@ -12,8 +12,9 @@ npx hardhat node
 npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```
 
-更换了bonding curve为y=a*exp(x/b)
-list的dex换成uni v3
+可以支持外部导入代币进行社交分发
+项目方随时向合约注入社交资金供用户领取
+项目方可以多次设置阶段性分发策略
 
 
 ### Contract

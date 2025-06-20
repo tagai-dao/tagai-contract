@@ -145,7 +145,6 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         }
 
         checkDistribution(_distributions);
-       
 
         tickCreated[symbol] = true;
         getTokenDev[token] = dev;
@@ -210,6 +209,9 @@ contract SocialDistribution is Ownable2Step, ReentrancyGuard, ISocialDistributio
         }
         if (signature.length != 65) {
             revert InvalidSignature();
+        }
+        if (ERC20(token).balanceOf(address(this)) < amount) {
+            revert InsufficientBalance();
         }
         if (msg.value < claimFee) {
             revert CostFeeFail();
