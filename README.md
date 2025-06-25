@@ -21,4 +21,5 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 ```javascript
 IPShare:0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0
 Pump:0xa77253Ac630502A35A6FcD210A01f613D33ba7cD
+SocialDistribution: 0x201308B193bC0Aa81Ac540A7D3B3ADb530a39861
 ```

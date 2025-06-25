@@ -10,8 +10,8 @@ async function main() {
     ]);
     console.log(1, socialDistribution.target)
 
-    const pump = await ethers.deployContract('Pump', [ipshare.target])
-    console.log(2, pump.target)
+    // const pump = await ethers.deployContract('Pump', [ipshare.target])
+    // console.log(2, pump.target)
 
     // const wrappUni = await ethers.deployContract('WrappedUniV2ForTipTag', 
     //     ['0xb6eec8EaEAEd773F47265f743Db607eb547BD2Dc', 
