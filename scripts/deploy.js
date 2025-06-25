@@ -5,8 +5,8 @@ async function main() {
     const [signer] = await ethers.getSigners();
     console.log("deployer:", signer.address, 'balance:', await signer.provider.getBalance(signer.address), '\n', await signer.provider.getFeeData())
     // return;
-    const socialDistribution = await ethers.deployContract('SocialDistribution', [
-        
+    const socialDistribution = await ethers.deployContract('WrappedUniV2ForTagAI', [
+       '0x201308B193bC0Aa81Ac540A7D3B3ADb530a39861' 
     ]);
     console.log(1, socialDistribution.target)
 
