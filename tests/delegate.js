@@ -62,7 +62,7 @@ describe("Delegate", function () {
                 .withArgs(owner.address, delegate1.address, token.target, amount);
 
             // 验证委托记录
-            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target, 0, 0);
+            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target);
             expect(delegations[0].delegator).to.equal(owner.address);
             expect(delegations[0].delegate).to.equal(delegate1.address);
             expect(delegations[0].token).to.equal(token.target);
@@ -88,7 +88,7 @@ describe("Delegate", function () {
                 .withArgs(owner.address, delegate1.address, token.target, amount);
 
             // 验证取消状态
-            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target, 0, 0);
+            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target);
             expect(delegations[0].canceledAmount).to.equal(amount);
             expect(delegations[0].cancelTimestamp).to.be.gt(0);
         });

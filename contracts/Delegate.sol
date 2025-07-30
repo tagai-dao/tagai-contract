@@ -45,8 +45,13 @@ contract Delegate is ReentrancyGuard {
     mapping(address => DelegateInfo) public delegates;
 
     // 委托记录映射（仅存储代理人侧的记录，按地址+代币分类）
+    // delegate => token =》 Delegate[]
     mapping(address => mapping(address => Delegation[]))
         public delegationsByDelegate;
+
+    // delegator => delegate => token =》 index，方便检索记录
+    mapping(address => mapping(address => mapping(address => uint256)))
+        public delegationIndexs;
 
     // 事件定义
     event DelegateCreated(
@@ -100,24 +105,47 @@ contract Delegate is ReentrancyGuard {
         address _token,
         uint256 _amount
     ) external {
-        require(delegates[_delegate].exists, "Delegate not exists");
         require(_amount > 0, "Amount must be greater than 0");
         require(
             IERC20(_token).transferFrom(msg.sender, address(this), _amount),
             "Transfer failed"
         );
 
-        Delegation memory newDelegation = Delegation({
-            delegator: msg.sender,
-            delegate: _delegate,
-            token: _token,
-            amount: _amount,
-            cancelTimestamp: 0,
-            canceledAmount: 0,
-            exists: true
-        });
+        if (delegates[_delegate].exists == false) {
+            delegates[_delegate] = DelegateInfo({
+                delegateAddress: _delegate,
+                commissionRate: 2000,
+                token: _token,
+                exists: true
+            });
+            emit DelegateCreated(
+                _delegate,
+                delegates[_delegate].commissionRate,
+                _token
+            );
+        }
 
-        delegationsByDelegate[_delegate][_token].push(newDelegation);
+        uint index = delegationIndexs[msg.sender][_delegate][_token];
+        if (
+            delegationsByDelegate[_delegate][_token].length > 0 &&
+            delegationsByDelegate[_delegate][_token][index].delegate ==
+            _delegate
+        ) {
+            delegationsByDelegate[_delegate][_token][index].amount += _amount;
+        } else {
+            index = delegationsByDelegate[_delegate][_token].length;
+            delegationIndexs[msg.sender][_delegate][_token] = index;
+            Delegation memory newDelegation = Delegation({
+                delegator: msg.sender,
+                delegate: _delegate,
+                token: _token,
+                amount: _amount,
+                cancelTimestamp: 0,
+                canceledAmount: 0,
+                exists: true
+            });
+            delegationsByDelegate[_delegate][_token].push(newDelegation);
+        }
 
         emit Delegated(msg.sender, _delegate, _token, _amount);
     }
@@ -130,39 +158,34 @@ contract Delegate is ReentrancyGuard {
     ) external {
         bool found = false;
 
-        for (
-            uint i = 0;
-            i < delegationsByDelegate[_delegate][_token].length;
-            i++
+        uint index = delegationIndexs[msg.sender][_delegate][_token];
+
+        if (
+            delegationsByDelegate[_delegate][_token][index].delegator ==
+            msg.sender &&
+            delegationsByDelegate[_delegate][_token][index].canceledAmount <
+            delegationsByDelegate[_delegate][_token][index].amount
         ) {
-            if (
-                delegationsByDelegate[_delegate][_token][i].delegator ==
-                msg.sender &&
-                delegationsByDelegate[_delegate][_token][i].canceledAmount <
-                delegationsByDelegate[_delegate][_token][i].amount
-            ) {
-                uint256 remainingAmount = delegationsByDelegate[_delegate][
-                    _token
-                ][i].amount -
-                    delegationsByDelegate[_delegate][_token][i].canceledAmount;
-                uint256 cancelAmount = _amount > remainingAmount
-                    ? remainingAmount
-                    : _amount;
+            uint256 remainingAmount = delegationsByDelegate[_delegate][_token][
+                index
+            ].amount -
+                delegationsByDelegate[_delegate][_token][index].canceledAmount;
+            uint256 cancelAmount = _amount > remainingAmount
+                ? remainingAmount
+                : _amount;
 
-                delegationsByDelegate[_delegate][_token][i]
-                    .canceledAmount += cancelAmount;
-                delegationsByDelegate[_delegate][_token][i]
-                    .cancelTimestamp = block.timestamp;
+            delegationsByDelegate[_delegate][_token][index]
+                .canceledAmount += cancelAmount;
+            delegationsByDelegate[_delegate][_token][index]
+                .cancelTimestamp = block.timestamp;
 
-                emit DelegationCanceled(
-                    msg.sender,
-                    _delegate,
-                    _token,
-                    cancelAmount
-                );
-                found = true;
-                break;
-            }
+            emit DelegationCanceled(
+                msg.sender,
+                _delegate,
+                _token,
+                cancelAmount
+            );
+            found = true;
         }
 
         require(found, "No active delegation found");
@@ -175,32 +198,27 @@ contract Delegate is ReentrancyGuard {
     ) external nonReentrant {
         bool found = false;
         uint256 amountToClaim = 0;
+        uint index = delegationIndexs[msg.sender][_delegate][_token];
 
-        for (
-            uint i = 0;
-            i < delegationsByDelegate[_delegate][_token].length;
-            i++
+        if (
+            delegationsByDelegate[_delegate][_token][index].delegator ==
+            msg.sender &&
+            delegationsByDelegate[_delegate][_token][index].cancelTimestamp >
+            0 &&
+            block.timestamp >=
+            delegationsByDelegate[_delegate][_token][index].cancelTimestamp +
+                lockTime &&
+            delegationsByDelegate[_delegate][_token][index].canceledAmount > 0
         ) {
-            if (
-                delegationsByDelegate[_delegate][_token][i].delegator ==
-                msg.sender &&
-                delegationsByDelegate[_delegate][_token][i].cancelTimestamp >
-                0 &&
-                block.timestamp >=
-                delegationsByDelegate[_delegate][_token][i].cancelTimestamp +
-                    lockTime &&
-                delegationsByDelegate[_delegate][_token][i].canceledAmount > 0
-            ) {
-                amountToClaim += delegationsByDelegate[_delegate][_token][i]
-                    .canceledAmount;
-                delegationsByDelegate[_delegate][_token][i]
-                    .amount -= delegationsByDelegate[_delegate][_token][i]
-                    .canceledAmount;
-                delegationsByDelegate[_delegate][_token][i].canceledAmount = 0;
-                delegationsByDelegate[_delegate][_token][i].cancelTimestamp = 0;
+            amountToClaim += delegationsByDelegate[_delegate][_token][index]
+                .canceledAmount;
+            delegationsByDelegate[_delegate][_token][index]
+                .amount -= delegationsByDelegate[_delegate][_token][index]
+                .canceledAmount;
+            delegationsByDelegate[_delegate][_token][index].canceledAmount = 0;
+            delegationsByDelegate[_delegate][_token][index].cancelTimestamp = 0;
 
-                found = true;
-            }
+            found = true;
         }
 
         require(found, "No claimable delegation found");
@@ -212,43 +230,12 @@ contract Delegate is ReentrancyGuard {
         );
     }
 
-    // 辅助函数：从数组中移除委托记录
-    function _removeDelegation(
-        Delegation[] storage _array,
-        uint256 _index
-    ) internal {
-        if (_index < _array.length - 1) {
-            _array[_index] = _array[_array.length - 1];
-        }
-        _array.pop();
-    }
-
     // 查询代理人下的所有委托
     // 查询代理人下的委托（按代币，支持分页）
     function getDelegationsByDelegate(
         address _delegate,
-        address _token,
-        uint256 startIndex,
-        uint256 endIndex
+        address _token
     ) external view returns (Delegation[] memory) {
-        Delegation[] storage allDelegations = delegationsByDelegate[_delegate][
-            _token
-        ];
-
-        // 当startIndex和endIndex都为0时返回全部
-        if (startIndex == 0 && endIndex == 0) {
-            return allDelegations;
-        }
-
-        // 验证分页参数有效性
-        require(endIndex > startIndex, "Invalid index range");
-        require(endIndex <= allDelegations.length, "Index out of bounds");
-
-        // 返回分页结果
-        Delegation[] memory page = new Delegation[](endIndex - startIndex);
-        for (uint256 i = startIndex; i < endIndex; i++) {
-            page[i - startIndex] = allDelegations[i];
-        }
-        return page;
+        return delegationsByDelegate[_delegate][_token];
     }
 }
