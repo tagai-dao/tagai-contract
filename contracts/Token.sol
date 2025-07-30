@@ -41,7 +41,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
     receive() external payable {
         if (!listed) {
-            buyToken(0, address(0), 0, address(0));
+            buyToken(0, address(0), 0);
         }
     }
 
