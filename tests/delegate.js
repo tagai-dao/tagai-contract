@@ -62,7 +62,7 @@ describe("Delegate", function () {
                 .withArgs(owner.address, delegate1.address, token.target, amount);
 
             // 验证委托记录
-            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target);
+            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target, 0, 0);
             expect(delegations[0].delegator).to.equal(owner.address);
             expect(delegations[0].delegate).to.equal(delegate1.address);
             expect(delegations[0].token).to.equal(token.target);
@@ -88,7 +88,7 @@ describe("Delegate", function () {
                 .withArgs(owner.address, delegate1.address, token.target, amount);
 
             // 验证取消状态
-            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target);
+            const delegations = await delegate.getDelegationsByDelegate(delegate1.address, token.target, 0, 0);
             expect(delegations[0].canceledAmount).to.equal(amount);
             expect(delegations[0].cancelTimestamp).to.be.gt(0);
         });
@@ -115,7 +115,7 @@ describe("Delegate", function () {
 
             // 验证余额变化
             const finalBalance = await token.balanceOf(owner.address);
-            expect(finalBalance-initialBalance).to.equal(amount);
+            expect(finalBalance - initialBalance).to.equal(amount);
         });
     });
 });
