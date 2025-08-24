@@ -14,18 +14,18 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private ipshare;
-    uint256 public createFee = 0.01 ether;
-    uint256 private claimFee = 0.001 ether;
+    uint256 public createFee = 0.03 ether;
+    uint256 private claimFee = 0.003 ether;
     uint256 private divisor = 10000;
     uint256 private secondPerDay = 86400;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
     uint256[2] private feeRatio = [100, 100];  // 0: to tiptag; 1: to salesman
-    address private WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;  // bsc
+    address private WETH = 0xe538905cf8410324e03A5A23C1c177a474D59b2b;  // okx
     address private uniswapV2Factory 
-        = 0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73;  // bsc
+        = 0x630DB8E822805c82Ca40a54daE02dd5aC31f7fcF;  // okx
     address private uniswapV2Router 
-        = 0x10ED43C718714eb63d5aA57B78B54704E256024E;  // bsc   
+        = 0x881fB2f98c13d521009464e7D1CBf16E1b394e8E;  // okx   
 
     mapping(address => bool) public createdTokens;
     mapping(string => bool) public createdTicks;
@@ -264,8 +264,8 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
      */
     function getPrice(uint256 supply, uint256 amount) public pure override returns (uint256) {
         require(supply <= 1000000000 ether && amount <= 1000000000 ether, "supply or amount too large");
-        uint256 a = 6_500_000_000;
-        uint256 b = 2.5175516438e26;
+        uint256 a = 6_000_000_000;
+        uint256 b = 2.400250924947558e26;
         uint256 x = FixedPointMathLib.mulWad(a, b);
         uint256 e1 = uint256(FixedPointMathLib.expWad(int256((supply + amount) * 1e18 / b)));
         uint256 e2 = uint256(FixedPointMathLib.expWad(int256((supply) * 1e18 / b)));
@@ -288,8 +288,8 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
     function getBuyAmountByValue(uint256 bondingCurveSupply, uint256 ethAmount) public pure override returns (uint256) {
         require(bondingCurveSupply <= 1000000000 ether && ethAmount <= 1000000000 ether, "supply or amount too large");
-        uint256 a = 6_500_000_000;
-        uint256 b = 2.5175516438e26;
+        uint256 a = 6_000_000_000;
+        uint256 b = 2.400250924947558e26;
         // b * ln(ethAmount / (a*b) + exp(bondingCurveSupply/b)) - bondingCurveSupply;
         uint256 ab = FixedPointMathLib.mulWad(a, b);
         uint256 sab = FixedPointMathLib.divWad(ethAmount, ab);

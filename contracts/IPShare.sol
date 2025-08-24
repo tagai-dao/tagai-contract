@@ -175,7 +175,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     function adminSetCreateFee(
         uint256 _createFee
     ) public onlyOwner {
-        if (_createFee > 0.01 ether) {
+        if (_createFee > 0.03 ether) {
             revert TooMuchFee();
         }
         createFee = _createFee;
@@ -665,7 +665,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     ) public pure returns (uint256) {
         uint256 price = (amount *
             (amount ** 2 + 3 * amount * supply + 3 * (supply ** 2)));
-        return price / 100000 / 3e36;
+        return price / 30000 / 3e36;
     }
 
     function getBuyPrice(
@@ -709,7 +709,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         uint256 supply,
         uint256 ethAmount
     ) public pure override returns (uint256) {
-        return floorCbrt(ethAmount * 100000 * 3e36 + supply ** 3) - supply;
+        return floorCbrt(ethAmount * 30000 * 3e36 + supply ** 3) - supply;
     }
 
     function floorCbrt(uint256 n) internal pure returns (uint256) {

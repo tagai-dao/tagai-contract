@@ -7,8 +7,8 @@ import "./Token.sol";
 import "./interface/IIPShare.sol";
 
 contract WrappedUniV2ForTagAI is Ownable {
-    address public uniswapRouter02 = 0x10ED43C718714eb63d5aA57B78B54704E256024E;
-    address public WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address public uniswapRouter02 = 0x881fB2f98c13d521009464e7D1CBf16E1b394e8E;
+    address public WETH = 0xe538905cf8410324e03A5A23C1c177a474D59b2b;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
 
     uint16 public sellsmanRatio = 100;
