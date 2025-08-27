@@ -99,6 +99,13 @@ module.exports = {
         process.env.KEY
       ]
     },
+    okb: {
+      url: process.env.OKB,
+      chainId: 196,
+      accounts: [
+        process.env.KEY
+      ]
+    },
     bsc: {
       url: process.env.BSC,
       chainId: 56,

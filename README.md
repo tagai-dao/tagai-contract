@@ -16,8 +16,9 @@ npx hardhat ignition deploy ./ignition/modules/Lock.js
 list的dex换成uni v3
 
 
-### Contract
+### Contract -- X-layer
 ```javascript
 IPShare:0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0
 Pump:0xa77253Ac630502A35A6FcD210A01f613D33ba7cD
+WrppedUniV2ForTagAI: 0x0B6e5e9544DED2a3bB5be553E6b570E2eA97B77e
 ```

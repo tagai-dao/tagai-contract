@@ -226,16 +226,16 @@ describe("Pump", function () {
             let supply = await getBondingCurveSupply()
 
             const price = await pump.getBuyPriceAfterFee(supply, parseAmount(100000000))
-            expect(price).eq(911848133866902953n)
+            expect(price).eq(862870280886530197n)
 
             await token.connect(alice).buyToken(parseAmount(100000000), ethers.ZeroAddress, 0, {
-                value: 911848133866902953n
+                value: 862870280886530197n
             })
             supply = await getBondingCurveSupply()
 
             const sellPrice = await pump.getSellPriceAfterFee(supply, parseAmount(100000000))
-            expect(sellPrice).eq(875738947765773594n)
-            expect(price * 9800n / 10000n * 9800n / 10000n).eq(sellPrice + 1n)
+            expect(sellPrice).eq(828700617763423598n)
+            expect(price * 9800n / 10000n * 9800n / 10000n).eq(sellPrice + 3n)
         })
 
         it("The sellsman cant purchase token if he did not created ipshare", async () => {
@@ -359,7 +359,7 @@ describe("Pump", function () {
             
             await expect(token.connect(bob).buyToken(bondingTotalAmount, ethers.ZeroAddress, 0, {
                 value: buyFund
-            })).to.changeEtherBalances([bob, donutFeeDestination], [-gb2, 1198933677024662579n]);
+            })).to.changeEtherBalances([bob, donutFeeDestination], [-gb2, 1200629188406106865n]);
         })
 
         it("The last buyer will make the liquidity pool too", async () => {
@@ -616,7 +616,7 @@ describe("Pump", function () {
             needEth = await pump.getBuyPriceAfterFee(bondingCurveSupply, buyAmount)
             await expect(token.connect(alice).buyToken(buyAmount, ethers.ZeroAddress, 500, {
                 value: needEth
-            })).to.changeEtherBalance(donutFeeDestination, 1040762559720426312n)
+            })).to.changeEtherBalance(donutFeeDestination, 1042487480255875017n)
         })
 
         it('Can buy token to dex when create token', async () => {
@@ -625,7 +625,7 @@ describe("Pump", function () {
             let needEth = await pump.getBuyPriceAfterFee(bondingCurveSupply, buyAmount)
             await expect(token.connect(bob).buyToken(buyAmount, ethers.ZeroAddress, 0, {
                 value: needEth
-            })).to.changeEtherBalance(donutFeeDestination, 1209183677024662579n)
+            })).to.changeEtherBalance(donutFeeDestination, 1210879188406106865n)
             
             expect(await token.listed()).eq(true)
         })
@@ -691,7 +691,7 @@ describe("Pump", function () {
             let orderId = 23059723523125626n;
             let signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             }))
                 .to.emit(pump, 'UserClaimReward')
                 .withArgs(ethers.getAddress(token.target), orderId, alice.address, claimAmount);
@@ -699,7 +699,7 @@ describe("Pump", function () {
             orderId = 23852135483n;
             signature = await getClaimSignature(token.target, orderId, claimAmount, bob.address)
             await expect(pump.connect(bob).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             })).to.changeTokenBalances(token, [bob, pump], [claimAmount, -claimAmount])
         })
 
@@ -735,7 +735,7 @@ describe("Pump", function () {
             const orderId = 23059723523125626n;
             const signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.002)
+                value: parseAmount(0.005)
             }))
                 .to.revertedWithCustomError(pump, 'InvalidClaimAmount')
         })
@@ -745,20 +745,20 @@ describe("Pump", function () {
             let orderId = 23059723523125626n;
             let signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             }))
                 .to.emit(pump, 'UserClaimReward')
                 .withArgs(ethers.getAddress(token.target), orderId, alice.address, claimAmount);
 
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             }))
                 .to.revertedWithCustomError(token, 'ClaimOrderExist')
 
             claimAmount = parseAmount(1000);
             signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(alice).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             }))
                 .to.revertedWithCustomError(pump, 'ClaimOrderExist')
         })
@@ -768,7 +768,7 @@ describe("Pump", function () {
             let orderId = 23059723523125626n;
             let signature = await getClaimSignature(token.target, orderId, claimAmount, alice.address)
             await expect(pump.connect(bob).userClaim(token, orderId, claimAmount, signature, {
-                value: parseAmount(0.001)
+                value: parseAmount(0.003)
             }))
                 .to.revertedWithCustomError(pump, 'InvalidSignature')
         })

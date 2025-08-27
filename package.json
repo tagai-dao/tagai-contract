@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "compile": "hardhat compile",
-    "deploy": "hardhat run --network bsc scripts/deploy.js",
+    "deploy": "hardhat run --network okb scripts/deploy.js",
     "deploy-chapel": "hardhat run --network chapel scripts/deploy.js",
     "test": "hardhat test",
     "test-ipshare": "hardhat test tests/ipshare",
