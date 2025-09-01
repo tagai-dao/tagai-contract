@@ -27,10 +27,10 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         bytes returnData;
     }
 
-    address private WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+    address private WOKB = 0xe538905cf8410324e03A5A23C1c177a474D59b2b;
     address public feeAddress = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address public operator = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
-    address public ipShare = 0x24328DccA1bA54EeE82e2993F021802e64290486;
+    address public ipShare = 0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0;
 
     // user => token => limit
     mapping(address => mapping(address => Limit)) public userLimits;
@@ -48,7 +48,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
 
     // platform fee, ipshare fee
     uint[2] public feeRates = [100, 100];
-    uint public minFee = 0.0005 ether;
+    uint public minFee = 0.0015 ether;
     uint private denominator = 10000;
 
     constructor() Ownable(msg.sender) {}
@@ -117,14 +117,18 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         emit LimitSet(user, token, maxPerTx, maxPerDay);
     }
 
-    function withdrawBNB(uint256 amount) external whenNotPaused {
+    function withdrawOKB(uint256 amount) external whenNotPaused {
         if (userBalances[msg.sender] < amount) revert InsufficientBalance();
         userBalances[msg.sender] -= amount;
         (bool success, ) = msg.sender.call{value: amount}("");
         if (!success) revert TransferFailed();
     }
 
-    function withdraw(uint xId, address[] calldata tokens, bytes calldata signature) external payable whenNotPaused nonReentrant {
+    function withdraw(
+        uint xId, 
+        address[] calldata tokens, 
+        bytes calldata signature
+    ) external payable whenNotPaused nonReentrant {
         bytes32 data = keccak256(abi.encodePacked(block.chainid, xId, tokens, msg.sender));
         if (!_check(data, signature)) revert InvalidSignature();
 
@@ -143,7 +147,11 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         emit Withdraw(xId, msg.sender, tokens, amounts);
     }
 
-    function tryAggregate(bool requireSuccess, uint256[] calldata orderIds, bytes[] calldata calls) public returns (MulticallResult[] memory returnData) {
+    function tryAggregate(
+        bool requireSuccess, 
+        uint256[] calldata orderIds, 
+        bytes[] calldata calls
+    ) public returns (MulticallResult[] memory returnData) {
         returnData = new MulticallResult[](calls.length);
         for (uint256 i = 0; i < calls.length; i++) {
             (bool success, bytes memory ret) = address(this).delegatecall(calls[i]);
@@ -162,7 +170,14 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         return returnData;
     }
 
-    function tip(uint256 orderId, address user, address token, address to, uint256 toXId, uint256 amount) public onlyOperator nonReentrant whenNotPaused {
+    function tip(
+        uint256 orderId, 
+        address user, 
+        address token, 
+        address to, 
+        uint256 toXId, 
+        uint256 amount
+    ) public onlyOperator nonReentrant whenNotPaused {
         if (orderIdUsed[orderId]) revert OrderIdUsed();
         orderIdUsed[orderId] = true;
         if (userBalances[user] < minFee) revert InsufficientBalance();
@@ -235,7 +250,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         if (orderIdUsed[orderId]) revert OrderIdUsed();
         orderIdUsed[orderId] = true;
         if (path.length < 2) revert InvalidPath();
-        if (path[0] != WBNB) revert InvalidPath(); // tokenIn
+        if (path[0] != WOKB) revert InvalidPath(); // tokenIn
 
         // Step 1: check balance
         if (userBalances[user] < amountIn) revert InsufficientBalance();
@@ -250,7 +265,7 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         // Step 1: Transfer from user
 
         // cost platform fee
-        // IWBNB(WBNB).withdraw(flatformFee + ipshareFee);
+        // IWOKB(WOKB).withdraw(flatformFee + ipshareFee);
         (bool success, ) = feeAddress.call{value: flatformFee}("");
         if (!success) revert CostFeeFailed();
 
@@ -303,15 +318,15 @@ contract CoinPurse is Ownable, Pausable, ReentrancyGuard, ICoinPurse, TagAIError
         }
         uint amount = amountIn - flatformFee - ipshareFee;
 
-        // 1. Wrap BNB to WBNB
-        IWETH(WBNB).deposit{value: amount}();
+        // 1. Wrap OKB to WOKB
+        IWETH(WOKB).deposit{value: amount}();
 
         // 2. Approve Router
-        IWETH(WBNB).approve(router, amount);
+        IWETH(WOKB).approve(router, amount);
 
         // 3. Call exactInputSingle
         IUniswapV3Router.ExactInputSingleParams memory params = IUniswapV3Router.ExactInputSingleParams({
-            tokenIn: WBNB,
+            tokenIn: WOKB,
             tokenOut: outToken,
             fee: poolFee,
             recipient: user,
