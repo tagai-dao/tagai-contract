@@ -3,10 +3,10 @@ const fs = require("fs");
 const path = require("path");
 
 // TagPoints 合约地址
-const TAG_POINTS_ADDRESS = "0x661fC0a052d2A73da9E09a5C67AE6b9c1B5Eb352";
+const TAG_POINTS_ADDRESS = "0x013f02c21cEDf1c846044B30Cabe289ef4DaFD18";
 
 // CSV 文件路径
-const CSV_FILE_PATH = path.join(__dirname, "generated_addresses_reward.csv");
+const CSV_FILE_PATH = path.join(__dirname, "generated_addresses_reward2.csv");
 
 async function main() {
     console.log("=== 从 CSV 文件批量铸造 TagPoints ===\n");
