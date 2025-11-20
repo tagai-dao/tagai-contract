@@ -110,8 +110,21 @@ module.exports = {
   etherscan: {
     apiKey:{
       base: process.env.BASE_API_KEY,
-      bsc: process.env.BSC_API_KEY
-    }
+      bsc: process.env.ETH_API_KEY_V2
+    },
+    customChains: [
+      {
+        network: "bsc",
+        chainId: 56,
+        urls: {
+          apiURL: "https://api.etherscan.io/v2/api?chainid=56",
+          browserURL: "https://bscscan.com"
+        }
+      }
+    ]
+  },
+  sourcify: {
+    enabled: true
   },
   // flattenExporter: {
   //   src: "./contracts",
