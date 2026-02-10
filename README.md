@@ -1,8 +1,8 @@
-# Protocol Documentation
+# TagAI Protocol Documentation
 
 ## 1. Protocol Overview
 
-This protocol establishes a multi-layered ecosystem designed to capture and monetize individual reputation (IP) through a combination of bonding curves, fair launch mechanisms, and gamified incentives.
+TagAI establishes a multi-layered ecosystem designed to capture and monetize individual reputation (IP) through a combination of bonding curves, fair launch mechanisms, and gamified incentives.
 
 The system is built on first principles of value creation and liquidity:
 1.  **Value Layer (`IPShare.sol`)**: Tokenizes the reputation of a subject (creator/KOL) using a high-volatility curve.
