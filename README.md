@@ -96,11 +96,9 @@ This creates a closed loop where speculation (Token/Donut) creates fundamental v
 
 ---
 
-## 4. Contract Addresses (Testnet)
+## 4. Contract Addresses (BSC mainnet)
 
 ```javascript
-IPShare:        0x7B0ddC305C32AAEbabc0FE372a4460e9903e95D0
-Pump:           0xa77253Ac630502A35A6FcD210A01f613D33ba7cD
-TagAIPoints:    0x661fC0a052d2A73da9E09a5C67AE6b9c1B5Eb352
-TagAIPoints2:   0x013f02c21cEDf1c846044B30Cabe289ef4DaFD18
+IPShare:        0x24328DccA1bA54EeE82e2993F021802e64290486
+Pump:           0x0476571a77Cc8Fc28796935Cf173c265F2021448
 ```
