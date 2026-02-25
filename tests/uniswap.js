@@ -33,11 +33,13 @@ describe("swap with wrapped uni v2", function () {
     async function createToken(deployer, tick, createValue) {
         return new Promise(async (resolve, reject) => {
             try {
+                const signer = deployer ?? owner;
+                const [salt] = await pump.generateSalt(signer.address);
                 pump.on('NewToken', (tick, token) => {
                     resolve({ token, tick })
                 })
                 await sleep(0.1)
-                const trans = await pump.connect(deployer ?? owner).createToken(tick, {
+                await pump.connect(signer).createToken(tick, salt, {
                     value: createValue
                 });
                 await pump.adminChangeClaimSigner(owner)

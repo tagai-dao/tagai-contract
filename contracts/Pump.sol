@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./interface/IPump.sol";
@@ -14,6 +15,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private ipshare;
+    address public tokenImplementation;
     uint256 public createFee = 0.01 ether;
     uint256 private claimFee = 0.001 ether;
     uint256 private divisor = 10000;
@@ -29,6 +31,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
     mapping(address => bool) public createdTokens;
     mapping(string => bool) public createdTicks;
+    mapping(address => uint256) private createdSaltsIndex;
 
     // social distribution
     uint256 private constant claimAmountPerSecond = 12.87 ether;
@@ -38,10 +41,28 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     mapping(address => uint256) public totalClaimedSocialRewards;
     uint256 public totalTokens;
 
+    /**
+     * @param _ipshare IPShare 合约地址
+     * @param _tokenImplementation Token 实现合约地址（用于 clone）
+     * @param _feeReceiver 手续费接收地址，传 address(0) 则使用默认
+     * @param _weth WETH 地址，传 address(0) 则使用默认（BSC）
+     * @param _factory UniswapV2 Factory 地址，传 address(0) 则使用默认（BSC）
+     * @param _router UniswapV2 Router 地址，传 address(0) 则使用默认（BSC）
+     */
     constructor(
-        address _ipshare
+        address _ipshare,
+        address _tokenImplementation,
+        address _feeReceiver,
+        address _weth,
+        address _factory,
+        address _router
     ) Ownable(msg.sender) {
         ipshare = _ipshare;
+        tokenImplementation = _tokenImplementation;
+        if (_feeReceiver != address(0)) feeReceiver = _feeReceiver;
+        if (_weth != address(0)) WETH = _weth;
+        if (_factory != address(0)) uniswapV2Factory = _factory;
+        if (_router != address(0)) uniswapV2Router = _router;
     }
 
     receive() external payable {}
@@ -81,6 +102,11 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         claimFee = _claimFee;
     }
 
+    function adminChangeTokenImplementation(address _tokenImplementation) public onlyOwner {
+        emit TokenImplementationChanged(tokenImplementation, _tokenImplementation);
+        tokenImplementation = _tokenImplementation;
+    }
+
     function adminChangeFeeAddress(address _feeReceiver) public onlyOwner {
         emit FeeAddressChanged(feeReceiver, _feeReceiver);
         feeReceiver = _feeReceiver;
@@ -117,19 +143,20 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         return WETH;
     }
 
-    function createToken(string calldata tick)
+    function createToken(string calldata tick, bytes32 salt)
         public payable override nonReentrant returns (address) {
         if (createdTicks[tick]) {
             revert TickHasBeenCreated();
         }
-        
+        if (uint256(salt) <= createdSaltsIndex[msg.sender]) {
+            revert SaltNotAvailable();
+        }
         createdTicks[tick] = true;
 
         // check user created ipshare
         address creator = tx.origin;
         
         if (!IIPShare(ipshare).ipshareCreated(creator)) {
-            // create ipshare
             IIPShare(ipshare).createShare(creator);
         }
 
@@ -142,12 +169,14 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
             revert InsufficientCreateFee();
         }
 
-        Token token = new Token();
-        address instance  = address(token);
+        // 使用 clone + CREATE2 部署代币，gas 更低且地址可预测
+        bytes32 cloneSalt = keccak256(abi.encode(msg.sender, salt));
+        address instance = Clones.cloneDeterministic(tokenImplementation, cloneSalt);
+        createdSaltsIndex[msg.sender] = uint256(salt);
 
         emit NewToken(tick, instance, creator);
         
-        token.initialize(
+        Token(payable(instance)).initialize(
             address(this),
             creator,
             tick
@@ -176,8 +205,30 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         }
         createdTokens[instance] = true;
         totalTokens += 1;
-        // console.log(instance);
         return instance;
+    }
+
+    /**
+     * 为指定部署者生成一个有效的 salt，确保 clone 出的 token 地址 < WETH（V3 池子 token0 排序要求）
+     */
+    function generateSalt(address deployer) public view returns (bytes32 salt, address token) {
+        uint256 currentIndex = createdSaltsIndex[deployer];
+        for (uint256 i = currentIndex + 1; ; i++) {
+            salt = bytes32(i);
+            bytes32 cloneSalt = keccak256(abi.encode(deployer, salt));
+            token = Clones.predictDeterministicAddress(tokenImplementation, cloneSalt, address(this));
+            if (token < WETH) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * 根据部署者和 salt 预测 clone 出的 token 地址
+     */
+    function predictTokenAddress(address deployer, bytes32 salt) public view returns (address) {
+        bytes32 cloneSalt = keccak256(abi.encode(deployer, salt));
+        return Clones.predictDeterministicAddress(tokenImplementation, cloneSalt, address(this));
     }
 
      /********************************** social distribution ********************************/

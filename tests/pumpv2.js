@@ -52,11 +52,13 @@ describe("Pump", function () {
     async function createToken(deployer, tick, createValue) {
         return new Promise(async (resolve, reject) => {
             try {
+                const signer = deployer ?? owner;
+                const [salt] = await pump.generateSalt(signer.address);
                 pump.on('NewToken', (tick, token) => {
                     resolve({ token, tick })
                 })
                 await sleep(0.1)
-                const trans = await pump.connect(deployer ?? owner).createToken(tick, {
+                await pump.connect(signer).createToken(tick, salt, {
                     value: createValue
                 });
                 await pump.adminChangeClaimSigner(owner)
@@ -102,8 +104,9 @@ describe("Pump", function () {
         })
 
         it("Can not create same tick", async function () {
-            await createToken(alice, 'T1', createValue); 
-            await expect(pump.connect(alice).createToken('T1'))
+            await createToken(alice, 'T1', createValue);
+            const [salt] = await pump.generateSalt(alice.address);
+            await expect(pump.connect(alice).createToken('T1', salt))
                 .to.revertedWithCustomError(pump, 'TickHasBeenCreated');
         })
     })
@@ -635,8 +638,8 @@ describe("Pump", function () {
         let token;
         let feeRatio;
         beforeEach(async () => {
-            token = await pump.createToken('T1', { value: parseAmount(0.1) })
-            token = await ethers.getContractAt('Token', '0x61c36a8d610163660e21a8b7359e1cac0c9133e1')
+            const { token: tokenAddress } = await createToken(owner, 'T1', parseAmount(0.1));
+            token = await ethers.getContractAt('Token', tokenAddress);
             // await token.setUniForTest(weth, uniswapV2Factory, uniswapV2Router02);
             feeRatio = await getFeeRatio();
             await mine(86400);

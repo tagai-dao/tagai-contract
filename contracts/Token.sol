@@ -18,7 +18,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
     string private _name;
     string private _symbol;
     uint256 private constant divisor = 10000;
-    address private BlackHole = 0x000000000000000000000000000000000000dEaD;
+    address private constant BlackHole = 0x000000000000000000000000000000000000dEaD;
 
     // distribute token total amount
     uint256 private constant socialDistributionAmount = 150000000 ether;
@@ -26,6 +26,12 @@ contract Token is IToken, ERC20, ReentrancyGuard {
     uint256 private constant liquidityAmount = 200000000 ether;
 
     uint256 public bondingCurveSupply = 0;
+
+    // 防抢跑：创建后 15 秒内动态手续费（sellsmanFee 从 80% 二次降至 Pump 设置的 feeRatio[1]）
+    uint256 public createdAt;
+    uint256 private constant ANTI_SNIPE_WINDOW = 15;
+    uint256 private constant ANTI_SNIPE_SELLSMAN_FEE_MAX = 8000;  // 80%
+    uint256 private constant ANTI_SNIPE_DENOM = 225;  // 15^2，用于二次函数
 
     // state
     address private manager;        // pump contract address
@@ -56,6 +62,7 @@ contract Token is IToken, ERC20, ReentrancyGuard {
             revert TokenInitialized();
         }
         initialized = true;
+        createdAt = block.timestamp;
         manager = manager_;
         ipshareSubject = ipshareSubject_;
         bondingCurve = IBondingCurve(manager_);
@@ -80,12 +87,12 @@ contract Token is IToken, ERC20, ReentrancyGuard {
     ) public payable nonReentrant returns (uint256) {
         require(msg.sender != pair, "can't buy token to pair");
         sellsman = _checkBondingCurveState(sellsman);
-        uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
+        (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) = _getBuyFeeRatiosView();
         uint256 buyFunds = msg.value;
-        uint256 tiptagFee = (msg.value * feeRatio[0]) / divisor;
-        uint256 sellsmanFee = (msg.value * feeRatio[1]) / divisor;
+        uint256 tiptagFee = (msg.value * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (msg.value * sellsmanFeePercent) / divisor;
 
-         if (sellsmanFee < 100000000) {
+        if (sellsmanFee < 100000000) {
             revert DustIssue();
         }
 
@@ -103,36 +110,9 @@ contract Token is IToken, ERC20, ReentrancyGuard {
             ) {
                 revert OutOfSlippage();
             }
-            // calculate used eth
-            uint256 usedEth = bondingCurve.getBuyPriceAfterFee(bondingCurveSupply,actualAmount);
-            if (usedEth > msg.value) {
-                revert InsufficientFund();
-            }
-            if (usedEth < msg.value) {
-                // refund
-                (bool success, ) = msg.sender.call{value: msg.value - usedEth}("");
-                if (!success) {
-                    revert RefundFail();
-                }
-            }
-
-            buyFunds = usedEth;
-            tiptagFee = (usedEth * feeRatio[0]) / divisor;
-            sellsmanFee = (usedEth * feeRatio[1]) / divisor;
-
-            (bool success1, ) = tiptapFeeAddress.call{value: tiptagFee}("");
-            if (!success1) {
-                revert CostFeeFail();
-            }
-            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-            this.transfer(msg.sender, actualAmount);
-            bondingCurveSupply += actualAmount;
-
-            emit Trade(msg.sender, sellsman, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
-            // build liquidity pool
-            _makeLiquidityPool();
-            return actualAmount;
+            return _buyTokenFillToCap(actualAmount, tiptagFeePercent, sellsmanFeePercent, sellsman);
         } else {
+            // 普通买入：tiptagFee / sellsmanFee 已在函数开头按 _getBuyFeeRatiosView() 动态费率算好
             if (
                 slippage > 0 &&
                 (tokenReceived > (expectAmount * (divisor + slippage)) / divisor ||
@@ -201,6 +181,57 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         bondingCurveSupply -= sellAmount;
 
         emit Trade(msg.sender, sellsman, false, sellAmount, price, tiptagFee, sellsmanFee);
+    }
+
+    /**
+     * 获取当前买入应使用的手续费比例（万分比，如 100 表示 1%）
+     * 1. 创建时的那笔（bondingCurveSupply == 0）：使用 Pump 的 feeRatio
+     * 2. 创建后 15 秒内：tiptag 固定为 feeRatio[0]，sellsman 按二次函数从 80% 降至 feeRatio[1]
+     * 3. 15 秒后：使用 Pump 配置的 feeRatio
+     */
+    function getBuyFeeRatios() external view returns (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) {
+        return _getBuyFeeRatiosView();
+    }
+
+    function _getBuyFeeRatiosView() private view returns (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) {
+        uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
+        if (bondingCurveSupply == 0) {
+            return (feeRatio[0], feeRatio[1]);
+        }
+        uint256 elapsed = block.timestamp - createdAt;
+        if (elapsed >= ANTI_SNIPE_WINDOW) {
+            return (feeRatio[0], feeRatio[1]);
+        }
+        uint256 remaining = ANTI_SNIPE_WINDOW - elapsed;
+        sellsmanFeePercent = feeRatio[1]
+            + (ANTI_SNIPE_SELLSMAN_FEE_MAX - feeRatio[1]) * remaining * remaining / ANTI_SNIPE_DENOM;
+        return (feeRatio[0], sellsmanFeePercent);
+    }
+
+    function _buyTokenFillToCap(
+        uint256 actualAmount,
+        uint256 tiptagFeePercent,
+        uint256 sellsmanFeePercent,
+        address sellsman
+    ) private returns (uint256) {
+        uint256 priceBeforeFee = bondingCurve.getPrice(bondingCurveSupply, actualAmount);
+        uint256 usedEth = (priceBeforeFee * divisor) / (divisor - tiptagFeePercent - sellsmanFeePercent);
+        if (usedEth > msg.value) revert InsufficientFund();
+        if (usedEth < msg.value) {
+            (bool ok, ) = msg.sender.call{value: msg.value - usedEth}("");
+            if (!ok) revert RefundFail();
+        }
+        uint256 tiptagFee = (usedEth * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (usedEth * sellsmanFeePercent) / divisor;
+        address tiptapFeeAddress = IPump(manager).getFeeReceiver();
+        (bool success1, ) = tiptapFeeAddress.call{value: tiptagFee}("");
+        if (!success1) revert CostFeeFail();
+        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
+        this.transfer(msg.sender, actualAmount);
+        bondingCurveSupply += actualAmount;
+        emit Trade(msg.sender, sellsman, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
+        _makeLiquidityPool();
+        return actualAmount;
     }
 
     function _checkBondingCurveState(address sellsman) private returns (address) {

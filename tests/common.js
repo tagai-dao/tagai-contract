@@ -36,9 +36,18 @@ async function deployPumpFactory() {
     let routerFactory = await ethers.getContractFactory("UniswapV2Router02");
     let uniswapV2Router02 = await routerFactory.deploy(uniswapV2Factory, weth);
 
+    const TokenImpl = await ethers.getContractFactory('Token');
+    const tokenImplementation = await TokenImpl.deploy();
+
     const Factory = await ethers.getContractFactory('Pump');
-    
-    const pump = await Factory.deploy(ipshare, donutFeeDestination, weth, uniswapV2Factory, uniswapV2Router02, owner);
+    const pump = await Factory.deploy(
+        ipshare.target,
+        tokenImplementation.target,
+        donutFeeDestination.address,
+        weth.target,
+        uniswapV2Factory.target,
+        uniswapV2Router02.target
+    );
 
     const TestERC20 = await ethers.getContractFactory('TestERC20');
     const testERC20 = await TestERC20.deploy();
