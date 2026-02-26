@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
@@ -7,12 +7,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IIPShare.sol";
 
 // Events
-contract IPShareevents {
-    event CreateIPshare(
-        address indexed subject, 
-        uint256 indexed amount, 
-        uint256 createFee
-    );
+contract IPShareEvents {
+    event CreateIPshare(address indexed subject, uint256 indexed amount, uint256 createFee);
     event Trade(
         address indexed trader,
         address indexed subject,
@@ -23,11 +19,7 @@ contract IPShareevents {
         uint256 subjectEthAmount,
         uint256 supply
     );
-    event ValueCaptured(
-        address indexed subject,
-        address indexed investor,
-        uint256 indexed amount
-    );
+    event ValueCaptured(address indexed subject, address indexed investor, uint256 indexed amount);
     event Stake(
         address indexed staker,
         address indexed subject,
@@ -37,12 +29,10 @@ contract IPShareevents {
     );
 }
 
-// This is a bonding curve share for KOL's content
-contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare {
+// This is a bonding curve share for KOL
+contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareEvents, IIPShare {
     address private self;
 
-    // donut contract
-    address public donut;
     // Subject => user => balance
     mapping(address => mapping(address => uint256)) private _ipshareBalance;
     // Subject => supply
@@ -53,16 +43,15 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
 
     uint256 minHoldShares = 10 ether;
 
-    // buy and sell c-share will cost operator fee to the author and donut, 
+    // buy and sell ipshare will cost operator fee to the author and protocol,
     // the percent is a number from 0 - 10000, ex. 5000 means 50%
     uint256 public subjectFeePercent;
-    uint256 public donutFeePercent;
+    uint256 public protocolFeePercent;
     uint256 public createFee;
-    // address that receive donut fee
-    address public donutFeeDestination;
+    // address that receive protocol fee
+    address public protocolFeeDestination;
 
     bool public startTrade = false;
-    bool public startFM3D = false;
 
     // ================================ stake =================================
     struct Staker {
@@ -86,18 +75,9 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     mapping(address => uint256) private ipshareAcc;
 
     // ================================ Modifiers =================================
-    // only Donut can call buy function, donut contract contains fomo 3d game
-    modifier onlyDonut() {
-        if (startFM3D && donut != msg.sender) {
-            revert OnlyDonut();
-        }
-        _;
-    }
-
     modifier onlyStaker(address subject) {
         uint256 index = stakerIndex[subject][msg.sender];
-        if (!(stakerMaxHeap[subject].length > 0 &&
-            stakerMaxHeap[subject][index].staker == msg.sender)) {
+        if (!(stakerMaxHeap[subject].length > 0 && stakerMaxHeap[subject][index].staker == msg.sender)) {
             revert OnlyStaker();
         }
         _;
@@ -110,16 +90,29 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         _;
     }
 
-    constructor() Ownable(msg.sender) {
+    // ================================ EIP-7702 compatible EOA check =================================
+    /// @dev EIP-7702 delegation prefix: 0xef0100 + 20 bytes address = 23 bytes total
+    function _isEIP7702Delegated(address account) private view returns (bool) {
+        if (account.code.length != 23) return false;
+        bytes memory code = account.code;
+        return code[0] == 0xef && code[1] == 0x01 && code[2] == 0x00;
+    }
+
+    /// @dev Returns true if address is an EOA (no code, or EIP-7702 delegation only)
+    function _isEOA(address account) private view returns (bool) {
+        return account.code.length == 0 || _isEIP7702Delegated(account);
+    }
+
+    constructor(address _protocolFeeDestination) Ownable(msg.sender) {
         self = address(this);
         // initial the fee as 4.5% 2.5%
         subjectFeePercent = 450;
-        donutFeePercent = 250;
+        protocolFeePercent = 250;
         createFee = 0;
-        donutFeeDestination = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
+        protocolFeeDestination = _protocolFeeDestination;
     }
 
-    // 
+    //
     function ipshareCreated(address subject) public view override returns (bool) {
         return _ipshareCreated[subject];
     }
@@ -133,48 +126,29 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     }
 
     // ================================ admin function =================================
-    function adminSetDonut(address _donut) public onlyOwner {
-        donut = _donut;
-    }
-
-    function adminStartTrade() public onlyOwner() {
+    function adminStartTrade() public onlyOwner {
         startTrade = true;
     }
 
-    function adminStartFM3D() public onlyOwner() {
-        if (address(donut) == address(0)) {
-            revert DonutNotSet();
-        }
-        startFM3D = true;
-    }
-
-    function adminSetSubjectFeePercent(
-        uint256 _subjectFeePercent
-    ) public onlyOwner {
+    function adminSetSubjectFeePercent(uint256 _subjectFeePercent) public onlyOwner {
         if (_subjectFeePercent >= 1000) {
             revert FeePercentIsTooLarge();
         }
         subjectFeePercent = _subjectFeePercent;
     }
 
-    function adminSetDonutFeePercent(
-        uint256 _donutFeePercent
-    ) public onlyOwner {
-        if (_donutFeePercent >= 1000) {
+    function adminSetProtocolFeePercent(uint256 _protocolFeePercent) public onlyOwner {
+        if (_protocolFeePercent >= 1000) {
             revert FeePercentIsTooLarge();
         }
-        donutFeePercent = _donutFeePercent;
+        protocolFeePercent = _protocolFeePercent;
     }
 
-    function adminSetDonutFeeDestination(
-        address _donutFeeDestination
-    ) public onlyOwner {
-        donutFeeDestination = _donutFeeDestination;
+    function adminSetProtocolFeeDestination(address _protocolFeeDestination) public onlyOwner {
+        protocolFeeDestination = _protocolFeeDestination;
     }
 
-    function adminSetCreateFee(
-        uint256 _createFee
-    ) public onlyOwner {
+    function adminSetCreateFee(uint256 _createFee) public onlyOwner {
         if (_createFee > 0.01 ether) {
             revert TooMuchFee();
         }
@@ -182,37 +156,27 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     }
 
     function pause() public onlyOwner {
-        if (!Pausable(donut).paused()) {
-            revert CanntPauseNow();
-        }
         _pause();
     }
 
     function unpause() public onlyOwner {
-        if (Pausable(donut).paused()) {
-            revert CanntUnpauseNow();
-        }
         _unpause();
     }
 
     // need receive eth from donut and ft contracts
-    receive() external payable {
-        
-    }
+    receive() external payable {}
 
     // ================================ create IPShare =================================
-    // only ft user can create his c share
-    // creation need no fee
     /**
-     * @dev only ft user can create his c share
+     * @dev can create ipshare for anyone
      * creation need no fee
      */
-    function createShare(
-        address subject
-    ) public payable override nonReentrant whenNotPaused {
+    function createShare(address subject) public payable override nonReentrant whenNotPaused {
         if (subject == address(0)) {
-            subject = tx.origin;
+            subject = msg.sender;
         }
+        // Subject must be an EOA (EIP-7702 compatible)
+        require(_isEOA(subject), "Subject must be EOA");
         // check if ipshare already created
         if (_ipshareCreated[subject]) {
             revert IPShareAlreadyCreated();
@@ -222,16 +186,18 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         if (msg.value < price + createFee) {
             revert InsufficientPay();
         }
-        
+
         if (msg.value > price + createFee) {
             (bool success, ) = msg.sender.call{value: msg.value - price - createFee}("");
             if (!success) {
                 revert RefundFail();
             }
         }
-        (bool success1, ) = donutFeeDestination.call{value: createFee}("");
-        if (!success1) {
-            revert PayCreateFeeFail();
+        if (createFee > 0) {
+            (bool success1, ) = protocolFeeDestination.call{value: createFee}("");
+            if (!success1) {
+                revert PayCreateFeeFail();
+            }
         }
 
         uint256 updatedAmount = minHoldShares;
@@ -239,7 +205,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         _ipshareSupply[subject] = updatedAmount;
         // stake all the initial amount
         _insertStaker(subject, subject, updatedAmount);
-        
+
         _ipshareBalance[subject][subject] = 0;
         totalStakedIPshare[subject] += updatedAmount;
 
@@ -252,31 +218,17 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
     }
 
     // ================================buy and sell=================================
-    // every buy and sell operation will cost the operator's c-share as fee to the author
-    // The subject addres always equal to the KOL/Author, one subject corresponding a c-share
+    // every buy and sell operation will cost the operator's ip-share as fee to the author
+    // The subject addres always equal to the KOL/Author, one subject corresponding a ip-share
     function buyShares(
         address subject,
         address buyer,
         uint256 amountOutMin
-    )
-        public
-        payable
-        override
-        onlyDonut
-        nonReentrant
-        whenNotPaused
-        needTradable
-        returns (uint256)
-    {
+    ) public payable override nonReentrant whenNotPaused needTradable returns (uint256) {
         return _buyShares(subject, buyer, amountOutMin, msg.value);
     }
 
-    function _buyShares(
-        address subject,
-        address buyer,
-        uint256 amountOutMin,
-        uint256 value
-    ) private returns (uint256) {
+    function _buyShares(address subject, address buyer, uint256 amountOutMin, uint256 value) private returns (uint256) {
         // check subject exist
         if (!_ipshareCreated[subject]) {
             revert IPShareNotExist();
@@ -284,18 +236,15 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         uint256 supply = _ipshareSupply[subject];
         uint256 buyFunds = value;
         uint256 subjectFee = (buyFunds * subjectFeePercent) / 10000;
-        uint256 donutFee = (buyFunds * donutFeePercent) / 10000;
+        uint256 protocolFee = (buyFunds * protocolFeePercent) / 10000;
 
-        uint256 ipshareReceived = getBuyAmountByValue(
-            supply,
-            buyFunds - subjectFee - donutFee
-        );
+        uint256 ipshareReceived = getBuyAmountByValue(supply, buyFunds - subjectFee - protocolFee);
 
         if (amountOutMin > 0 && ipshareReceived < amountOutMin) {
             revert OutOfSlippage();
         }
 
-        (bool success1, ) = donutFeeDestination.call{value: donutFee}("");
+        (bool success1, ) = protocolFeeDestination.call{value: protocolFee}("");
         (bool success2, ) = subject.call{value: subjectFee}("");
         if (!success1 || !success2) {
             revert CostTradeFeeFail();
@@ -303,30 +252,22 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         _ipshareBalance[subject][buyer] += ipshareReceived;
         _ipshareSupply[subject] = supply + ipshareReceived;
 
-        emit Trade(
-            buyer,
-            subject,
-            true,
-            ipshareReceived,
-            buyFunds,
-            donutFee,
-            subjectFee,
-            supply + ipshareReceived
-        );
+        emit Trade(buyer, subject, true, ipshareReceived, buyFunds, protocolFee, subjectFee, supply + ipshareReceived);
         return ipshareReceived;
     }
 
-    // every one can sell his c-shares
+    // every one can sell his ipshares
     function sellShares(
         address subject,
         uint256 shareAmount,
         uint256 amountOutMin
     ) public override nonReentrant whenNotPaused needTradable {
         uint256 supply = _ipshareSupply[subject];
-        uint sellAmount = shareAmount;
+        // Fix: revert instead of silent truncation
         if (_ipshareBalance[subject][msg.sender] < shareAmount) {
-            sellAmount = _ipshareBalance[subject][msg.sender];
+            revert InsufficientShares();
         }
+        uint256 sellAmount = shareAmount;
         uint256 afterSupply = supply - sellAmount;
         if (afterSupply < minHoldShares) {
             revert CanntSellLast10Shares();
@@ -337,60 +278,42 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         _ipshareSupply[subject] -= sellAmount;
 
         uint256 subjectFee = (price * subjectFeePercent) / 10000;
-        uint256 donutFee = (price * donutFeePercent) / 10000;
+        uint256 protocolFee = (price * protocolFeePercent) / 10000;
 
-        if (amountOutMin > 0 && price - subjectFee - donutFee < amountOutMin) {
+        if (amountOutMin > 0 && price - subjectFee - protocolFee < amountOutMin) {
             revert OutOfSlippage();
         }
 
-        (bool success1, ) = donutFeeDestination.call{value: donutFee}("");
+        (bool success1, ) = protocolFeeDestination.call{value: protocolFee}("");
         (bool success2, ) = subject.call{value: subjectFee}("");
-        (bool success3, ) = msg.sender.call{
-            value: price - subjectFee - donutFee
-        }("");
+        (bool success3, ) = msg.sender.call{value: price - subjectFee - protocolFee}("");
         if (!(success1 && success2 && success3)) {
             revert UnableToSendFunds();
         }
 
-        emit Trade(
-            msg.sender,
-            subject,
-            false,
-            sellAmount,
-            price,
-            donutFee,
-            subjectFee,
-            afterSupply
-        );
+        emit Trade(msg.sender, subject, false, sellAmount, price, protocolFee, subjectFee, afterSupply);
     }
 
     // value capture
-    function valueCapture(
-        address subject
-    ) public payable override whenNotPaused {
-        // c-share value capture
-        // the method receive eth to buy back c-shares and distribute the c-shares to all the c-share stakers
+    function valueCapture(address subject) public payable override nonReentrant whenNotPaused {
+        // ipshare value capture
+        // the method receive eth to buy back ipshares and distribute the ipshares to all the ipshare stakers
         if (msg.value == 0) {
             revert NoFunds();
         }
         uint256 obtainedAmount = _buyShares(subject, self, 0, msg.value);
         // update acc
         if (totalStakedIPshare[subject] > 0) {
-            ipshareAcc[subject] +=
-                (obtainedAmount * 1e18) /
-                totalStakedIPshare[subject];
+            ipshareAcc[subject] += (obtainedAmount * 1e18) / totalStakedIPshare[subject];
         }
 
         emit ValueCaptured(subject, msg.sender, msg.value);
     }
 
     // ================================ stake =================================
-    // User can stake his c-shares to earn voting rights and dividend rights
-    // User can add more stake c-share
-    function stake(
-        address subject,
-        uint256 amount
-    ) public nonReentrant whenNotPaused needTradable {
+    // User can stake his ipshares to earn voting rights and dividend rights
+    // User can add more stake ipshare
+    function stake(address subject, uint256 amount) public nonReentrant whenNotPaused needTradable {
         if (!(amount > 0 && _ipshareBalance[subject][msg.sender] >= amount)) {
             revert InsufficientShares();
         }
@@ -400,13 +323,11 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         // updated total stake amount
         uint256 updatedAmount = 0;
 
-        if (
-            stakerMaxHeap[subject].length == 0 ||
-            stakerMaxHeap[subject][index].staker != msg.sender
-        ) {
+        if (stakerMaxHeap[subject].length == 0 || stakerMaxHeap[subject][index].staker != msg.sender) {
             updatedAmount = amount;
             index = _insertStaker(subject, msg.sender, amount);
-        } else if (stakerMaxHeap[subject][index].amount >= 0) {
+        } else {
+            // staker already exists: accumulate pending profit before updating stake
             updatedAmount = stakerMaxHeap[subject][index].amount + amount;
             stakerMaxHeap[subject][index].profit +=
                 (ipshareAcc[subject] * stakerMaxHeap[subject][index].amount) /
@@ -417,29 +338,26 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         totalStakedIPshare[subject] += amount;
 
         // update debtes
-        stakerMaxHeap[subject][index].debts =
-            (ipshareAcc[subject] * updatedAmount) /
-            1e18;
+        stakerMaxHeap[subject][index].debts = (ipshareAcc[subject] * updatedAmount) / 1e18;
 
         _updateStake(subject, msg.sender, updatedAmount);
 
         emit Stake(msg.sender, subject, true, amount, updatedAmount);
     }
 
-    // Staker start unstake his c-shares
-    // Everyone can have only one unstaking stuts of one c-share
-    // When the staker start unstaked c-shares, the part of c-shares is locked(no voting rights and dividend rights)
+    // Staker start unstake his ipshares
+    // Everyone can have only one unstaking stuts of one ipshare
+    // When the staker start unstaked ipshares, the part of ipshares is locked(no voting rights and dividend rights)
     function unstake(
         address subject,
         uint256 amount
     ) public nonReentrant onlyStaker(subject) whenNotPaused needTradable {
         uint256 index = stakerIndex[subject][msg.sender];
 
-
         if (stakerMaxHeap[subject][index].redeemAmount != 0) {
             revert InUnstakingPeriodNow();
         }
-        
+
         if (!(amount > 0 && stakerMaxHeap[subject][index].amount >= amount)) {
             revert WrongAmountOrInsufficientStakeAmount();
         }
@@ -453,22 +371,18 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         // update stake info
         uint256 updatedAmount = stakerMaxHeap[subject][index].amount - amount;
         stakerMaxHeap[subject][index].redeemAmount = amount;
-        stakerMaxHeap[subject][index].unlockTime =
-            block.timestamp +
-            UNLOCK_PERIOD;
+        stakerMaxHeap[subject][index].unlockTime = block.timestamp + UNLOCK_PERIOD;
         totalStakedIPshare[subject] -= amount;
 
         // update debtes
-        stakerMaxHeap[subject][index].debts =
-            (ipshareAcc[subject] * updatedAmount) /
-            1e18;
+        stakerMaxHeap[subject][index].debts = (ipshareAcc[subject] * updatedAmount) / 1e18;
 
         _updateStake(subject, msg.sender, updatedAmount);
 
         emit Stake(msg.sender, subject, false, amount, updatedAmount);
     }
 
-    // Redeem the unstaked c-share
+    // Redeem the unstaked ipshare
     // The staker can redeem them after 7days after the start unstaking
     function redeem(address subject) public nonReentrant onlyStaker(subject) whenNotPaused {
         uint256 index = stakerIndex[subject][msg.sender];
@@ -479,8 +393,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         if (stakerMaxHeap[subject][index].unlockTime > block.timestamp) {
             revert IPShareIsInlockingPeriodNow();
         }
-        _ipshareBalance[subject][msg.sender] += stakerMaxHeap[subject][index]
-            .redeemAmount;
+        _ipshareBalance[subject][msg.sender] += stakerMaxHeap[subject][index].redeemAmount;
         stakerMaxHeap[subject][index].redeemAmount = 0;
     }
 
@@ -491,20 +404,17 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         if (pendingProfits == 0) {
             revert NoProfitToClaim();
         }
-        _ipshareBalance[subject][msg.sender] += pendingProfits;
-        _ipshareBalance[subject][self] -= pendingProfits;
+        uint256 selfBalance = _ipshareBalance[subject][self];
+        uint256 actualProfit = pendingProfits > selfBalance ? selfBalance : pendingProfits;
+        _ipshareBalance[subject][msg.sender] += actualProfit;
+        _ipshareBalance[subject][self] -= actualProfit;
         stakerMaxHeap[subject][index].profit = 0;
 
-        stakerMaxHeap[subject][index].debts =
-            (ipshareAcc[subject] * stakerMaxHeap[subject][index].amount) /
-            1e18;
+        stakerMaxHeap[subject][index].debts = (ipshareAcc[subject] * stakerMaxHeap[subject][index].amount) / 1e18;
     }
 
     // get stakers' pending profilts from their staking
-    function getPendingProfits(
-        address subject,
-        address staker
-    ) public view override returns (uint256) {
+    function getPendingProfits(address subject, address staker) public view override returns (uint256) {
         // if (stakerMaxHeap[subject].length == 0) {
         //     return 0;
         // }
@@ -513,36 +423,23 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
 
         Staker memory stakerInfo = getStakerInfo(subject, staker);
 
-        uint256 profits = (ipshareAcc[subject] * stakerInfo.amount) /
-            1e18 -
-            stakerInfo.debts +
-            stakerInfo.profit;
+        uint256 profits = (ipshareAcc[subject] * stakerInfo.amount) / 1e18 - stakerInfo.debts + stakerInfo.profit;
         return profits;
     }
 
     // ================================ Max heap tool =================================
-    function getMaxStaker(
-        address subject
-    ) public view override returns (address, uint256) {
+    function getMaxStaker(address subject) public view override returns (address, uint256) {
         if (stakerMaxHeap[subject].length == 0) {
             return (address(0), 0);
         }
-        return (
-            stakerMaxHeap[subject][0].staker,
-            stakerMaxHeap[subject][0].amount
-        );
+        return (stakerMaxHeap[subject][0].staker, stakerMaxHeap[subject][0].amount);
     }
 
-    function getStakerInfo(
-        address subject,
-        address staker
-    ) public view returns (Staker memory) {
+    function getStakerInfo(address subject, address staker) public view returns (Staker memory) {
         if (stakerMaxHeap[subject].length == 0) {
             return Staker(staker, 0, 0, 0, 0, 0);
         }
-        Staker memory _staker = stakerMaxHeap[subject][
-            stakerIndex[subject][staker]
-        ];
+        Staker memory _staker = stakerMaxHeap[subject][stakerIndex[subject][staker]];
 
         if (_staker.staker == staker) {
             return _staker;
@@ -550,11 +447,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         return Staker(staker, 0, 0, 0, 0, 0);
     }
 
-    function _updateStake(
-        address subject,
-        address staker,
-        uint256 amount
-    ) private {
+    function _updateStake(address subject, address staker, uint256 amount) private {
         uint256 heapLength = stakerMaxHeap[subject].length;
 
         uint256 currentIndex = stakerIndex[subject][staker];
@@ -566,10 +459,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
             // up
             while (currentIndex > 0) {
                 uint256 parentIndex = (currentIndex - 1) / 2;
-                if (
-                    stakerMaxHeap[subject][currentIndex].amount <=
-                    stakerMaxHeap[subject][parentIndex].amount
-                ) {
+                if (stakerMaxHeap[subject][currentIndex].amount <= stakerMaxHeap[subject][parentIndex].amount) {
                     break;
                 }
                 _swapStaker(subject, currentIndex, parentIndex);
@@ -586,19 +476,15 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
 
                 if (
                     leftChildIndex < heapLength &&
-                    stakerMaxHeap[subject][leftChildIndex].amount >
-                    stakerMaxHeap[subject][currentIndex].amount &&
-                    (   
-                        rightChildIndex >= heapLength ||
+                    stakerMaxHeap[subject][leftChildIndex].amount > stakerMaxHeap[subject][currentIndex].amount &&
+                    (rightChildIndex >= heapLength ||
                         (stakerMaxHeap[subject][leftChildIndex].amount >
-                        stakerMaxHeap[subject][rightChildIndex].amount)
-                    )
+                            stakerMaxHeap[subject][rightChildIndex].amount))
                 ) {
                     largestIndex = leftChildIndex;
                 } else if (
                     rightChildIndex < heapLength &&
-                    stakerMaxHeap[subject][rightChildIndex].amount >
-                    stakerMaxHeap[subject][currentIndex].amount
+                    stakerMaxHeap[subject][rightChildIndex].amount > stakerMaxHeap[subject][currentIndex].amount
                 ) {
                     largestIndex = rightChildIndex;
                 }
@@ -612,11 +498,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         }
     }
 
-    function _insertStaker(
-        address subject,
-        address staker,
-        uint256 amount
-    ) private returns (uint256) {
+    function _insertStaker(address subject, address staker, uint256 amount) private returns (uint256) {
         Staker memory newStaker = Staker(staker, amount, 0, 0, 0, 0);
         stakerMaxHeap[subject].push(newStaker);
 
@@ -625,10 +507,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
 
         while (currentIndex > 0) {
             uint256 parentIndex = (currentIndex - 1) / 2;
-            if (
-                stakerMaxHeap[subject][currentIndex].amount <=
-                stakerMaxHeap[subject][parentIndex].amount
-            ) {
+            if (stakerMaxHeap[subject][currentIndex].amount <= stakerMaxHeap[subject][parentIndex].amount) {
                 break;
             }
             _swapStaker(subject, currentIndex, parentIndex);
@@ -637,11 +516,7 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         return currentIndex;
     }
 
-    function _swapStaker(
-        address subject,
-        uint256 index1,
-        uint256 index2
-    ) private {
+    function _swapStaker(address subject, uint256 index1, uint256 index2) private {
         // swap the nodes
         Staker memory temp = stakerMaxHeap[subject][index1];
         stakerMaxHeap[subject][index1] = stakerMaxHeap[subject][index2];
@@ -652,63 +527,45 @@ contract IPShare is Ownable, Pausable, ReentrancyGuard, IPShareevents, IIPShare 
         stakerIndex[subject][stakerMaxHeap[subject][index2].staker] = index2;
     }
 
-    // ================================ c-share price calculate lib =================================
+    // ================================ ipshare price calculate lib =================================
     /**
      * @dev calculate the eth price when user buy amount ipshares
      * @param supply the current supply of ipshare
      * @param amount the amount user will buy
      * @return price the eth amount as wei will cost
      */
-    function getPrice(
-        uint256 supply,
-        uint256 amount
-    ) public pure returns (uint256) {
-        uint256 price = (amount *
-            (amount ** 2 + 3 * amount * supply + 3 * (supply ** 2)));
+    function getPrice(uint256 supply, uint256 amount) public pure returns (uint256) {
+        uint256 price = (amount * (amount ** 2 + 3 * amount * supply + 3 * (supply ** 2)));
         return price / 100000 / 3e36;
     }
 
-    function getBuyPrice(
-        address subject,
-        uint256 amount
-    ) public view override returns (uint256) {
+    function getBuyPrice(address subject, uint256 amount) public view override returns (uint256) {
         return getPrice(_ipshareSupply[subject], amount);
     }
 
-    function getSellPrice(
-        address subject,
-        uint256 amount
-    ) public view override returns (uint256) {
+    function getSellPrice(address subject, uint256 amount) public view override returns (uint256) {
+        require(amount <= _ipshareSupply[subject], "Amount exceeds supply");
         return getPrice((_ipshareSupply[subject] - amount), amount);
     }
 
-    function getBuyPriceAfterFee(
-        address subject,
-        uint256 amount
-    ) public view override returns (uint256) {
+    function getBuyPriceAfterFee(address subject, uint256 amount) public view override returns (uint256) {
         uint256 price = getBuyPrice(subject, amount);
-        uint256 donutFee = (price * donutFeePercent) / 10000;
+        uint256 protocolFee = (price * protocolFeePercent) / 10000;
         uint256 subjectFee = (price * subjectFeePercent) / 10000;
-        return price + donutFee + subjectFee;
+        return price + protocolFee + subjectFee;
     }
 
-    function getSellPriceAfterFee(
-        address subject,
-        uint256 amount
-    ) public view override returns (uint256) {
+    function getSellPriceAfterFee(address subject, uint256 amount) public view override returns (uint256) {
         uint256 price = getSellPrice(subject, amount);
-        uint256 donutFee = (price * donutFeePercent) / 10000;
+        uint256 protocolFee = (price * protocolFeePercent) / 10000;
         uint256 subjectFee = (price * subjectFeePercent) / 10000;
-        return price - donutFee - subjectFee;
+        return price - protocolFee - subjectFee;
     }
 
     /**
      * Calculate how many ipshare received by payed eth
      */
-    function getBuyAmountByValue(
-        uint256 supply,
-        uint256 ethAmount
-    ) public pure override returns (uint256) {
+    function getBuyAmountByValue(uint256 supply, uint256 ethAmount) public pure override returns (uint256) {
         return floorCbrt(ethAmount * 100000 * 3e36 + supply ** 3) - supply;
     }
 

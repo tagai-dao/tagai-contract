@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.26;
 
 interface IToken {
     error TokenNotListed();
@@ -25,7 +25,7 @@ interface IToken {
         uint256 sellsmanFee
     );
     event TokenListedToDex(address indexed pair);
-    
+
     function listed() external view returns (bool);
 
     function getIPShare() external view returns (address);

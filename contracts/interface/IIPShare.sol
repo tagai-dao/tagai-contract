@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.26;
 
 interface IIPShare {
     function valueCapture(address subject) external payable;
@@ -11,21 +11,17 @@ interface IIPShare {
     function sellShares(address subject, uint256 shareAmount, uint256 amountOutMin) external;
     function getPendingProfits(address subject, address staker) external view returns (uint256);
     function getMaxStaker(address subject) external view returns (address, uint256);
-    function getPrice(uint256 supply,uint256 amount) external pure returns (uint256);
+    function getPrice(uint256 supply, uint256 amount) external pure returns (uint256);
     function getBuyPrice(address subject, uint256 amount) external view returns (uint256);
     function getSellPrice(address subject, uint256 amount) external view returns (uint256);
     function getBuyPriceAfterFee(address subject, uint256 amount) external view returns (uint256);
     function getSellPriceAfterFee(address subject, uint256 amount) external view returns (uint256);
     function getBuyAmountByValue(uint256 supply, uint256 ethAmount) external pure returns (uint256);
 
-    error OnlyDonut();
-    error DonutNotSet();
     error PendingTradeNow();
     error OnlyStaker();
     error FeePercentIsTooLarge();
     error TooMuchFee();
-    error CanntPauseNow();
-    error CanntUnpauseNow();
     error IPShareAlreadyCreated();
     error InsufficientPay();
     error RefundFail();

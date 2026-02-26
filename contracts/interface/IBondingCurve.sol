@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.26;
 
 interface IBondingCurve {
     function getPrice(uint256 supply, uint256 amount) external pure returns (uint256);
-    
+
     function getSellPrice(uint256 supply, uint256 amount) external pure returns (uint256);
 
     function getBuyPriceAfterFee(uint256 supply, uint256 amount) external view returns (uint256);
