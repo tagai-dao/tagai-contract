@@ -142,6 +142,10 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         return hookAddress;
     }
 
+    function getLastSaltIndex(address user) public view returns (uint256) {
+        return createdSaltsIndex[user];
+    }
+
     function createToken(string calldata tick, bytes32 salt) public payable override nonReentrant returns (address) {
         // Only EOA can create token (prevent phishing via tx.origin)
         require(msg.sender == tx.origin, "Only EOA");
@@ -156,15 +160,24 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
         // check user created ipshare
         address creator = msg.sender;
-
-        if (!IIPShare(ipshare).ipshareCreated(creator)) {
-            IIPShare(ipshare).createShare(creator);
+        bool needCreateIPShare = !IIPShare(ipshare).ipshareCreated(creator);
+        uint256 ipshareCreateFee = 0;
+        if (needCreateIPShare) {
+            ipshareCreateFee = IIPShare(ipshare).createFee();
         }
+
+        uint256 totalFixedFee = createFee + ipshareCreateFee;
 
         // cost fee
-        if (createFee != 0 && msg.value < createFee) {
+        if (msg.value < totalFixedFee) {
             revert InsufficientCreateFee();
         }
+
+        // auto create IPShare for creator and pass-through create fee if needed
+        if (needCreateIPShare) {
+            IIPShare(ipshare).createShare{value: ipshareCreateFee}(creator);
+        }
+
         if (createFee > 0) {
             (bool success, ) = feeReceiver.call{value: createFee}("");
             if (!success) {
@@ -184,8 +197,8 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         // before dawn of today
         lastClaimTime[instance] = block.timestamp - (block.timestamp % secondPerDay) - 1;
 
-        if (msg.value > createFee) {
-            (bool success1, bytes memory receiveAmount) = instance.call{value: msg.value - createFee}(
+        if (msg.value > totalFixedFee) {
+            (bool success1, bytes memory receiveAmount) = instance.call{value: msg.value - totalFixedFee}(
                 abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, creator, 0)
             );
             if (!success1) {

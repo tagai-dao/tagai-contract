@@ -19,7 +19,6 @@ import {PoolKey} from "infinity-core/src/types/PoolKey.sol";
 import {PoolId, PoolIdLibrary} from "infinity-core/src/types/PoolId.sol";
 import {Currency, CurrencyLibrary} from "infinity-core/src/types/Currency.sol";
 import {BalanceDelta} from "infinity-core/src/types/BalanceDelta.sol";
-import {TickMath} from "infinity-core/src/pool-cl/libraries/TickMath.sol";
 import {CLPoolParametersHelper} from "infinity-core/src/pool-cl/libraries/CLPoolParametersHelper.sol";
 import {IPoolManager} from "infinity-core/src/interfaces/IPoolManager.sol";
 
@@ -64,10 +63,14 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
     // fee=0 means zero native pool fee; all fees are collected by TipTagSwapHook.
     // tickSpacing=60 controls price-tick granularity only (no 0.3% DEX fee implied).
     int24 public constant TICK_SPACING = 60;
-    // Tick offset for bounded liquidity range: log(25)/log(1.0001) ≈ 32190.
-    // tickLower = currentTick - 32190 ensures that when all 800M circulating
-    // tokens are sold back, the price hits P/25 and all ETH is fully drained.
-    int24 private constant TICK_OFFSET_25X = 32190;
+    // Calibrated initial price for bounded-range listing so 19 ETH + 200M TOKEN are both used as much as possible.
+    uint160 private constant INITIAL_SQRT_PRICE_X96 = 27302121365878665742458286;
+    uint256 private constant LISTING_ETH_AMOUNT = 19 ether;
+    uint256 private constant LISTING_TOKEN_AMOUNT = 200000000 ether;
+    // Precomputed listing constants for fixed strategy.
+    int24 private constant LISTING_TICK_LOWER = -191700;
+    int24 private constant LISTING_TICK_UPPER = 887220;
+    uint128 private constant LISTING_LIQUIDITY_DELTA = 6547423157242855;
 
     receive() external payable {
         if (!listed) {
@@ -263,20 +266,16 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
 
     /********************************** to dex (PancakeSwap V4 Infinity) ********************************/
     function _makeLiquidityPool() private {
-        // 1. Platform listing fee
-        address tiptagFeeAddress = IPump(manager).getFeeReceiver();
-        (bool success1, ) = tiptagFeeAddress.call{value: 1 ether}("");
-        require(success1, "Transfer ETH failed");
+        require(address(this).balance >= LISTING_ETH_AMOUNT, "Insufficient ETH for listing");
+        require(balanceOf(address(this)) >= LISTING_TOKEN_AMOUNT, "Insufficient token for listing");
 
-        uint256 tokenAmount = balanceOf(address(this));
-        uint256 ethBalance = address(this).balance;
-
-        // 2. Build the PoolKey (PCS V4 format)
+        // 1. Build the PoolKey (PCS V4 format)
         //    currency0 = Native ETH (address(0)), currency1 = Token
         //    tickSpacing is encoded in bytes32 parameters (bits [16-39])
         address hookAddr = IPump(manager).getHookAddress();
 
-        bytes32 parameters = CLPoolParametersHelper.setTickSpacing(bytes32(0), TICK_SPACING);
+        uint16 hookBitmap = hookAddr == address(0) ? 0 : IHooks(hookAddr).getHooksRegistrationBitmap();
+        bytes32 parameters = CLPoolParametersHelper.setTickSpacing(bytes32(uint256(hookBitmap)), TICK_SPACING);
 
         PoolKey memory poolKey = PoolKey({
             currency0: CurrencyLibrary.NATIVE, // Native ETH
@@ -287,54 +286,47 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
             parameters: parameters
         });
 
-        // 3. Calculate initial sqrtPriceX96 = sqrt(ethBalance / tokenAmount) * 2^96
-        uint160 sqrtPriceX96 = _calculateSqrtPriceX96(ethBalance, tokenAmount);
+        // 2. Use fixed initial price to avoid runtime price drift and overflow edge-cases.
+        uint160 sqrtPriceX96 = INITIAL_SQRT_PRICE_X96;
 
-        // 4. Calculate bounded tick range.
-        //    tickLower is set so that price P/25 drains all ETH when all 800M
-        //    circulating tokens are sold back into the pool.
-        //    tickUpper = maxUsableTick (unlimited upside).
-        int24 tickCurrent = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-        int24 tickLower = _floorTick(tickCurrent - TICK_OFFSET_25X);
-        int24 minTick = TickMath.minUsableTick(TICK_SPACING);
-        if (tickLower < minTick) tickLower = minTick;
-        int24 tickUpper = TickMath.maxUsableTick(TICK_SPACING);
+        // 3. Use precomputed bounded ticks to avoid per-list tick math.
+        int24 tickLower = LISTING_TICK_LOWER;
+        int24 tickUpper = LISTING_TICK_UPPER;
 
-        // 5. Initialize the pool
+        // 4. Initialize the pool
         clPoolManager.initialize(poolKey, sqrtPriceX96);
 
-        // 6. Register pool in Hook for fee collection
+        // 5. Register pool in Hook for fee collection
         PoolId poolId = poolKey.toId();
         v4PoolId = poolId;
         ITipTagSwapHook(hookAddr).registerPool(poolId, address(this));
 
-        // 7. Add bounded-range liquidity via vault.lock() callback
-        bytes memory callbackData = abi.encode(poolKey, sqrtPriceX96, tickLower, tickUpper);
+        // 6. Add bounded-range liquidity via vault.lock() callback.
+        bytes memory callbackData = abi.encode(poolKey, tickLower, tickUpper);
         vault.lock(callbackData);
 
+        // 7. After LP is settled, send all remaining ETH to platform. Remaining token stays in this contract.
+        address tiptagFeeAddress = IPump(manager).getFeeReceiver();
+        uint256 remainEth = address(this).balance;
+        if (remainEth > 0) {
+            (bool success1, ) = tiptagFeeAddress.call{value: remainEth}("");
+            require(success1, "Transfer ETH failed");
+        }
+
         listed = true;
-        emit TokenListedToDex(address(clPoolManager));
+        emit TokenListedToDex(address(this), PoolId.unwrap(poolId), sqrtPriceX96);
     }
 
     /// @notice ILockCallback — called by Vault during lock() for atomic liquidity addition
     function lockAcquired(bytes calldata data) external override returns (bytes memory) {
         require(msg.sender == address(vault), "Only Vault");
 
-        (PoolKey memory poolKey, uint160 sqrtPriceX96, int24 tickLower, int24 tickUpper) = abi.decode(
-            data,
-            (PoolKey, uint160, int24, int24)
-        );
-
-        uint256 ethAmount = address(this).balance;
-
-        // Compute liquidity from ETH side for bounded range:
-        // L = ethAmount * 2^96 / (sqrtPriceCurrent - sqrtPriceLower)
-        uint128 liquidity = _computeLiquidity(ethAmount, sqrtPriceX96, tickLower);
+        (PoolKey memory poolKey, int24 tickLower, int24 tickUpper) = abi.decode(data, (PoolKey, int24, int24));
 
         ICLPoolManager.ModifyLiquidityParams memory params = ICLPoolManager.ModifyLiquidityParams({
             tickLower: tickLower,
             tickUpper: tickUpper,
-            liquidityDelta: int256(uint256(liquidity)),
+            liquidityDelta: int256(uint256(LISTING_LIQUIDITY_DELTA)),
             salt: bytes32(0)
         });
 
@@ -347,12 +339,15 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
         // Settle ETH (native currency) — send ETH to Vault
         if (ethOwed < 0) {
             uint256 ethToSettle = uint256(uint128(-ethOwed));
+            require(ethToSettle <= LISTING_ETH_AMOUNT, "ETH budget exceeded");
             vault.settle{value: ethToSettle}();
         }
 
         // Settle Token — transfer tokens to Vault then call settle
         if (tokenOwed < 0) {
             uint256 tokenToSettle = uint256(uint128(-tokenOwed));
+            require(tokenToSettle <= LISTING_TOKEN_AMOUNT, "Token budget exceeded");
+            vault.sync(poolKey.currency1);
             _transfer(address(this), address(vault), tokenToSettle);
             vault.settle();
         }
@@ -366,52 +361,6 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
         }
 
         return "";
-    }
-
-    /// @dev Calculate sqrtPriceX96 = sqrt(ethAmount / tokenAmount) * 2^96
-    function _calculateSqrtPriceX96(uint256 ethAmount, uint256 tokenAmount) private pure returns (uint160) {
-        // price = ethAmount / tokenAmount  (currency0/currency1 = ETH per token)
-        // sqrtPrice = sqrt(ethAmount / tokenAmount)
-        // sqrtPriceX96 = sqrtPrice * 2^96
-
-        // Use: sqrtPriceX96 = sqrt(ethAmount * 2^192 / tokenAmount)
-        // To avoid overflow: sqrtPriceX96 = sqrt(ethAmount * 2^96 / tokenAmount) * 2^48
-        // Better: sqrtPriceX96 = sqrt(ethAmount) * 2^96 / sqrt(tokenAmount)
-
-        uint256 numerator = ethAmount * (1 << 192);
-        uint256 ratio = numerator / tokenAmount;
-        return uint160(_sqrt(ratio));
-    }
-
-    /// @dev Integer square root (Babylonian method)
-    function _sqrt(uint256 x) private pure returns (uint256 y) {
-        if (x == 0) return 0;
-        uint256 z = (x + 1) / 2;
-        y = x;
-        while (z < y) {
-            y = z;
-            z = (x / z + z) / 2;
-        }
-    }
-
-    /// @dev Compute liquidity for bounded range using ETH-side formula:
-    /// L = ethAmount * 2^96 / (sqrtPriceCurrent - sqrtPriceLower)
-    function _computeLiquidity(
-        uint256 ethAmount,
-        uint160 sqrtPriceCurrent,
-        int24 tickLower
-    ) private pure returns (uint128) {
-        uint160 sqrtPriceLower = TickMath.getSqrtRatioAtTick(tickLower);
-        uint256 l = (ethAmount << 96) / (uint256(sqrtPriceCurrent) - uint256(sqrtPriceLower));
-        if (l > type(uint128).max) l = type(uint128).max;
-        return uint128(l);
-    }
-
-    /// @dev Floor tick to nearest TICK_SPACING multiple (rounds towards negative infinity)
-    function _floorTick(int24 tick) private pure returns (int24) {
-        int24 compressed = tick / TICK_SPACING;
-        if (tick < 0 && tick % TICK_SPACING != 0) compressed--;
-        return compressed * TICK_SPACING;
     }
 
     /********************************** erc20 function ********************************/

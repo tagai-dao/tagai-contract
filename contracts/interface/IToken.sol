@@ -24,7 +24,7 @@ interface IToken {
         uint256 tiptagFee,
         uint256 sellsmanFee
     );
-    event TokenListedToDex(address indexed pair);
+    event TokenListedToDex(address indexed token, bytes32 indexed poolId, uint160 sqrtPriceX96);
 
     function listed() external view returns (bool);
 

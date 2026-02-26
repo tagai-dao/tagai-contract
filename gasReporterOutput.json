@@ -26,357 +26,16 @@
   "suppressTerminalOutput": false,
   "showMethodSig": false,
   "showUncalledMethods": false,
-  "blockGasLimit": 60000000,
+  "blockGasLimit": 30000000,
   "solcInfo": {
-   "version": "0.8.20",
+   "version": "0.8.26",
    "optimizer": true,
    "runs": 1000,
-   "viaIR": false
+   "viaIR": true
   }
  },
  "data": {
   "methods": {
-   "ActivityRewardPool_79ba5097": {
-    "key": "79ba5097",
-    "isCall": false,
-    "contract": "ActivityRewardPool",
-    "method": "acceptOwnership",
-    "fnSig": "acceptOwnership()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_0d1657e8": {
-    "key": "0d1657e8",
-    "isCall": true,
-    "contract": "ActivityRewardPool",
-    "method": "activities",
-    "fnSig": "activities(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_ac23ff1a": {
-    "key": "ac23ff1a",
-    "isCall": false,
-    "contract": "ActivityRewardPool",
-    "method": "createActivity",
-    "fnSig": "createActivity(uint256,address,uint256,uint64,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_922635d8": {
-    "key": "922635d8",
-    "isCall": true,
-    "contract": "ActivityRewardPool",
-    "method": "getActivity",
-    "fnSig": "getActivity(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_f3af0425": {
-    "key": "f3af0425",
-    "isCall": true,
-    "contract": "ActivityRewardPool",
-    "method": "orderClaimed",
-    "fnSig": "orderClaimed(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_8da5cb5b": {
-    "key": "8da5cb5b",
-    "isCall": true,
-    "contract": "ActivityRewardPool",
-    "method": "owner",
-    "fnSig": "owner()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_e30c3978": {
-    "key": "e30c3978",
-    "isCall": true,
-    "contract": "ActivityRewardPool",
-    "method": "pendingOwner",
-    "fnSig": "pendingOwner()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_715018a6": {
-    "key": "715018a6",
-    "isCall": false,
-    "contract": "ActivityRewardPool",
-    "method": "renounceOwnership",
-    "fnSig": "renounceOwnership()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_f2fde38b": {
-    "key": "f2fde38b",
-    "isCall": false,
-    "contract": "ActivityRewardPool",
-    "method": "transferOwnership",
-    "fnSig": "transferOwnership(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "ActivityRewardPool_36913f86": {
-    "key": "36913f86",
-    "isCall": false,
-    "contract": "ActivityRewardPool",
-    "method": "userClaim",
-    "fnSig": "userClaim(address,uint256,uint256,bytes)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_ea51b0ca": {
-    "key": "ea51b0ca",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "IPShare",
-    "fnSig": "IPShare()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_cc3bf5dd": {
-    "key": "cc3bf5dd",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "adminSetIPShare",
-    "fnSig": "adminSetIPShare(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_91b3dfce": {
-    "key": "91b3dfce",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "adminUpdateDonateDistributionRatios",
-    "fnSig": "adminUpdateDonateDistributionRatios(uint256[2])",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_1a9dae53": {
-    "key": "1a9dae53",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "adminUpdateRewardDistribution",
-    "fnSig": "adminUpdateRewardDistribution(uint256[2])",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_8a19c8bc": {
-    "key": "8a19c8bc",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "currentRound",
-    "fnSig": "currentRound()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_e69d849d": {
-    "key": "e69d849d",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "donate",
-    "fnSig": "donate(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_1ce82669": {
-    "key": "1ce82669",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "donateDistributionRatios",
-    "fnSig": "donateDistributionRatios(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_5e123ce4": {
-    "key": "5e123ce4",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "gameStarted",
-    "fnSig": "gameStarted()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_747dff42": {
-    "key": "747dff42",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "getCurrentRoundInfo",
-    "fnSig": "getCurrentRoundInfo()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_88c3ffb0": {
-    "key": "88c3ffb0",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "getRoundInfo",
-    "fnSig": "getRoundInfo(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_22ff7749": {
-    "key": "22ff7749",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "minDonateAmount",
-    "fnSig": "minDonateAmount()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_8da5cb5b": {
-    "key": "8da5cb5b",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "owner",
-    "fnSig": "owner()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_8456cb59": {
-    "key": "8456cb59",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "pause",
-    "fnSig": "pause()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_5c975abb": {
-    "key": "5c975abb",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "paused",
-    "fnSig": "paused()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_715018a6": {
-    "key": "715018a6",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "renounceOwnership",
-    "fnSig": "renounceOwnership()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_13b5df5d": {
-    "key": "13b5df5d",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "rewardDistributionRatios",
-    "fnSig": "rewardDistributionRatios(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_d65ab5f2": {
-    "key": "d65ab5f2",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "startGame",
-    "fnSig": "startGame()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_1209b1f6": {
-    "key": "1209b1f6",
-    "isCall": true,
-    "contract": "Donut",
-    "method": "ticketPrice",
-    "fnSig": "ticketPrice()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_f2fde38b": {
-    "key": "f2fde38b",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "transferOwnership",
-    "fnSig": "transferOwnership(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Donut_3f4ba83a": {
-    "key": "3f4ba83a",
-    "isCall": false,
-    "contract": "Donut",
-    "method": "unpause",
-    "fnSig": "unpause()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "IPShare_43779831": {
-    "key": "43779831",
-    "isCall": false,
-    "contract": "IPShare",
-    "method": "adminSetDonutFeePercent",
-    "fnSig": "adminSetDonutFeePercent(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
    "IPShare_791eb5af": {
     "key": "791eb5af",
     "isCall": false,
@@ -388,37 +47,27 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "IPShare_8c29e1e2": {
-    "key": "8c29e1e2",
+   "IPShare_35f2f068": {
+    "key": "35f2f068",
     "isCall": false,
     "contract": "IPShare",
-    "method": "adminSetDonut",
-    "fnSig": "adminSetDonut(address)",
+    "method": "adminSetProtocolFeeDestination",
+    "fnSig": "adminSetProtocolFeeDestination(address)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "IPShare_5cb0b886": {
-    "key": "5cb0b886",
+   "IPShare_cacdaffc": {
+    "key": "cacdaffc",
     "isCall": false,
     "contract": "IPShare",
-    "method": "adminSetDonutFeeDestination",
-    "fnSig": "adminSetDonutFeeDestination(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     29079
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 29079,
-    "calldataGasAverage": 0,
-    "min": 29079,
-    "max": 29079
+    "method": "adminSetProtocolFeePercent",
+    "fnSig": "adminSetProtocolFeePercent(uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_d4319537": {
     "key": "d4319537",
@@ -431,27 +80,26 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "IPShare_455206a6": {
-    "key": "455206a6",
-    "isCall": false,
-    "contract": "IPShare",
-    "method": "adminStartFM3D",
-    "fnSig": "adminStartFM3D()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
    "IPShare_37563e41": {
     "key": "37563e41",
     "isCall": false,
     "contract": "IPShare",
     "method": "adminStartTrade",
     "fnSig": "adminStartTrade()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21064
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     28540
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 28540,
+    "calldataGasAverage": 0,
+    "min": 28540,
+    "max": 28540
    },
    "IPShare_dd06f6bd": {
     "key": "dd06f6bd",
@@ -459,10 +107,23 @@
     "contract": "IPShare",
     "method": "buyShares",
     "fnSig": "buyShares(address,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21928,
+     21928
+    ],
+    "callData": [
+     0,
+     0
+    ],
+    "gasData": [
+     102632,
+     103217
+    ],
+    "numberOfCalls": 2,
+    "executionGasAverage": 102925,
+    "calldataGasAverage": 0,
+    "min": 102632,
+    "max": 103217
    },
    "IPShare_1e83409a": {
     "key": "1e83409a",
@@ -470,10 +131,23 @@
     "contract": "IPShare",
     "method": "claim",
     "fnSig": "claim(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21432,
+     21432
+    ],
+    "callData": [
+     0,
+     0
+    ],
+    "gasData": [
+     81960,
+     99060
+    ],
+    "numberOfCalls": 2,
+    "executionGasAverage": 90510,
+    "calldataGasAverage": 0,
+    "min": 81960,
+    "max": 99060
    },
    "IPShare_b2db919b": {
     "key": "b2db919b",
@@ -493,52 +167,19 @@
     "method": "createShare",
     "fnSig": "createShare(address)",
     "intrinsicGas": [
-     21192
+     21432
     ],
     "callData": [
      0
     ],
     "gasData": [
-     190471
+     185601
     ],
     "numberOfCalls": 1,
-    "executionGasAverage": 190471,
+    "executionGasAverage": 185601,
     "calldataGasAverage": 0,
-    "min": 190471,
-    "max": 190471
-   },
-   "IPShare_c4bebec3": {
-    "key": "c4bebec3",
-    "isCall": true,
-    "contract": "IPShare",
-    "method": "donut",
-    "fnSig": "donut()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "IPShare_f00d3a71": {
-    "key": "f00d3a71",
-    "isCall": true,
-    "contract": "IPShare",
-    "method": "donutFeeDestination",
-    "fnSig": "donutFeeDestination()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "IPShare_bd7220bb": {
-    "key": "bd7220bb",
-    "isCall": true,
-    "contract": "IPShare",
-    "method": "donutFeePercent",
-    "fnSig": "donutFeePercent()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "min": 185601,
+    "max": 185601
    },
    "IPShare_b3368bb2": {
     "key": "b3368bb2",
@@ -705,6 +346,28 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "IPShare_4ce7957c": {
+    "key": "4ce7957c",
+    "isCall": true,
+    "contract": "IPShare",
+    "method": "protocolFeeDestination",
+    "fnSig": "protocolFeeDestination()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "IPShare_d6e6eb9f": {
+    "key": "d6e6eb9f",
+    "isCall": true,
+    "contract": "IPShare",
+    "method": "protocolFeePercent",
+    "fnSig": "protocolFeePercent()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "IPShare_95a2251f": {
     "key": "95a2251f",
     "isCall": false,
@@ -744,21 +407,23 @@
     "contract": "IPShare",
     "method": "stake",
     "fnSig": "stake(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "IPShare_881968f5": {
-    "key": "881968f5",
-    "isCall": true,
-    "contract": "IPShare",
-    "method": "startFM3D",
-    "fnSig": "startFM3D()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21668,
+     21656
+    ],
+    "callData": [
+     0,
+     0
+    ],
+    "gasData": [
+     133474,
+     150153
+    ],
+    "numberOfCalls": 2,
+    "executionGasAverage": 141814,
+    "calldataGasAverage": 0,
+    "min": 133474,
+    "max": 150153
    },
    "IPShare_6c580801": {
     "key": "6c580801",
@@ -821,10 +486,20 @@
     "contract": "IPShare",
     "method": "unstake",
     "fnSig": "unstake(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21632
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     100566
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 100566,
+    "calldataGasAverage": 0,
+    "min": 100566,
+    "max": 100566
    },
    "IPShare_d9cd629d": {
     "key": "d9cd629d",
@@ -855,61 +530,19 @@
     "method": "adminChangeClaimSigner",
     "fnSig": "adminChangeClaimSigner(address)",
     "intrinsicGas": [
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
-     21432,
      21432
     ],
     "callData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
      0
     ],
     "gasData": [
-     27912,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712,
-     30712
+     30472
     ],
-    "numberOfCalls": 15,
-    "executionGasAverage": 30525,
+    "numberOfCalls": 1,
+    "executionGasAverage": 30472,
     "calldataGasAverage": 0,
-    "min": 27912,
-    "max": 30712
+    "min": 30472,
+    "max": 30472
    },
    "Pump_9451b2f5": {
     "key": "9451b2f5",
@@ -977,6 +610,78 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "Pump_158162ff": {
+    "key": "158162ff",
+    "isCall": false,
+    "contract": "Pump",
+    "method": "adminSetHookAddress",
+    "fnSig": "adminSetHookAddress(address)",
+    "intrinsicGas": [
+     21432,
+     21432,
+     21432,
+     21432
+    ],
+    "callData": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "gasData": [
+     26111,
+     26111,
+     46011,
+     46011
+    ],
+    "numberOfCalls": 4,
+    "executionGasAverage": 36061,
+    "calldataGasAverage": 0,
+    "min": 26111,
+    "max": 46011
+   },
+   "Pump_82a9eb52": {
+    "key": "82a9eb52",
+    "isCall": false,
+    "contract": "Pump",
+    "method": "adminSetPoolManager",
+    "fnSig": "adminSetPoolManager(address)",
+    "intrinsicGas": [
+     21420
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     29295
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 29295,
+    "calldataGasAverage": 0,
+    "min": 29295,
+    "max": 29295
+   },
+   "Pump_faf09554": {
+    "key": "faf09554",
+    "isCall": false,
+    "contract": "Pump",
+    "method": "adminSetVault",
+    "fnSig": "adminSetVault(address)",
+    "intrinsicGas": [
+     21432
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     29742
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 29742,
+    "calldataGasAverage": 0,
+    "min": 29742,
+    "max": 29742
+   },
    "Pump_13ed0846": {
     "key": "13ed0846",
     "isCall": true,
@@ -1028,61 +733,28 @@
     "method": "createToken",
     "fnSig": "createToken(string,bytes32)",
     "intrinsicGas": [
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636,
-     21636
+     21648,
+     21648,
+     21648,
+     21648
     ],
     "callData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
      0,
      0,
      0,
      0
     ],
     "gasData": [
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2724882,
-     2884052,
-     2918396
+     628364,
+     628364,
+     628364,
+     628364
     ],
-    "numberOfCalls": 15,
-    "executionGasAverage": 2748394,
+    "numberOfCalls": 4,
+    "executionGasAverage": 628364,
     "calldataGasAverage": 0,
-    "min": 2724882,
-    "max": 2918396
+    "min": 628364,
+    "max": 628364
    },
    "Pump_d47a93f6": {
     "key": "d47a93f6",
@@ -1101,17 +773,6 @@
     "contract": "Pump",
     "method": "createdTokens",
     "fnSig": "createdTokens(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Pump_5f6ebd1a": {
-    "key": "5f6ebd1a",
-    "isCall": true,
-    "contract": "Pump",
-    "method": "generateSalt",
-    "fnSig": "generateSalt(address)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -1183,12 +844,45 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "Pump_fa11f041": {
+    "key": "fa11f041",
+    "isCall": true,
+    "contract": "Pump",
+    "method": "getHookAddress",
+    "fnSig": "getHookAddress()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "Pump_888a5ad7": {
     "key": "888a5ad7",
     "isCall": true,
     "contract": "Pump",
     "method": "getIPShare",
     "fnSig": "getIPShare()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Pump_289820d6": {
+    "key": "289820d6",
+    "isCall": true,
+    "contract": "Pump",
+    "method": "getLastSaltIndex",
+    "fnSig": "getLastSaltIndex(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Pump_78d84da3": {
+    "key": "78d84da3",
+    "isCall": true,
+    "contract": "Pump",
+    "method": "getPoolManager",
+    "fnSig": "getPoolManager()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -1227,34 +921,12 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "Pump_0103982d": {
-    "key": "0103982d",
+   "Pump_8d928af8": {
+    "key": "8d928af8",
     "isCall": true,
     "contract": "Pump",
-    "method": "getUniswapV2Factory",
-    "fnSig": "getUniswapV2Factory()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Pump_0071c175": {
-    "key": "0071c175",
-    "isCall": true,
-    "contract": "Pump",
-    "method": "getUniswapV2Router",
-    "fnSig": "getUniswapV2Router()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "Pump_cae5f11e": {
-    "key": "cae5f11e",
-    "isCall": true,
-    "contract": "Pump",
-    "method": "getWETH",
-    "fnSig": "getWETH()",
+    "method": "getVault",
+    "fnSig": "getVault()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -1365,301 +1037,20 @@
     "contract": "Pump",
     "method": "userClaim",
     "fnSig": "userClaim(address,uint256,uint256,bytes)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_68573107": {
-    "key": "68573107",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "batchMint",
-    "fnSig": "batchMint(address[],uint256[])",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_3644e515": {
-    "key": "3644e515",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "DOMAIN_SEPARATOR",
-    "fnSig": "DOMAIN_SEPARATOR()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_f851a440": {
-    "key": "f851a440",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "admin",
-    "fnSig": "admin()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_dd62ed3e": {
-    "key": "dd62ed3e",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "allowance",
-    "fnSig": "allowance(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_095ea7b3": {
-    "key": "095ea7b3",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "approve",
-    "fnSig": "approve(address,uint256)",
     "intrinsicGas": [
-     21656
+     23240
     ],
     "callData": [
      0
     ],
     "gasData": [
-     48767
+     139749
     ],
     "numberOfCalls": 1,
-    "executionGasAverage": 48767,
+    "executionGasAverage": 139749,
     "calldataGasAverage": 0,
-    "min": 48767,
-    "max": 48767
-   },
-   "TagAIPoints_70a08231": {
-    "key": "70a08231",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "balanceOf",
-    "fnSig": "balanceOf(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_313ce567": {
-    "key": "313ce567",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "decimals",
-    "fnSig": "decimals()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_6e9960c3": {
-    "key": "6e9960c3",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "getAdmin",
-    "fnSig": "getAdmin()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_24d7806c": {
-    "key": "24d7806c",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "isAdmin",
-    "fnSig": "isAdmin(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_40c10f19": {
-    "key": "40c10f19",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "mint",
-    "fnSig": "mint(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_06fdde03": {
-    "key": "06fdde03",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "name",
-    "fnSig": "name()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_7ecebe00": {
-    "key": "7ecebe00",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "nonces",
-    "fnSig": "nonces(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_8da5cb5b": {
-    "key": "8da5cb5b",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "owner",
-    "fnSig": "owner()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_5c975abb": {
-    "key": "5c975abb",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "paused",
-    "fnSig": "paused()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_d505accf": {
-    "key": "d505accf",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "permit",
-    "fnSig": "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_715018a6": {
-    "key": "715018a6",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "renounceOwnership",
-    "fnSig": "renounceOwnership()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_704b6c02": {
-    "key": "704b6c02",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "setAdmin",
-    "fnSig": "setAdmin(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_95d89b41": {
-    "key": "95d89b41",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "symbol",
-    "fnSig": "symbol()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_18160ddd": {
-    "key": "18160ddd",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "totalSupply",
-    "fnSig": "totalSupply()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_a9059cbb": {
-    "key": "a9059cbb",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "transfer",
-    "fnSig": "transfer(address,uint256)",
-    "intrinsicGas": [
-     21644,
-     21644,
-     21644,
-     21656,
-     21656,
-     21656,
-     21632
-    ],
-    "callData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "gasData": [
-     58194,
-     58206,
-     58206,
-     58206,
-     58218,
-     58218,
-     58218
-    ],
-    "numberOfCalls": 7,
-    "executionGasAverage": 58209,
-    "calldataGasAverage": 0,
-    "min": 58194,
-    "max": 58218
-   },
-   "TagAIPoints_4cd412d5": {
-    "key": "4cd412d5",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "transferEnabled",
-    "fnSig": "transferEnabled()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_23b872dd": {
-    "key": "23b872dd",
-    "isCall": true,
-    "contract": "TagAIPoints",
-    "method": "transferFrom",
-    "fnSig": "transferFrom(address,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "TagAIPoints_f2fde38b": {
-    "key": "f2fde38b",
-    "isCall": false,
-    "contract": "TagAIPoints",
-    "method": "transferOwnership",
-    "fnSig": "transferOwnership(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "min": 139749,
+    "max": 139749
    },
    "TestERC20_dd62ed3e": {
     "key": "dd62ed3e",
@@ -1678,10 +1069,20 @@
     "contract": "TestERC20",
     "method": "approve",
     "fnSig": "approve(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21668
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     48555
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 48555,
+    "calldataGasAverage": 0,
+    "min": 48555,
+    "max": 48555
    },
    "TestERC20_70a08231": {
     "key": "70a08231",
@@ -1760,12 +1161,220 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "TipTagSwapHook_40679361": {
+    "key": "40679361",
+    "isCall": true,
+    "contract": "TipTagSwapHook",
+    "method": "clPoolManager",
+    "fnSig": "clPoolManager()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_ec370682": {
+    "key": "ec370682",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "afterAddLiquidity",
+    "fnSig": "afterAddLiquidity(address,(address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),int256,int256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_5304d44e": {
+    "key": "5304d44e",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "afterDonate",
+    "fnSig": "afterDonate(address,(address,address,address,address,uint24,bytes32),uint256,uint256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_3b488f3d": {
+    "key": "3b488f3d",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "afterInitialize",
+    "fnSig": "afterInitialize(address,(address,address,address,address,uint24,bytes32),uint160,int24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_36d3cdc6": {
+    "key": "36d3cdc6",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "afterRemoveLiquidity",
+    "fnSig": "afterRemoveLiquidity(address,(address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),int256,int256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_6f6657cb": {
+    "key": "6f6657cb",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "afterSwap",
+    "fnSig": "afterSwap(address,(address,address,address,address,uint24,bytes32),(bool,int256,uint160),int256,bytes)",
+    "intrinsicGas": [
+     24132
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     189541
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 189541,
+    "calldataGasAverage": 0,
+    "min": 189541,
+    "max": 189541
+   },
+   "TipTagSwapHook_fe70c9c9": {
+    "key": "fe70c9c9",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "beforeAddLiquidity",
+    "fnSig": "beforeAddLiquidity(address,(address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_4b6a682d": {
+    "key": "4b6a682d",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "beforeDonate",
+    "fnSig": "beforeDonate(address,(address,address,address,address,uint24,bytes32),uint256,uint256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_fecd2159": {
+    "key": "fecd2159",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "beforeInitialize",
+    "fnSig": "beforeInitialize(address,(address,address,address,address,uint24,bytes32),uint160)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_e8246c7f": {
+    "key": "e8246c7f",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "beforeRemoveLiquidity",
+    "fnSig": "beforeRemoveLiquidity(address,(address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_e592dc93": {
+    "key": "e592dc93",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "beforeSwap",
+    "fnSig": "beforeSwap(address,(address,address,address,address,uint24,bytes32),(bool,int256,uint160),bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_f961d1f4": {
+    "key": "f961d1f4",
+    "isCall": true,
+    "contract": "TipTagSwapHook",
+    "method": "getHooksRegistrationBitmap",
+    "fnSig": "getHooksRegistrationBitmap()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_476adf3b": {
+    "key": "476adf3b",
+    "isCall": true,
+    "contract": "TipTagSwapHook",
+    "method": "poolToken",
+    "fnSig": "poolToken(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_395ea61b": {
+    "key": "395ea61b",
+    "isCall": true,
+    "contract": "TipTagSwapHook",
+    "method": "pump",
+    "fnSig": "pump()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_39df8a51": {
+    "key": "39df8a51",
+    "isCall": false,
+    "contract": "TipTagSwapHook",
+    "method": "registerPool",
+    "fnSig": "registerPool(bytes32,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TipTagSwapHook_fbfa77cf": {
+    "key": "fbfa77cf",
+    "isCall": true,
+    "contract": "TipTagSwapHook",
+    "method": "vault",
+    "fnSig": "vault()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Token_40679361": {
+    "key": "40679361",
+    "isCall": true,
+    "contract": "Token",
+    "method": "clPoolManager",
+    "fnSig": "clPoolManager()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "Token_3644e515": {
     "key": "3644e515",
     "isCall": true,
     "contract": "Token",
     "method": "DOMAIN_SEPARATOR",
     "fnSig": "DOMAIN_SEPARATOR()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Token_46ca626b": {
+    "key": "46ca626b",
+    "isCall": true,
+    "contract": "Token",
+    "method": "TICK_SPACING",
+    "fnSig": "TICK_SPACING()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -1833,49 +1442,22 @@
     "method": "buyToken",
     "fnSig": "buyToken(uint256,address,uint16)",
     "intrinsicGas": [
-     21580,
-     21580,
-     21544,
-     21580,
-     21544,
-     21544,
-     21808,
-     21808,
-     21580,
-     21544,
-     21556
+     21448,
+     21448
     ],
     "callData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
      0,
      0
     ],
     "gasData": [
-     155491,
-     240908,
-     240944,
-     240980,
-     240980,
-     240980,
-     240980,
-     243408,
-     243603,
-     243603,
-     418798
+     736553,
+     736553
     ],
-    "numberOfCalls": 11,
-    "executionGasAverage": 250061,
+    "numberOfCalls": 2,
+    "executionGasAverage": 736553,
     "calldataGasAverage": 0,
-    "min": 155491,
-    "max": 418798
+    "min": 736553,
+    "max": 736553
    },
    "Token_cf09e0d0": {
     "key": "cf09e0d0",
@@ -1954,6 +1536,17 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "Token_ab6291fe": {
+    "key": "ab6291fe",
+    "isCall": false,
+    "contract": "Token",
+    "method": "lockAcquired",
+    "fnSig": "lockAcquired(bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "Token_06fdde03": {
     "key": "06fdde03",
     "isCall": true,
@@ -1976,17 +1569,6 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "Token_a8aa1b31": {
-    "key": "a8aa1b31",
-    "isCall": true,
-    "contract": "Token",
-    "method": "pair",
-    "fnSig": "pair()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
    "Token_d505accf": {
     "key": "d505accf",
     "isCall": false,
@@ -2004,23 +1586,10 @@
     "contract": "Token",
     "method": "sellToken",
     "fnSig": "sellToken(uint256,uint256,address,uint16)",
-    "intrinsicGas": [
-     21672,
-     21672
-    ],
-    "callData": [
-     0,
-     0
-    ],
-    "gasData": [
-     164334,
-     164334
-    ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 164334,
-    "calldataGasAverage": 0,
-    "min": 164334,
-    "max": 164334
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "Token_95d89b41": {
     "key": "95d89b41",
@@ -2066,1021 +1635,414 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2ERC20_3644e515": {
-    "key": "3644e515",
+   "Token_a18615b6": {
+    "key": "a18615b6",
     "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "DOMAIN_SEPARATOR",
-    "fnSig": "DOMAIN_SEPARATOR()",
+    "contract": "Token",
+    "method": "v4PoolId",
+    "fnSig": "v4PoolId()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2ERC20_30adf81f": {
-    "key": "30adf81f",
+   "Token_fbfa77cf": {
+    "key": "fbfa77cf",
     "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "PERMIT_TYPEHASH",
-    "fnSig": "PERMIT_TYPEHASH()",
+    "contract": "Token",
+    "method": "vault",
+    "fnSig": "vault()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2ERC20_dd62ed3e": {
-    "key": "dd62ed3e",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "allowance",
-    "fnSig": "allowance(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_095ea7b3": {
-    "key": "095ea7b3",
+   "MockCLSwapRouter_ab6291fe": {
+    "key": "ab6291fe",
     "isCall": false,
-    "contract": "UniswapV2ERC20",
-    "method": "approve",
-    "fnSig": "approve(address,uint256)",
+    "contract": "MockCLSwapRouter",
+    "method": "lockAcquired",
+    "fnSig": "lockAcquired(bytes)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2ERC20_70a08231": {
-    "key": "70a08231",
+   "MockCLSwapRouter_dc4c90d3": {
+    "key": "dc4c90d3",
     "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "balanceOf",
-    "fnSig": "balanceOf(address)",
+    "contract": "MockCLSwapRouter",
+    "method": "poolManager",
+    "fnSig": "poolManager()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2ERC20_313ce567": {
-    "key": "313ce567",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "decimals",
-    "fnSig": "decimals()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_06fdde03": {
-    "key": "06fdde03",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "name",
-    "fnSig": "name()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_7ecebe00": {
-    "key": "7ecebe00",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "nonces",
-    "fnSig": "nonces(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_d505accf": {
-    "key": "d505accf",
+   "MockCLSwapRouter_a2f20621": {
+    "key": "a2f20621",
     "isCall": false,
-    "contract": "UniswapV2ERC20",
-    "method": "permit",
-    "fnSig": "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_95d89b41": {
-    "key": "95d89b41",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "symbol",
-    "fnSig": "symbol()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_18160ddd": {
-    "key": "18160ddd",
-    "isCall": true,
-    "contract": "UniswapV2ERC20",
-    "method": "totalSupply",
-    "fnSig": "totalSupply()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_a9059cbb": {
-    "key": "a9059cbb",
-    "isCall": false,
-    "contract": "UniswapV2ERC20",
-    "method": "transfer",
-    "fnSig": "transfer(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2ERC20_23b872dd": {
-    "key": "23b872dd",
-    "isCall": false,
-    "contract": "UniswapV2ERC20",
-    "method": "transferFrom",
-    "fnSig": "transferFrom(address,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_1e3dd18b": {
-    "key": "1e3dd18b",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "allPairs",
-    "fnSig": "allPairs(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_574f2ba3": {
-    "key": "574f2ba3",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "allPairsLength",
-    "fnSig": "allPairsLength()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_c9c65396": {
-    "key": "c9c65396",
-    "isCall": false,
-    "contract": "UniswapV2Factory",
-    "method": "createPair",
-    "fnSig": "createPair(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_017e7e58": {
-    "key": "017e7e58",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "feeTo",
-    "fnSig": "feeTo()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_094b7415": {
-    "key": "094b7415",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "feeToSetter",
-    "fnSig": "feeToSetter()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_e6a43905": {
-    "key": "e6a43905",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "getPair",
-    "fnSig": "getPair(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_7cd07e47": {
-    "key": "7cd07e47",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "migrator",
-    "fnSig": "migrator()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_9aab9248": {
-    "key": "9aab9248",
-    "isCall": true,
-    "contract": "UniswapV2Factory",
-    "method": "pairCodeHash",
-    "fnSig": "pairCodeHash()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Factory_f46901ed": {
-    "key": "f46901ed",
-    "isCall": false,
-    "contract": "UniswapV2Factory",
-    "method": "setFeeTo",
-    "fnSig": "setFeeTo(address)",
+    "contract": "MockCLSwapRouter",
+    "method": "swapExactInputTokenForETH",
+    "fnSig": "swapExactInputTokenForETH((address,address,address,address,uint24,bytes32),uint256,uint160,address)",
     "intrinsicGas": [
-     21432
+     23548
     ],
     "callData": [
      0
     ],
     "gasData": [
-     45999
+     515889
     ],
     "numberOfCalls": 1,
-    "executionGasAverage": 45999,
+    "executionGasAverage": 515889,
     "calldataGasAverage": 0,
-    "min": 45999,
-    "max": 45999
+    "min": 515889,
+    "max": 515889
    },
-   "UniswapV2Factory_a2e74af6": {
-    "key": "a2e74af6",
+   "MockCLSwapRouter_fbfa77cf": {
+    "key": "fbfa77cf",
+    "isCall": true,
+    "contract": "MockCLSwapRouter",
+    "method": "vault",
+    "fnSig": "vault()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockIPShareForHook_aaea3153": {
+    "key": "aaea3153",
+    "isCall": true,
+    "contract": "MockIPShareForHook",
+    "method": "lastSubject",
+    "fnSig": "lastSubject()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockIPShareForHook_886f9669": {
+    "key": "886f9669",
+    "isCall": true,
+    "contract": "MockIPShareForHook",
+    "method": "totalCaptured",
+    "fnSig": "totalCaptured()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockIPShareForHook_d9cd629d": {
+    "key": "d9cd629d",
     "isCall": false,
-    "contract": "UniswapV2Factory",
-    "method": "setFeeToSetter",
-    "fnSig": "setFeeToSetter(address)",
+    "contract": "MockIPShareForHook",
+    "method": "valueCapture",
+    "fnSig": "valueCapture(address)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2Factory_23cf3118": {
-    "key": "23cf3118",
+   "MockPumpForHook_b3126103": {
+    "key": "b3126103",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "createdTokens",
+    "fnSig": "createdTokens(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_b3f00674": {
+    "key": "b3f00674",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "feeReceiver",
+    "fnSig": "feeReceiver()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_59362b88": {
+    "key": "59362b88",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "getFeeRatio",
+    "fnSig": "getFeeRatio()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_e8a35392": {
+    "key": "e8a35392",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "getFeeReceiver",
+    "fnSig": "getFeeReceiver()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_888a5ad7": {
+    "key": "888a5ad7",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "getIPShare",
+    "fnSig": "getIPShare()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_29f1035a": {
+    "key": "29f1035a",
+    "isCall": true,
+    "contract": "MockPumpForHook",
+    "method": "ipshare",
+    "fnSig": "ipshare()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockPumpForHook_f737b3cd": {
+    "key": "f737b3cd",
     "isCall": false,
-    "contract": "UniswapV2Factory",
-    "method": "setMigrator",
-    "fnSig": "setMigrator(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "contract": "MockPumpForHook",
+    "method": "setCreatedToken",
+    "fnSig": "setCreatedToken(address,bool)",
+    "intrinsicGas": [
+     21572
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     44180
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 44180,
+    "calldataGasAverage": 0,
+    "min": 44180,
+    "max": 44180
    },
-   "UniswapV2Pair_3644e515": {
-    "key": "3644e515",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "DOMAIN_SEPARATOR",
-    "fnSig": "DOMAIN_SEPARATOR()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_ba9a7a56": {
-    "key": "ba9a7a56",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "MINIMUM_LIQUIDITY",
-    "fnSig": "MINIMUM_LIQUIDITY()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_30adf81f": {
-    "key": "30adf81f",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "PERMIT_TYPEHASH",
-    "fnSig": "PERMIT_TYPEHASH()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_dd62ed3e": {
-    "key": "dd62ed3e",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "allowance",
-    "fnSig": "allowance(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_095ea7b3": {
-    "key": "095ea7b3",
+   "MockPumpForHook_98b7d4be": {
+    "key": "98b7d4be",
     "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "approve",
-    "fnSig": "approve(address,uint256)",
+    "contract": "MockPumpForHook",
+    "method": "setFeeRatio",
+    "fnSig": "setFeeRatio(uint256,uint256)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2Pair_70a08231": {
-    "key": "70a08231",
+   "MockTokenForHook_888a5ad7": {
+    "key": "888a5ad7",
     "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "balanceOf",
-    "fnSig": "balanceOf(address)",
+    "contract": "MockTokenForHook",
+    "method": "getIPShare",
+    "fnSig": "getIPShare()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2Pair_89afcb44": {
-    "key": "89afcb44",
+   "MockTokenForHook_f1a978e2": {
+    "key": "f1a978e2",
+    "isCall": true,
+    "contract": "MockTokenForHook",
+    "method": "ipshareSubject",
+    "fnSig": "ipshareSubject()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "MockTokenForHook_2261d7ed": {
+    "key": "2261d7ed",
     "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "burn",
-    "fnSig": "burn(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "contract": "MockTokenForHook",
+    "method": "registerByKey",
+    "fnSig": "registerByKey(address,(address,address,address,address,uint24,bytes32))",
+    "intrinsicGas": [
+     22920
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     55893
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 55893,
+    "calldataGasAverage": 0,
+    "min": 55893,
+    "max": 55893
    },
-   "UniswapV2Pair_313ce567": {
-    "key": "313ce567",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "decimals",
-    "fnSig": "decimals()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_c45a0155": {
-    "key": "c45a0155",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "factory",
-    "fnSig": "factory()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_0902f1ac": {
-    "key": "0902f1ac",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "getReserves",
-    "fnSig": "getReserves()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_485cc955": {
-    "key": "485cc955",
+   "MockVaultForHook_0b0d9c09": {
+    "key": "0b0d9c09",
     "isCall": false,
-    "contract": "UniswapV2Pair",
+    "contract": "MockVaultForHook",
+    "method": "take",
+    "fnSig": "take(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_8161b874": {
+    "key": "8161b874",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "collectProtocolFees",
+    "fnSig": "collectProtocolFees(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_f15b275f": {
+    "key": "f15b275f",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "donate",
+    "fnSig": "donate((address,address,address,address,uint24,bytes32),uint256,uint256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_1e2eaeaf": {
+    "key": "1e2eaeaf",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "extsload",
+    "fnSig": "extsload(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_dbd035ff": {
+    "key": "dbd035ff",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "extsload",
+    "fnSig": "extsload(bytes32[])",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_9ec538c8": {
+    "key": "9ec538c8",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getFeeGrowthGlobals",
+    "fnSig": "getFeeGrowthGlobals(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_50b6157b": {
+    "key": "50b6157b",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getLiquidity",
+    "fnSig": "getLiquidity(bytes32,address,int24,int24,bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_fa6793d5": {
+    "key": "fa6793d5",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getLiquidity",
+    "fnSig": "getLiquidity(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_7c352ef6": {
+    "key": "7c352ef6",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getPoolBitmapInfo",
+    "fnSig": "getPoolBitmapInfo(bytes32,int16)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_5aa208a4": {
+    "key": "5aa208a4",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getPoolTickInfo",
+    "fnSig": "getPoolTickInfo(bytes32,int24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_7388426b": {
+    "key": "7388426b",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getPosition",
+    "fnSig": "getPosition(bytes32,address,int24,int24,bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_c815641c": {
+    "key": "c815641c",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "getSlot0",
+    "fnSig": "getSlot0(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_8b0c1b22": {
+    "key": "8b0c1b22",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
     "method": "initialize",
-    "fnSig": "initialize(address,address)",
+    "fnSig": "initialize((address,address,address,address,uint24,bytes32),uint160)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2Pair_7464fc3d": {
-    "key": "7464fc3d",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "kLast",
-    "fnSig": "kLast()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_6a627842": {
-    "key": "6a627842",
+   "TestCLPoolManager_9371d115": {
+    "key": "9371d115",
     "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "mint",
-    "fnSig": "mint(address)",
+    "contract": "TestCLPoolManager",
+    "method": "modifyLiquidity",
+    "fnSig": "modifyLiquidity((address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),bytes)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "UniswapV2Pair_06fdde03": {
-    "key": "06fdde03",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "name",
-    "fnSig": "name()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_7ecebe00": {
-    "key": "7ecebe00",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "nonces",
-    "fnSig": "nonces(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_d505accf": {
-    "key": "d505accf",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "permit",
-    "fnSig": "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_5909c0d5": {
-    "key": "5909c0d5",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "price0CumulativeLast",
-    "fnSig": "price0CumulativeLast()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_5a3d5493": {
-    "key": "5a3d5493",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "price1CumulativeLast",
-    "fnSig": "price1CumulativeLast()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_bc25cf77": {
-    "key": "bc25cf77",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "skim",
-    "fnSig": "skim(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_022c0d9f": {
-    "key": "022c0d9f",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "swap",
-    "fnSig": "swap(uint256,uint256,address,bytes)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_95d89b41": {
-    "key": "95d89b41",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "symbol",
-    "fnSig": "symbol()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_fff6cae9": {
-    "key": "fff6cae9",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "sync",
-    "fnSig": "sync()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_0dfe1681": {
-    "key": "0dfe1681",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "token0",
-    "fnSig": "token0()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_d21220a7": {
-    "key": "d21220a7",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "token1",
-    "fnSig": "token1()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_18160ddd": {
-    "key": "18160ddd",
-    "isCall": true,
-    "contract": "UniswapV2Pair",
-    "method": "totalSupply",
-    "fnSig": "totalSupply()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_a9059cbb": {
-    "key": "a9059cbb",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "transfer",
-    "fnSig": "transfer(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Pair_23b872dd": {
-    "key": "23b872dd",
-    "isCall": false,
-    "contract": "UniswapV2Pair",
-    "method": "transferFrom",
-    "fnSig": "transferFrom(address,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_ad5c4648": {
-    "key": "ad5c4648",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "WETH",
-    "fnSig": "WETH()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_e8e33700": {
-    "key": "e8e33700",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "addLiquidity",
-    "fnSig": "addLiquidity(address,address,uint256,uint256,uint256,uint256,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_f305d719": {
-    "key": "f305d719",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "addLiquidityETH",
-    "fnSig": "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_c45a0155": {
-    "key": "c45a0155",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "factory",
-    "fnSig": "factory()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_85f8c259": {
-    "key": "85f8c259",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "getAmountIn",
-    "fnSig": "getAmountIn(uint256,uint256,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_054d50d4": {
-    "key": "054d50d4",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "getAmountOut",
-    "fnSig": "getAmountOut(uint256,uint256,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_1f00ca74": {
-    "key": "1f00ca74",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "getAmountsIn",
-    "fnSig": "getAmountsIn(uint256,address[])",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_d06ca61f": {
-    "key": "d06ca61f",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "getAmountsOut",
-    "fnSig": "getAmountsOut(uint256,address[])",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_ad615dec": {
-    "key": "ad615dec",
-    "isCall": true,
-    "contract": "UniswapV2Router02",
-    "method": "quote",
-    "fnSig": "quote(uint256,uint256,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_baa2abde": {
-    "key": "baa2abde",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidity",
-    "fnSig": "removeLiquidity(address,address,uint256,uint256,uint256,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_02751cec": {
-    "key": "02751cec",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidityETH",
-    "fnSig": "removeLiquidityETH(address,uint256,uint256,uint256,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_af2979eb": {
-    "key": "af2979eb",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidityETHSupportingFeeOnTransferTokens",
-    "fnSig": "removeLiquidityETHSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_ded9382a": {
-    "key": "ded9382a",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidityETHWithPermit",
-    "fnSig": "removeLiquidityETHWithPermit(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_5b0d5984": {
-    "key": "5b0d5984",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens",
-    "fnSig": "removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_2195995c": {
-    "key": "2195995c",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "removeLiquidityWithPermit",
-    "fnSig": "removeLiquidityWithPermit(address,address,uint256,uint256,uint256,address,uint256,bool,uint8,bytes32,bytes32)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_fb3bdb41": {
-    "key": "fb3bdb41",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapETHForExactTokens",
-    "fnSig": "swapETHForExactTokens(uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_7ff36ab5": {
-    "key": "7ff36ab5",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactETHForTokens",
-    "fnSig": "swapExactETHForTokens(uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_b6f9de95": {
-    "key": "b6f9de95",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactETHForTokensSupportingFeeOnTransferTokens",
-    "fnSig": "swapExactETHForTokensSupportingFeeOnTransferTokens(uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_18cbafe5": {
-    "key": "18cbafe5",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactTokensForETH",
-    "fnSig": "swapExactTokensForETH(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_791ac947": {
-    "key": "791ac947",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactTokensForETHSupportingFeeOnTransferTokens",
-    "fnSig": "swapExactTokensForETHSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_38ed1739": {
-    "key": "38ed1739",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactTokensForTokens",
-    "fnSig": "swapExactTokensForTokens(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_5c11d795": {
-    "key": "5c11d795",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapExactTokensForTokensSupportingFeeOnTransferTokens",
-    "fnSig": "swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_4a25d94a": {
-    "key": "4a25d94a",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapTokensForExactETH",
-    "fnSig": "swapTokensForExactETH(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "UniswapV2Router02_8803dbee": {
-    "key": "8803dbee",
-    "isCall": false,
-    "contract": "UniswapV2Router02",
-    "method": "swapTokensForExactTokens",
-    "fnSig": "swapTokensForExactTokens(uint256,uint256,address[],address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_06fdde03": {
-    "key": "06fdde03",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "name",
-    "fnSig": "name()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_095ea7b3": {
-    "key": "095ea7b3",
-    "isCall": false,
-    "contract": "WETH9",
-    "method": "approve",
-    "fnSig": "approve(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_18160ddd": {
-    "key": "18160ddd",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "totalSupply",
-    "fnSig": "totalSupply()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_23b872dd": {
-    "key": "23b872dd",
-    "isCall": false,
-    "contract": "WETH9",
-    "method": "transferFrom",
-    "fnSig": "transferFrom(address,address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_2e1a7d4d": {
-    "key": "2e1a7d4d",
-    "isCall": false,
-    "contract": "WETH9",
-    "method": "withdraw",
-    "fnSig": "withdraw(uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_313ce567": {
-    "key": "313ce567",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "decimals",
-    "fnSig": "decimals()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_70a08231": {
-    "key": "70a08231",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "balanceOf",
-    "fnSig": "balanceOf(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_95d89b41": {
-    "key": "95d89b41",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "symbol",
-    "fnSig": "symbol()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_a9059cbb": {
-    "key": "a9059cbb",
-    "isCall": false,
-    "contract": "WETH9",
-    "method": "transfer",
-    "fnSig": "transfer(address,uint256)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_d0e30db0": {
-    "key": "d0e30db0",
-    "isCall": false,
-    "contract": "WETH9",
-    "method": "deposit",
-    "fnSig": "deposit()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WETH9_dd62ed3e": {
-    "key": "dd62ed3e",
-    "isCall": true,
-    "contract": "WETH9",
-    "method": "allowance",
-    "fnSig": "allowance(address,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_41275358": {
-    "key": "41275358",
-    "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "feeAddress",
-    "fnSig": "feeAddress()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_ad5c4648": {
-    "key": "ad5c4648",
-    "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "WETH",
-    "fnSig": "WETH()",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_0772a3fd": {
-    "key": "0772a3fd",
-    "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "adminSetFeeAddress",
-    "fnSig": "adminSetFeeAddress(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_facb9c4a": {
-    "key": "facb9c4a",
-    "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "adminSetFeeRatio",
-    "fnSig": "adminSetFeeRatio(uint16,uint16)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_8a191d41": {
-    "key": "8a191d41",
-    "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "buyToken",
-    "fnSig": "buyToken(address,uint256,address[],address,uint256,address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
-   },
-   "WrappedUniV2ForTagAI_8da5cb5b": {
+   "TestCLPoolManager_8da5cb5b": {
     "key": "8da5cb5b",
     "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
+    "contract": "TestCLPoolManager",
     "method": "owner",
     "fnSig": "owner()",
     "intrinsicGas": [],
@@ -3088,54 +2050,98 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_715018a6": {
-    "key": "715018a6",
+   "TestCLPoolManager_8456cb59": {
+    "key": "8456cb59",
     "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "renounceOwnership",
-    "fnSig": "renounceOwnership()",
+    "contract": "TestCLPoolManager",
+    "method": "pause",
+    "fnSig": "pause()",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_e344f06e": {
-    "key": "e344f06e",
+   "TestCLPoolManager_5c975abb": {
+    "key": "5c975abb",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "paused",
+    "fnSig": "paused()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_0e2d484a": {
+    "key": "0e2d484a",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "poolIdToPoolKey",
+    "fnSig": "poolIdToPoolKey(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_f02de3b2": {
+    "key": "f02de3b2",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "protocolFeeController",
+    "fnSig": "protocolFeeController()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_97e8cd4e": {
+    "key": "97e8cd4e",
+    "isCall": true,
+    "contract": "TestCLPoolManager",
+    "method": "protocolFeesAccrued",
+    "fnSig": "protocolFeesAccrued(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_81a250a1": {
+    "key": "81a250a1",
     "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "sellToken",
-    "fnSig": "sellToken(uint256,uint256,address[],address,uint256,address,address)",
+    "contract": "TestCLPoolManager",
+    "method": "setProtocolFee",
+    "fnSig": "setProtocolFee((address,address,address,address,uint24,bytes32),uint24)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_908cce03": {
-    "key": "908cce03",
-    "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "sellsmanRatio",
-    "fnSig": "sellsmanRatio()",
+   "TestCLPoolManager_2d771389": {
+    "key": "2d771389",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "setProtocolFeeController",
+    "fnSig": "setProtocolFeeController(address)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_d338d549": {
-    "key": "d338d549",
-    "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "tagaiRatio",
-    "fnSig": "tagaiRatio()",
+   "TestCLPoolManager_cd0cc1ce": {
+    "key": "cd0cc1ce",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "swap",
+    "fnSig": "swap((address,address,address,address,uint24,bytes32),(bool,int256,uint160),bytes)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_f2fde38b": {
+   "TestCLPoolManager_f2fde38b": {
     "key": "f2fde38b",
     "isCall": false,
-    "contract": "WrappedUniV2ForTagAI",
+    "contract": "TestCLPoolManager",
     "method": "transferOwnership",
     "fnSig": "transferOwnership(address)",
     "intrinsicGas": [],
@@ -3143,12 +2149,396 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "WrappedUniV2ForTagAI_fb912246": {
-    "key": "fb912246",
+   "TestCLPoolManager_3f4ba83a": {
+    "key": "3f4ba83a",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "unpause",
+    "fnSig": "unpause()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_ad4cc2d3": {
+    "key": "ad4cc2d3",
+    "isCall": false,
+    "contract": "TestCLPoolManager",
+    "method": "updateDynamicLPFee",
+    "fnSig": "updateDynamicLPFee((address,address,address,address,uint24,bytes32),uint24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestCLPoolManager_fbfa77cf": {
+    "key": "fbfa77cf",
     "isCall": true,
-    "contract": "WrappedUniV2ForTagAI",
-    "method": "uniswapRouter02",
-    "fnSig": "uniswapRouter02()",
+    "contract": "TestCLPoolManager",
+    "method": "vault",
+    "fnSig": "vault()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_81548319": {
+    "key": "81548319",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "lock",
+    "fnSig": "lock(bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_79ba5097": {
+    "key": "79ba5097",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "acceptOwnership",
+    "fnSig": "acceptOwnership()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_5d685a3c": {
+    "key": "5d685a3c",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,address,int256,address,int256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_6d102799": {
+    "key": "6d102799",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,int128,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_9073e5ca": {
+    "key": "9073e5ca",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,address,int256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_927da105": {
+    "key": "927da105",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "allowance",
+    "fnSig": "allowance(address,address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_e1f21c67": {
+    "key": "e1f21c67",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "approve",
+    "fnSig": "approve(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_f7888aec": {
+    "key": "f7888aec",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "balanceOf",
+    "fnSig": "balanceOf(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_f6b911bc": {
+    "key": "f6b911bc",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "burn",
+    "fnSig": "burn(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_80f0b44c": {
+    "key": "80f0b44c",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "clear",
+    "fnSig": "clear(address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_eb78b435": {
+    "key": "eb78b435",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "collectFee",
+    "fnSig": "collectFee(address,uint256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_a54b2831": {
+    "key": "a54b2831",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "currencyDelta",
+    "fnSig": "currencyDelta(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_5d4e0ced": {
+    "key": "5d4e0ced",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "getLocker",
+    "fnSig": "getLocker()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_fda42892": {
+    "key": "fda42892",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "getUnsettledDeltasCount",
+    "fnSig": "getUnsettledDeltasCount()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_36223ce9": {
+    "key": "36223ce9",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "getVaultReserve",
+    "fnSig": "getVaultReserve()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_8403be91": {
+    "key": "8403be91",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "isAppRegistered",
+    "fnSig": "isAppRegistered(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_b6363cf2": {
+    "key": "b6363cf2",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "isOperator",
+    "fnSig": "isOperator(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_c6c3bbe6": {
+    "key": "c6c3bbe6",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "mint",
+    "fnSig": "mint(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_8da5cb5b": {
+    "key": "8da5cb5b",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "owner",
+    "fnSig": "owner()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_e30c3978": {
+    "key": "e30c3978",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "pendingOwner",
+    "fnSig": "pendingOwner()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_17a1d80f": {
+    "key": "17a1d80f",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "registerApp",
+    "fnSig": "registerApp(address)",
+    "intrinsicGas": [
+     21420
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     47210
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 47210,
+    "calldataGasAverage": 0,
+    "min": 47210,
+    "max": 47210
+   },
+   "TestVault_715018a6": {
+    "key": "715018a6",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "renounceOwnership",
+    "fnSig": "renounceOwnership()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_322c3620": {
+    "key": "322c3620",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "reservesOfApp",
+    "fnSig": "reservesOfApp(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_558a7297": {
+    "key": "558a7297",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "setOperator",
+    "fnSig": "setOperator(address,bool)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_11da60b4": {
+    "key": "11da60b4",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "settle",
+    "fnSig": "settle()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_3dd45adb": {
+    "key": "3dd45adb",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "settleFor",
+    "fnSig": "settleFor(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_01ffc9a7": {
+    "key": "01ffc9a7",
+    "isCall": true,
+    "contract": "TestVault",
+    "method": "supportsInterface",
+    "fnSig": "supportsInterface(bytes4)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_a5841194": {
+    "key": "a5841194",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "sync",
+    "fnSig": "sync(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_0b0d9c09": {
+    "key": "0b0d9c09",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "take",
+    "fnSig": "take(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_beabacc8": {
+    "key": "beabacc8",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "transfer",
+    "fnSig": "transfer(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_15dacbea": {
+    "key": "15dacbea",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "transferFrom",
+    "fnSig": "transferFrom(address,address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "TestVault_f2fde38b": {
+    "key": "f2fde38b",
+    "isCall": false,
+    "contract": "TestVault",
+    "method": "transferOwnership",
+    "fnSig": "transferOwnership(address)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -3516,6 +2906,743 @@
     "callData": [],
     "gasData": [],
     "numberOfCalls": 0
+   },
+   "Vault_81548319": {
+    "key": "81548319",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "lock",
+    "fnSig": "lock(bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_79ba5097": {
+    "key": "79ba5097",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "acceptOwnership",
+    "fnSig": "acceptOwnership()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_5d685a3c": {
+    "key": "5d685a3c",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,address,int256,address,int256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_6d102799": {
+    "key": "6d102799",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,int128,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_9073e5ca": {
+    "key": "9073e5ca",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "accountAppBalanceDelta",
+    "fnSig": "accountAppBalanceDelta(address,address,int256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_927da105": {
+    "key": "927da105",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "allowance",
+    "fnSig": "allowance(address,address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_e1f21c67": {
+    "key": "e1f21c67",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "approve",
+    "fnSig": "approve(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_f7888aec": {
+    "key": "f7888aec",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "balanceOf",
+    "fnSig": "balanceOf(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_f6b911bc": {
+    "key": "f6b911bc",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "burn",
+    "fnSig": "burn(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_80f0b44c": {
+    "key": "80f0b44c",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "clear",
+    "fnSig": "clear(address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_eb78b435": {
+    "key": "eb78b435",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "collectFee",
+    "fnSig": "collectFee(address,uint256,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_a54b2831": {
+    "key": "a54b2831",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "currencyDelta",
+    "fnSig": "currencyDelta(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_5d4e0ced": {
+    "key": "5d4e0ced",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "getLocker",
+    "fnSig": "getLocker()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_fda42892": {
+    "key": "fda42892",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "getUnsettledDeltasCount",
+    "fnSig": "getUnsettledDeltasCount()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_36223ce9": {
+    "key": "36223ce9",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "getVaultReserve",
+    "fnSig": "getVaultReserve()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_8403be91": {
+    "key": "8403be91",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "isAppRegistered",
+    "fnSig": "isAppRegistered(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_b6363cf2": {
+    "key": "b6363cf2",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "isOperator",
+    "fnSig": "isOperator(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_c6c3bbe6": {
+    "key": "c6c3bbe6",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "mint",
+    "fnSig": "mint(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_8da5cb5b": {
+    "key": "8da5cb5b",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "owner",
+    "fnSig": "owner()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_e30c3978": {
+    "key": "e30c3978",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "pendingOwner",
+    "fnSig": "pendingOwner()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_17a1d80f": {
+    "key": "17a1d80f",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "registerApp",
+    "fnSig": "registerApp(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_715018a6": {
+    "key": "715018a6",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "renounceOwnership",
+    "fnSig": "renounceOwnership()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_322c3620": {
+    "key": "322c3620",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "reservesOfApp",
+    "fnSig": "reservesOfApp(address,address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_558a7297": {
+    "key": "558a7297",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "setOperator",
+    "fnSig": "setOperator(address,bool)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_11da60b4": {
+    "key": "11da60b4",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "settle",
+    "fnSig": "settle()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_3dd45adb": {
+    "key": "3dd45adb",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "settleFor",
+    "fnSig": "settleFor(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_01ffc9a7": {
+    "key": "01ffc9a7",
+    "isCall": true,
+    "contract": "Vault",
+    "method": "supportsInterface",
+    "fnSig": "supportsInterface(bytes4)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_a5841194": {
+    "key": "a5841194",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "sync",
+    "fnSig": "sync(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_0b0d9c09": {
+    "key": "0b0d9c09",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "take",
+    "fnSig": "take(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_beabacc8": {
+    "key": "beabacc8",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "transfer",
+    "fnSig": "transfer(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_15dacbea": {
+    "key": "15dacbea",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "transferFrom",
+    "fnSig": "transferFrom(address,address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "Vault_f2fde38b": {
+    "key": "f2fde38b",
+    "isCall": false,
+    "contract": "Vault",
+    "method": "transferOwnership",
+    "fnSig": "transferOwnership(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "LPFeeLibrary_f26ef49d": {
+    "key": "f26ef49d",
+    "isCall": true,
+    "contract": "LPFeeLibrary",
+    "method": "DYNAMIC_FEE_FLAG",
+    "fnSig": "DYNAMIC_FEE_FLAG()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "LPFeeLibrary_6f3888f5": {
+    "key": "6f3888f5",
+    "isCall": true,
+    "contract": "LPFeeLibrary",
+    "method": "ONE_HUNDRED_PERCENT_FEE",
+    "fnSig": "ONE_HUNDRED_PERCENT_FEE()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "LPFeeLibrary_3b01d64d": {
+    "key": "3b01d64d",
+    "isCall": true,
+    "contract": "LPFeeLibrary",
+    "method": "OVERRIDE_FEE_FLAG",
+    "fnSig": "OVERRIDE_FEE_FLAG()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "LPFeeLibrary_69a50da9": {
+    "key": "69a50da9",
+    "isCall": true,
+    "contract": "LPFeeLibrary",
+    "method": "OVERRIDE_MASK",
+    "fnSig": "OVERRIDE_MASK()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "LPFeeLibrary_c1d217e9": {
+    "key": "c1d217e9",
+    "isCall": true,
+    "contract": "LPFeeLibrary",
+    "method": "TEN_PERCENT_FEE",
+    "fnSig": "TEN_PERCENT_FEE()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ProtocolFeeLibrary_b8ca3b83": {
+    "key": "b8ca3b83",
+    "isCall": true,
+    "contract": "ProtocolFeeLibrary",
+    "method": "MAX_PROTOCOL_FEE",
+    "fnSig": "MAX_PROTOCOL_FEE()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_8161b874": {
+    "key": "8161b874",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "collectProtocolFees",
+    "fnSig": "collectProtocolFees(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_f15b275f": {
+    "key": "f15b275f",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "donate",
+    "fnSig": "donate((address,address,address,address,uint24,bytes32),uint256,uint256,bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_1e2eaeaf": {
+    "key": "1e2eaeaf",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "extsload",
+    "fnSig": "extsload(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_dbd035ff": {
+    "key": "dbd035ff",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "extsload",
+    "fnSig": "extsload(bytes32[])",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_9ec538c8": {
+    "key": "9ec538c8",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getFeeGrowthGlobals",
+    "fnSig": "getFeeGrowthGlobals(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_50b6157b": {
+    "key": "50b6157b",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getLiquidity",
+    "fnSig": "getLiquidity(bytes32,address,int24,int24,bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_fa6793d5": {
+    "key": "fa6793d5",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getLiquidity",
+    "fnSig": "getLiquidity(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_7c352ef6": {
+    "key": "7c352ef6",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getPoolBitmapInfo",
+    "fnSig": "getPoolBitmapInfo(bytes32,int16)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_5aa208a4": {
+    "key": "5aa208a4",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getPoolTickInfo",
+    "fnSig": "getPoolTickInfo(bytes32,int24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_7388426b": {
+    "key": "7388426b",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getPosition",
+    "fnSig": "getPosition(bytes32,address,int24,int24,bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_c815641c": {
+    "key": "c815641c",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "getSlot0",
+    "fnSig": "getSlot0(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_8b0c1b22": {
+    "key": "8b0c1b22",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "initialize",
+    "fnSig": "initialize((address,address,address,address,uint24,bytes32),uint160)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_9371d115": {
+    "key": "9371d115",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "modifyLiquidity",
+    "fnSig": "modifyLiquidity((address,address,address,address,uint24,bytes32),(int24,int24,int256,bytes32),bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_8da5cb5b": {
+    "key": "8da5cb5b",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "owner",
+    "fnSig": "owner()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_8456cb59": {
+    "key": "8456cb59",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "pause",
+    "fnSig": "pause()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_5c975abb": {
+    "key": "5c975abb",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "paused",
+    "fnSig": "paused()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_0e2d484a": {
+    "key": "0e2d484a",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "poolIdToPoolKey",
+    "fnSig": "poolIdToPoolKey(bytes32)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_f02de3b2": {
+    "key": "f02de3b2",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "protocolFeeController",
+    "fnSig": "protocolFeeController()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_97e8cd4e": {
+    "key": "97e8cd4e",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "protocolFeesAccrued",
+    "fnSig": "protocolFeesAccrued(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_81a250a1": {
+    "key": "81a250a1",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "setProtocolFee",
+    "fnSig": "setProtocolFee((address,address,address,address,uint24,bytes32),uint24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_2d771389": {
+    "key": "2d771389",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "setProtocolFeeController",
+    "fnSig": "setProtocolFeeController(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_cd0cc1ce": {
+    "key": "cd0cc1ce",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "swap",
+    "fnSig": "swap((address,address,address,address,uint24,bytes32),(bool,int256,uint160),bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_f2fde38b": {
+    "key": "f2fde38b",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "transferOwnership",
+    "fnSig": "transferOwnership(address)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_3f4ba83a": {
+    "key": "3f4ba83a",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "unpause",
+    "fnSig": "unpause()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_ad4cc2d3": {
+    "key": "ad4cc2d3",
+    "isCall": false,
+    "contract": "CLPoolManager",
+    "method": "updateDynamicLPFee",
+    "fnSig": "updateDynamicLPFee((address,address,address,address,uint24,bytes32),uint24)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CLPoolManager_fbfa77cf": {
+    "key": "fbfa77cf",
+    "isCall": true,
+    "contract": "CLPoolManager",
+    "method": "vault",
+    "fnSig": "vault()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "BalanceDeltaLibrary_91cb4669": {
+    "key": "91cb4669",
+    "isCall": true,
+    "contract": "BalanceDeltaLibrary",
+    "method": "ZERO_DELTA",
+    "fnSig": "ZERO_DELTA()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "BeforeSwapDeltaLibrary_91cb4669": {
+    "key": "91cb4669",
+    "isCall": true,
+    "contract": "BeforeSwapDeltaLibrary",
+    "method": "ZERO_DELTA",
+    "fnSig": "ZERO_DELTA()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "CurrencyLibrary_a0cf0aea": {
+    "key": "a0cf0aea",
+    "isCall": true,
+    "contract": "CurrencyLibrary",
+    "method": "NATIVE",
+    "fnSig": "NATIVE()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    }
   },
   "deployments": [
@@ -3535,7 +3662,12 @@
     "callData": []
    },
    {
-    "name": "../@openzeppelin/contracts/utils/math/Math.sol:Math",
+    "name": "../@openzeppelin/contracts/utils/math/SafeCast.sol:SafeCast",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@openzeppelin/contracts/utils/Pausable.sol:Pausable",
     "gasData": [],
     "callData": []
    },
@@ -3545,22 +3677,47 @@
     "callData": []
    },
    {
-    "name": "../@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol:IUniswapV2Router01",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "../@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol:IUniswapV2Router02",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "ActivityRewardPool",
+    "name": "../infinity-core/src/base/Ownable.sol:Ownable",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/base/Pausable.sol:Pausable",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/libraries/SafeCast.sol:SafeCast",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "BalanceDeltaLibrary",
     "gasData": [],
     "callData": []
    },
    {
     "name": "Base64",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "BeforeSwapDeltaLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "BitMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLHooks",
     "gasData": [],
     "callData": []
    },
@@ -3571,6 +3728,36 @@
    },
    {
     "name": "Clones",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLPool",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLPoolGetters",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLPoolManager",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLPoolParametersHelper",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLPosition",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CLSlot0Library",
     "gasData": [],
     "callData": []
    },
@@ -3595,6 +3782,16 @@
     "callData": []
    },
    {
+    "name": "CurrencyLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "CustomRevert",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "DateTimeLib",
     "gasData": [],
     "callData": []
@@ -3605,17 +3802,17 @@
     "callData": []
    },
    {
-    "name": "Donut",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "DynamicBufferLib",
     "gasData": [],
     "callData": []
    },
    {
     "name": "EIP712",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "Encoded",
     "gasData": [],
     "callData": []
    },
@@ -3690,6 +3887,21 @@
     "callData": []
    },
    {
+    "name": "Extsload",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "FixedPoint128",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "FixedPoint96",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "FixedPointMathLib",
     "gasData": [],
     "callData": []
@@ -3705,7 +3917,22 @@
     "callData": []
    },
    {
+    "name": "Hooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "IBondingCurve",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "ICLHooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "ICLPoolManager",
     "gasData": [],
     "callData": []
    },
@@ -3740,6 +3967,11 @@
     "callData": []
    },
    {
+    "name": "IERC20Minimal",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "IERC721",
     "gasData": [],
     "callData": []
@@ -3755,12 +3987,27 @@
     "callData": []
    },
    {
+    "name": "IExtsload",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IHookRegistrar",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IHooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "IIPShare",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "IMigrator",
+    "name": "ILockCallback",
     "gasData": [],
     "callData": []
    },
@@ -3775,41 +4022,43 @@
     "callData": []
    },
    {
-    "name": "interface/IUniswapV2Factory.sol:IUniswapV2Factory",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "interface/IUniswapV2Pair.sol:IUniswapV2Pair",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "interface/IUniswapV2Router02.sol:IUniswapV2Router02",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "interface/IWETH.sol:IWETH",
+    "name": "IPoolManager",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IProtocolFeeController",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IProtocolFees",
     "gasData": [],
     "callData": []
    },
    {
     "name": "IPShare",
     "gasData": [
-     3328955
+     2490555,
+     2490555
     ],
     "callData": [
+     0,
      0
     ],
-    "executionGasAverage": 3328955,
+    "executionGasAverage": 2490555,
     "calldataGasAverage": 0,
-    "min": 3328955,
-    "max": 3328955,
-    "percent": 5.5
+    "min": 2490555,
+    "max": 2490555,
+    "percent": 8.3
    },
    {
-    "name": "IPShareevents",
+    "name": "IPShareEvents",
     "gasData": [],
     "callData": []
    },
@@ -3819,17 +4068,47 @@
     "callData": []
    },
    {
+    "name": "ITipTagSwapHook",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "IToken",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "IUniswapV2Callee",
+    "name": "IUniswapV2Factory",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IUniswapV2Pair",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IUniswapV2Router01",
     "gasData": [],
     "callData": []
    },
    {
     "name": "IUniswapV3Factory",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IVault",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IVaultToken",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IWETH",
     "gasData": [],
     "callData": []
    },
@@ -3889,6 +4168,21 @@
     "callData": []
    },
    {
+    "name": "LiquidityMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "LPFeeLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "Math",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "MerkleProofLib",
     "gasData": [],
     "callData": []
@@ -3914,6 +4208,67 @@
     "callData": []
    },
    {
+    "name": "MockCLSwapRouter",
+    "gasData": [
+     691985
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 691985,
+    "calldataGasAverage": 0,
+    "min": 691985,
+    "max": 691985,
+    "percent": 2.3
+   },
+   {
+    "name": "MockIPShareForHook",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "MockPumpForHook",
+    "gasData": [
+     306659
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 306659,
+    "calldataGasAverage": 0,
+    "min": 306659,
+    "max": 306659,
+    "percent": 1
+   },
+   {
+    "name": "MockTokenForHook",
+    "gasData": [
+     201057
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 201057,
+    "calldataGasAverage": 0,
+    "min": 201057,
+    "max": 201057,
+    "percent": 0.7
+   },
+   {
+    "name": "MockVaultForHook",
+    "gasData": [
+     145087
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 145087,
+    "calldataGasAverage": 0,
+    "min": 145087,
+    "max": 145087,
+    "percent": 0.5
+   },
+   {
     "name": "Multicallable",
     "gasData": [],
     "callData": []
@@ -3934,6 +4289,11 @@
     "callData": []
    },
    {
+    "name": "Owner",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "P256",
     "gasData": [],
     "callData": []
@@ -3944,23 +4304,45 @@
     "callData": []
    },
    {
-    "name": "Pausable",
+    "name": "ParametersHelper",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "ParseBytes",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "PoolIdLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "ProtocolFeeLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "ProtocolFees",
     "gasData": [],
     "callData": []
    },
    {
     "name": "Pump",
     "gasData": [
-     2726816
+     2239810,
+     2239810
     ],
     "callData": [
+     0,
      0
     ],
-    "executionGasAverage": 2726816,
+    "executionGasAverage": 2239810,
     "calldataGasAverage": 0,
-    "min": 2726816,
-    "max": 2726816,
-    "percent": 4.5
+    "min": 2239810,
+    "max": 2239810,
+    "percent": 7.5
    },
    {
     "name": "Receiver",
@@ -3973,17 +4355,17 @@
     "callData": []
    },
    {
-    "name": "SafeCast",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "SafeCastLib",
     "gasData": [],
     "callData": []
    },
    {
     "name": "SafeTransferLib",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "SettlementGuard",
     "gasData": [],
     "callData": []
    },
@@ -4018,6 +4400,11 @@
     "callData": []
    },
    {
+    "name": "SqrtPriceMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "SSTORE2",
     "gasData": [],
     "callData": []
@@ -4028,148 +4415,99 @@
     "callData": []
    },
    {
-    "name": "TagAIPoints",
+    "name": "SwapMath",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "TestERC20",
+    "name": "TestCLPoolManager",
     "gasData": [
-     586782
+     4104966
     ],
     "callData": [
      0
     ],
-    "executionGasAverage": 586782,
+    "executionGasAverage": 4104966,
     "calldataGasAverage": 0,
-    "min": 586782,
-    "max": 586782,
-    "percent": 1
+    "min": 4104966,
+    "max": 4104966,
+    "percent": 13.7
+   },
+   {
+    "name": "TestERC20",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "TestVault",
+    "gasData": [
+     1536632
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 1536632,
+    "calldataGasAverage": 0,
+    "min": 1536632,
+    "max": 1536632,
+    "percent": 5.1
+   },
+   {
+    "name": "Tick",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "TickBitmap",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "TickMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "TipTagSwapHook",
+    "gasData": [
+     1110731,
+     1110731,
+     1110743
+    ],
+    "callData": [
+     0,
+     0,
+     0
+    ],
+    "executionGasAverage": 1110735,
+    "calldataGasAverage": 0,
+    "min": 1110731,
+    "max": 1110743,
+    "percent": 3.7
    },
    {
     "name": "Token",
     "gasData": [
-     2499875
+     2768338,
+     2768338
     ],
     "callData": [
+     0,
      0
     ],
-    "executionGasAverage": 2499875,
+    "executionGasAverage": 2768338,
     "calldataGasAverage": 0,
-    "min": 2499875,
-    "max": 2499875,
-    "percent": 4.2
+    "min": 2768338,
+    "max": 2768338,
+    "percent": 9.2
    },
    {
-    "name": "TransferHelper",
+    "name": "UnsafeMath",
     "gasData": [],
     "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapFactoryV2.sol:IERC20Uniswap",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapFactoryV2.sol:IUniswapV2Factory",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapFactoryV2.sol:Math",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapFactoryV2.sol:SafeMathUniswap",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IERC20Uniswap",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IUniswapV2Factory",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IUniswapV2Pair",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IUniswapV2Router01",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IUniswapV2Router02",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:IWETH",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2/SushiswapV2Router02.sol:SafeMathUniswap",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2ERC20",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2Factory",
-    "gasData": [
-     2588724
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 2588724,
-    "calldataGasAverage": 0,
-    "min": 2588724,
-    "max": 2588724,
-    "percent": 4.3
-   },
-   {
-    "name": "UniswapV2Library",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2Pair",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UniswapV2Router02",
-    "gasData": [
-     3947703
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 3947703,
-    "calldataGasAverage": 0,
-    "min": 3947703,
-    "max": 3947703,
-    "percent": 6.6
    },
    {
     "name": "UpgradeableBeacon",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "UQ112x112",
     "gasData": [],
     "callData": []
    },
@@ -4179,26 +4517,27 @@
     "callData": []
    },
    {
-    "name": "WETH",
+    "name": "Vault",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "WETH9",
-    "gasData": [
-     540860
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 540860,
-    "calldataGasAverage": 0,
-    "min": 540860,
-    "max": 540860,
-    "percent": 0.9
+    "name": "VaultAppDeltaSettlement",
+    "gasData": [],
+    "callData": []
    },
    {
-    "name": "WrappedUniV2ForTagAI",
+    "name": "VaultReserve",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "VaultToken",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "WETH",
     "gasData": [],
     "callData": []
    }
