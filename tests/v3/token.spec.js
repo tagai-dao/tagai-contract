@@ -33,6 +33,41 @@ describe("Token (v3)", function () {
     };
   }
 
+  async function deployListedTokenFixture() {
+    const fixture = await deployCoreFixture();
+    const { owner, creator, pump } = fixture;
+
+    const Vault = await ethers.getContractFactory("TestVault");
+    const vault = await Vault.deploy();
+
+    const CLPoolManager = await ethers.getContractFactory("TestCLPoolManager");
+    const clPoolManager = await CLPoolManager.deploy(vault.target);
+    await vault.connect(owner).registerApp(clPoolManager.target);
+
+    await pump.connect(owner).adminSetPoolManager(clPoolManager.target);
+    await pump.connect(owner).adminSetVault(vault.target);
+
+    const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
+    const hook = await TipTagSwapHook.deploy(clPoolManager.target, vault.target, pump.target);
+    await pump.connect(owner).adminSetHookAddress(hook.target);
+
+    const salt = saltFromNumber(9);
+    const createFee = await pump.createFee();
+    const { token } = await createTokenByEvent(pump, creator, "LST", salt, createFee);
+
+    const capAmount = toWei(650000000);
+    const needEth = await pump.getBuyPriceAfterFee(0, capAmount);
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+
+    return {
+      ...fixture,
+      vault,
+      clPoolManager,
+      hook,
+      token,
+    };
+  }
+
   it("should use static fee ratio on the first buy", async function () {
     const { token, pump, buyer } = await loadFixture(deployTokenFixture);
     const buyValue = toWei(1);
@@ -103,5 +138,66 @@ describe("Token (v3)", function () {
     expect(tradeArgs.isBuy).to.equal(false);
     expect(tradeArgs.tiptagFee).to.equal(expectedTiptagFee);
     expect(tradeArgs.sellsmanFee).to.equal(expectedSellsmanFee);
+  });
+
+  it("should revert buy and sell on bonding curve after listed", async function () {
+    const { token, creator } = await loadFixture(deployListedTokenFixture);
+    expect(await token.listed()).to.equal(true);
+
+    await expect(token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+      token,
+      "TokenListed"
+    );
+    await expect(token.connect(creator).sellToken(1n, 0, ethers.ZeroAddress, 0)).to.be.revertedWithCustomError(
+      token,
+      "TokenListed"
+    );
+  });
+
+  it("should revert when non-zero sellsman has no ipshare", async function () {
+    const { token, buyer, alice } = await loadFixture(deployTokenFixture);
+
+    await expect(token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+      token,
+      "IPShareNotCreated"
+    );
+
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
+    await expect(token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0)).to.be.revertedWithCustomError(
+      token,
+      "IPShareNotCreated"
+    );
+  });
+
+  it("should revert tiny buy and tiny sell with DustIssue", async function () {
+    const { token, buyer } = await loadFixture(deployTokenFixture);
+
+    await expect(token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: 1_000_000_000n })).to.be.revertedWithCustomError(
+      token,
+      "DustIssue"
+    );
+
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await expect(token.connect(buyer).sellToken(1n, 0, ethers.ZeroAddress, 0)).to.be.revertedWithCustomError(
+      token,
+      "DustIssue"
+    );
+  });
+
+  it("should auto-buy on receive() before listed", async function () {
+    const { token, buyer } = await loadFixture(deployTokenFixture);
+    const before = await token.balanceOf(buyer.address);
+    await buyer.sendTransaction({ to: token.target, value: toWei(1) });
+    const after = await token.balanceOf(buyer.address);
+    expect(after).to.be.gt(before);
+  });
+
+  it("should block external transfer to vault before listed", async function () {
+    const { token, buyer, pump } = await loadFixture(deployTokenFixture);
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    const vaultAddress = await pump.getVault();
+
+    await expect(token.connect(buyer).transfer(vaultAddress, 1n)).to.be.revertedWithCustomError(token, "TokenNotListed");
   });
 });

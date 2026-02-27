@@ -4,6 +4,9 @@ require('hardhat-deploy')
 require('hardhat-gas-reporter')
 require('dotenv').config();
 
+const enableFork = process.env.ENABLE_FORK === "1";
+const forkBlockNumber = 83628324;
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity:
@@ -93,7 +96,14 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 97
+      chainId: enableFork ? 56 : 97,
+      hardfork: "cancun",
+      forking: enableFork
+        ? {
+            url: process.env.BSC_RPC_URL || process.env.BSC,
+            blockNumber: forkBlockNumber
+          }
+        : undefined
     },
     base: {
       url: process.env.BASE,
@@ -117,7 +127,7 @@ module.exports = {
       ]
     },
     bsc: {
-      url: process.env.BSC,
+      url: process.env.BSC || process.env.BSC_RPC_URL,
       chainId: 56,
       accounts: [
         process.env.KEY

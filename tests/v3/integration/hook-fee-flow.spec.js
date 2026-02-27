@@ -84,13 +84,14 @@ describe("Integration: Hook fee flow", function () {
   }
 
   async function listToken(fixture, hookAddress) {
-    const { creator, pump, feeReceiver } = fixture;
+    const { creator, pump, feeReceiver, vault } = fixture;
     const salt = saltFromNumber(1);
     const createFee = await pump.createFee();
     const { token } = await createTokenByEvent(pump, creator, "DEX", salt, createFee);
     await pump.adminSetHookAddress(hookAddress);
 
     const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const vaultEthBefore = await ethers.provider.getBalance(vault.target);
     const tokenEthBefore = await ethers.provider.getBalance(token.target);
     const tokenBalBefore = await token.balanceOf(token.target);
 
@@ -99,10 +100,21 @@ describe("Integration: Hook fee flow", function () {
     await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
 
     const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const vaultEthAfter = await ethers.provider.getBalance(vault.target);
     const tokenEthAfter = await ethers.provider.getBalance(token.target);
     const tokenBalAfter = await token.balanceOf(token.target);
 
-    return { token, feeReceiverBefore, feeReceiverAfter, tokenEthBefore, tokenEthAfter, tokenBalBefore, tokenBalAfter };
+    return {
+      token,
+      feeReceiverBefore,
+      feeReceiverAfter,
+      vaultEthBefore,
+      vaultEthAfter,
+      tokenEthBefore,
+      tokenEthAfter,
+      tokenBalBefore,
+      tokenBalAfter,
+    };
   }
 
   function buildPoolKey(tokenAddress, hookAddress, poolManagerAddress, hookBitmap) {
@@ -240,5 +252,128 @@ describe("Integration: Hook fee flow", function () {
     const pendingAfter = await ipshare.getPendingProfits(creator.address, creator.address);
     expect(feeReceiverAfter).to.be.gt(feeReceiverBefore);
     expect(pendingAfter).to.be.gt(pendingBefore);
+  });
+
+  it("case6: listing should switch from unlisted to listed across cap boundary", async function () {
+    const fixture = await loadFixture(deployListingFixture);
+    const { owner, creator, pump } = fixture;
+
+    const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
+    const hook = await TipTagSwapHook.deploy(fixture.clPoolManager.target, fixture.vault.target, pump.target);
+    await pump.connect(owner).adminSetHookAddress(hook.target);
+
+    const salt = saltFromNumber(2);
+    const createFee = await pump.createFee();
+    const { token } = await createTokenByEvent(pump, creator, "EDG", salt, createFee);
+
+    const firstTargetAmount = toWei(649000000);
+    const firstNeedEth = await pump.getBuyPriceAfterFee(0, firstTargetAmount);
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: firstNeedEth });
+
+    expect(await token.listed()).to.equal(false);
+    expect(await token.bondingCurveSupply()).to.be.lt(toWei(650000000));
+
+    const createdAt = await token.createdAt();
+    await time.increaseTo(createdAt + 16n);
+
+    const currentSupply = await token.bondingCurveSupply();
+    const secondNeedEth = await pump.getBuyPriceAfterFee(currentSupply, toWei(2000000));
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: secondNeedEth + 10_000_000_000n });
+
+    expect(await token.listed()).to.equal(true);
+    expect(await token.bondingCurveSupply()).to.equal(toWei(650000000));
+  });
+
+  it("case7: repeated post-list swaps should accumulate protocol fee and pending profits", async function () {
+    const fixture = await loadFixture(deployListingFixture);
+    const { owner, creator, pump, swapRouter, clPoolManager, ipshare, feeReceiver } = fixture;
+
+    await pump.connect(owner).adminChangeClaimSigner(owner.address);
+    const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
+    const hook = await TipTagSwapHook.deploy(clPoolManager.target, fixture.vault.target, pump.target);
+    await pump.connect(owner).adminSetHookAddress(hook.target);
+
+    const { token } = await listToken(fixture, hook.target);
+    expect(await token.listed()).to.equal(true);
+
+    // Claim 150M social rewards so creator has full 800M for two-step sell.
+    const claimAmount = toWei(150000000);
+    const claimRatePerSecond = 12_870_000_000_000_000_000n;
+    await time.increase(claimAmount / claimRatePerSecond + 1n);
+
+    const orderId = 100n;
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    const digest = ethers.solidityPackedKeccak256(
+      ["uint256", "address", "uint256", "address", "uint256"],
+      [chainId, token.target, orderId, creator.address, claimAmount]
+    );
+    const signature = await owner.signMessage(ethers.getBytes(digest));
+    const claimFee = await pump.getClaimFee();
+    await pump.connect(creator).userClaim(token.target, orderId, claimAmount, signature, { value: claimFee });
+
+    const totalToSell = toWei(800000000);
+    const halfSell = totalToSell / 2n;
+    await token.connect(creator).approve(swapRouter.target, totalToSell);
+
+    const hookBitmap = await hook.getHooksRegistrationBitmap();
+    const key = buildPoolKey(token.target, hook.target, clPoolManager.target, hookBitmap);
+    const maxSqrtRatioMinusOne = 1461446703485210103287273052203988822378723970341n;
+
+    const fee0 = await ethers.provider.getBalance(feeReceiver.address);
+    const pending0 = await ipshare.getPendingProfits(creator.address, creator.address);
+
+    await swapRouter.connect(creator).swapExactInputTokenForETH(key, halfSell, maxSqrtRatioMinusOne, creator.address);
+    const fee1 = await ethers.provider.getBalance(feeReceiver.address);
+    const pending1 = await ipshare.getPendingProfits(creator.address, creator.address);
+
+    await swapRouter.connect(creator).swapExactInputTokenForETH(key, halfSell, maxSqrtRatioMinusOne, creator.address);
+    const fee2 = await ethers.provider.getBalance(feeReceiver.address);
+    const pending2 = await ipshare.getPendingProfits(creator.address, creator.address);
+
+    expect(fee1).to.be.gt(fee0);
+    expect(fee2).to.be.gt(fee1);
+    expect(pending1).to.be.gt(pending0);
+    expect(pending2).to.be.gt(pending1);
+  });
+
+  it("case8: listing should satisfy bounded ETH/TOKEN conservation checks", async function () {
+    const fixture = await loadFixture(deployListingFixture);
+    const { owner, pump } = fixture;
+
+    const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
+    const hook = await TipTagSwapHook.deploy(fixture.clPoolManager.target, fixture.vault.target, pump.target);
+    await pump.connect(owner).adminSetHookAddress(hook.target);
+
+    const {
+      token,
+      feeReceiverBefore,
+      feeReceiverAfter,
+      vaultEthBefore,
+      vaultEthAfter,
+      tokenEthBefore,
+      tokenEthAfter,
+      tokenBalBefore,
+      tokenBalAfter,
+    } = await listToken(fixture, hook.target);
+
+    // Listing lifecycle should end with no ETH left on token contract.
+    expect(await token.listed()).to.equal(true);
+    expect(tokenEthBefore).to.equal(0n);
+    expect(tokenEthAfter).to.equal(0n);
+
+    // ETH should be split into LP settlement (vault) + platform flush (feeReceiver).
+    const vaultEthDelta = vaultEthAfter - vaultEthBefore;
+    const feeEthDelta = feeReceiverAfter - feeReceiverBefore;
+    expect(vaultEthDelta).to.be.gt(0n);
+    expect(vaultEthDelta).to.be.lte(toWei(19));
+    expect(feeEthDelta).to.be.gt(0n);
+
+    // Token inventory drop includes bonding-curve distribution (650M) + LP allocation (<=200M).
+    const consumedToken = tokenBalBefore - tokenBalAfter;
+    expect(tokenBalBefore).to.equal(toWei(850000000));
+    expect(consumedToken).to.be.gt(0n);
+    expect(consumedToken).to.be.gte(toWei(650000000));
+    expect(consumedToken).to.be.lte(toWei(850000000));
+    expect(tokenBalAfter).to.be.gte(0n);
   });
 });

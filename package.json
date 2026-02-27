@@ -8,6 +8,7 @@
     "deploy": "hardhat run --network bsc scripts/deploy.js",
     "deploy-chapel": "hardhat run --network chapel scripts/deploy.js",
     "test": "hardhat test",
+    "test:fork:v3": "ENABLE_FORK=1 hardhat test tests/fork/v3/pancakeV4.mainnet-fork.spec.js",
     "test-ipshare": "hardhat test tests/ipshare",
     "test-pump": "hardhat test tests/pumpv2",
     "test-bc": "hardhat test tests/bondingCurve",

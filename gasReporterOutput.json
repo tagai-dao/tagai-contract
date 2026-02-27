@@ -36,6 +36,83 @@
  },
  "data": {
   "methods": {
+   "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_f26ef49d": {
+    "key": "f26ef49d",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "method": "DYNAMIC_FEE_FLAG",
+    "fnSig": "DYNAMIC_FEE_FLAG()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_3fc48eba": {
+    "key": "3fc48eba",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "method": "MAX_LP_FEE",
+    "fnSig": "MAX_LP_FEE()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_3b01d64d": {
+    "key": "3b01d64d",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "method": "OVERRIDE_FEE_FLAG",
+    "fnSig": "OVERRIDE_FEE_FLAG()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_6f95ebcf": {
+    "key": "6f95ebcf",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "method": "REMOVE_OVERRIDE_MASK",
+    "fnSig": "REMOVE_OVERRIDE_MASK()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary_91cb4669": {
+    "key": "91cb4669",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary",
+    "method": "ZERO_DELTA",
+    "fnSig": "ZERO_DELTA()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary_91cb4669": {
+    "key": "91cb4669",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary",
+    "method": "ZERO_DELTA",
+    "fnSig": "ZERO_DELTA()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "../@uniswap/v4-core/src/types/Currency.sol:CurrencyLibrary_66e79509": {
+    "key": "66e79509",
+    "isCall": true,
+    "contract": "../@uniswap/v4-core/src/types/Currency.sol:CurrencyLibrary",
+    "method": "ADDRESS_ZERO",
+    "fnSig": "ADDRESS_ZERO()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "IPShare_791eb5af": {
     "key": "791eb5af",
     "isCall": false,
@@ -86,20 +163,10 @@
     "contract": "IPShare",
     "method": "adminStartTrade",
     "fnSig": "adminStartTrade()",
-    "intrinsicGas": [
-     21064
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     28540
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 28540,
-    "calldataGasAverage": 0,
-    "min": 28540,
-    "max": 28540
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_dd06f6bd": {
     "key": "dd06f6bd",
@@ -107,23 +174,10 @@
     "contract": "IPShare",
     "method": "buyShares",
     "fnSig": "buyShares(address,address,uint256)",
-    "intrinsicGas": [
-     21928,
-     21928
-    ],
-    "callData": [
-     0,
-     0
-    ],
-    "gasData": [
-     102632,
-     103217
-    ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 102925,
-    "calldataGasAverage": 0,
-    "min": 102632,
-    "max": 103217
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_1e83409a": {
     "key": "1e83409a",
@@ -131,23 +185,10 @@
     "contract": "IPShare",
     "method": "claim",
     "fnSig": "claim(address)",
-    "intrinsicGas": [
-     21432,
-     21432
-    ],
-    "callData": [
-     0,
-     0
-    ],
-    "gasData": [
-     81960,
-     99060
-    ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 90510,
-    "calldataGasAverage": 0,
-    "min": 81960,
-    "max": 99060
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_b2db919b": {
     "key": "b2db919b",
@@ -166,20 +207,10 @@
     "contract": "IPShare",
     "method": "createShare",
     "fnSig": "createShare(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     185601
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 185601,
-    "calldataGasAverage": 0,
-    "min": 185601,
-    "max": 185601
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_b3368bb2": {
     "key": "b3368bb2",
@@ -407,23 +438,10 @@
     "contract": "IPShare",
     "method": "stake",
     "fnSig": "stake(address,uint256)",
-    "intrinsicGas": [
-     21668,
-     21656
-    ],
-    "callData": [
-     0,
-     0
-    ],
-    "gasData": [
-     133474,
-     150153
-    ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 141814,
-    "calldataGasAverage": 0,
-    "min": 133474,
-    "max": 150153
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_6c580801": {
     "key": "6c580801",
@@ -486,20 +504,10 @@
     "contract": "IPShare",
     "method": "unstake",
     "fnSig": "unstake(address,uint256)",
-    "intrinsicGas": [
-     21632
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     100566
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 100566,
-    "calldataGasAverage": 0,
-    "min": 100566,
-    "max": 100566
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_d9cd629d": {
     "key": "d9cd629d",
@@ -529,20 +537,10 @@
     "contract": "Pump",
     "method": "adminChangeClaimSigner",
     "fnSig": "adminChangeClaimSigner(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     30472
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 30472,
-    "calldataGasAverage": 0,
-    "min": 30472,
-    "max": 30472
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "Pump_9451b2f5": {
     "key": "9451b2f5",
@@ -618,26 +616,20 @@
     "fnSig": "adminSetHookAddress(address)",
     "intrinsicGas": [
      21432,
-     21432,
-     21432,
      21432
     ],
     "callData": [
      0,
-     0,
-     0,
      0
     ],
     "gasData": [
-     26111,
-     26111,
      46011,
      46011
     ],
-    "numberOfCalls": 4,
-    "executionGasAverage": 36061,
+    "numberOfCalls": 2,
+    "executionGasAverage": 46011,
     "calldataGasAverage": 0,
-    "min": 26111,
+    "min": 46011,
     "max": 46011
    },
    "Pump_82a9eb52": {
@@ -646,20 +638,10 @@
     "contract": "Pump",
     "method": "adminSetPoolManager",
     "fnSig": "adminSetPoolManager(address)",
-    "intrinsicGas": [
-     21420
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     29295
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 29295,
-    "calldataGasAverage": 0,
-    "min": 29295,
-    "max": 29295
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "Pump_faf09554": {
     "key": "faf09554",
@@ -667,20 +649,10 @@
     "contract": "Pump",
     "method": "adminSetVault",
     "fnSig": "adminSetVault(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     29742
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 29742,
-    "calldataGasAverage": 0,
-    "min": 29742,
-    "max": 29742
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "Pump_13ed0846": {
     "key": "13ed0846",
@@ -733,28 +705,34 @@
     "method": "createToken",
     "fnSig": "createToken(string,bytes32)",
     "intrinsicGas": [
-     21648,
-     21648,
-     21648,
-     21648
+     21660,
+     21660,
+     21660,
+     21660,
+     21696,
+     21696
     ],
     "callData": [
+     0,
+     0,
      0,
      0,
      0,
      0
     ],
     "gasData": [
-     628364,
-     628364,
-     628364,
-     628364
+     628376,
+     628376,
+     628376,
+     628376,
+     628412,
+     628412
     ],
-    "numberOfCalls": 4,
-    "executionGasAverage": 628364,
+    "numberOfCalls": 6,
+    "executionGasAverage": 628388,
     "calldataGasAverage": 0,
-    "min": 628364,
-    "max": 628364
+    "min": 628376,
+    "max": 628412
    },
    "Pump_d47a93f6": {
     "key": "d47a93f6",
@@ -1037,20 +1015,10 @@
     "contract": "Pump",
     "method": "userClaim",
     "fnSig": "userClaim(address,uint256,uint256,bytes)",
-    "intrinsicGas": [
-     23240
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     139749
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 139749,
-    "calldataGasAverage": 0,
-    "min": 139749,
-    "max": 139749
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "TestERC20_dd62ed3e": {
     "key": "dd62ed3e",
@@ -1070,19 +1038,22 @@
     "method": "approve",
     "fnSig": "approve(address,uint256)",
     "intrinsicGas": [
-     21668
+     21944,
+     21944
     ],
     "callData": [
+     0,
      0
     ],
     "gasData": [
-     48555
+     48831,
+     48831
     ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 48555,
+    "numberOfCalls": 2,
+    "executionGasAverage": 48831,
     "calldataGasAverage": 0,
-    "min": 48555,
-    "max": 48555
+    "min": 48831,
+    "max": 48831
    },
    "TestERC20_70a08231": {
     "key": "70a08231",
@@ -1222,20 +1193,10 @@
     "contract": "TipTagSwapHook",
     "method": "afterSwap",
     "fnSig": "afterSwap(address,(address,address,address,address,uint24,bytes32),(bool,int256,uint160),int256,bytes)",
-    "intrinsicGas": [
-     24132
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     189541
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 189541,
-    "calldataGasAverage": 0,
-    "min": 189541,
-    "max": 189541
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "TipTagSwapHook_fe70c9c9": {
     "key": "fe70c9c9",
@@ -1443,21 +1404,33 @@
     "fnSig": "buyToken(uint256,address,uint16)",
     "intrinsicGas": [
      21448,
+     21448,
+     21448,
+     21448,
+     21448,
      21448
     ],
     "callData": [
      0,
+     0,
+     0,
+     0,
+     0,
      0
     ],
     "gasData": [
-     736553,
-     736553
+     260390,
+     260390,
+     655697,
+     655697,
+     724752,
+     724752
     ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 736553,
+    "numberOfCalls": 6,
+    "executionGasAverage": 546946,
     "calldataGasAverage": 0,
-    "min": 736553,
-    "max": 736553
+    "min": 260390,
+    "max": 724752
    },
    "Token_cf09e0d0": {
     "key": "cf09e0d0",
@@ -1586,10 +1559,23 @@
     "contract": "Token",
     "method": "sellToken",
     "fnSig": "sellToken(uint256,uint256,address,uint16)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21708,
+     21708
+    ],
+    "callData": [
+     0,
+     0
+    ],
+    "gasData": [
+     175454,
+     175454
+    ],
+    "numberOfCalls": 2,
+    "executionGasAverage": 175454,
+    "calldataGasAverage": 0,
+    "min": 175454,
+    "max": 175454
    },
    "Token_95d89b41": {
     "key": "95d89b41",
@@ -1657,6 +1643,105 @@
     "gasData": [],
     "numberOfCalls": 0
    },
+   "ForkVaultLockProbe_8032d347": {
+    "key": "8032d347",
+    "isCall": true,
+    "contract": "ForkVaultLockProbe",
+    "method": "lastAmount0",
+    "fnSig": "lastAmount0()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_fb1faf91": {
+    "key": "fb1faf91",
+    "isCall": true,
+    "contract": "ForkVaultLockProbe",
+    "method": "lastAmount1",
+    "fnSig": "lastAmount1()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_ab6291fe": {
+    "key": "ab6291fe",
+    "isCall": false,
+    "contract": "ForkVaultLockProbe",
+    "method": "lockAcquired",
+    "fnSig": "lockAcquired(bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_f9d52169": {
+    "key": "f9d52169",
+    "isCall": false,
+    "contract": "ForkVaultLockProbe",
+    "method": "lockCallback",
+    "fnSig": "lockCallback(bytes)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_cb4e20d3": {
+    "key": "cb4e20d3",
+    "isCall": false,
+    "contract": "ForkVaultLockProbe",
+    "method": "lockModifyAndSettle",
+    "fnSig": "lockModifyAndSettle((address,address,address,address,uint24,bytes32),int24,int24,uint128)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_1d2179c0": {
+    "key": "1d2179c0",
+    "isCall": false,
+    "contract": "ForkVaultLockProbe",
+    "method": "lockModifyOnly",
+    "fnSig": "lockModifyOnly((address,address,address,address,uint24,bytes32),int24,int24,uint128)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_e8c7cb2f": {
+    "key": "e8c7cb2f",
+    "isCall": false,
+    "contract": "ForkVaultLockProbe",
+    "method": "lockNoop",
+    "fnSig": "lockNoop()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_dc4c90d3": {
+    "key": "dc4c90d3",
+    "isCall": true,
+    "contract": "ForkVaultLockProbe",
+    "method": "poolManager",
+    "fnSig": "poolManager()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "ForkVaultLockProbe_fbfa77cf": {
+    "key": "fbfa77cf",
+    "isCall": true,
+    "contract": "ForkVaultLockProbe",
+    "method": "vault",
+    "fnSig": "vault()",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
    "MockCLSwapRouter_ab6291fe": {
     "key": "ab6291fe",
     "isCall": false,
@@ -1685,20 +1770,10 @@
     "contract": "MockCLSwapRouter",
     "method": "swapExactInputTokenForETH",
     "fnSig": "swapExactInputTokenForETH((address,address,address,address,uint24,bytes32),uint256,uint160,address)",
-    "intrinsicGas": [
-     23548
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     515889
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 515889,
-    "calldataGasAverage": 0,
-    "min": 515889,
-    "max": 515889
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "MockCLSwapRouter_fbfa77cf": {
     "key": "fbfa77cf",
@@ -1816,20 +1891,10 @@
     "contract": "MockPumpForHook",
     "method": "setCreatedToken",
     "fnSig": "setCreatedToken(address,bool)",
-    "intrinsicGas": [
-     21572
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     44180
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 44180,
-    "calldataGasAverage": 0,
-    "min": 44180,
-    "max": 44180
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "MockPumpForHook_98b7d4be": {
     "key": "98b7d4be",
@@ -1870,20 +1935,10 @@
     "contract": "MockTokenForHook",
     "method": "registerByKey",
     "fnSig": "registerByKey(address,(address,address,address,address,uint24,bytes32))",
-    "intrinsicGas": [
-     22920
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     55893
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 55893,
-    "calldataGasAverage": 0,
-    "min": 55893,
-    "max": 55893
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "MockVaultForHook_0b0d9c09": {
     "key": "0b0d9c09",
@@ -1891,6 +1946,17 @@
     "contract": "MockVaultForHook",
     "method": "take",
     "fnSig": "take(address,address,uint256)",
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
+   },
+   "PumpCaller_6a26bd08": {
+    "key": "6a26bd08",
+    "isCall": false,
+    "contract": "PumpCaller",
+    "method": "callCreateToken",
+    "fnSig": "callCreateToken(address,string,bytes32)",
     "intrinsicGas": [],
     "callData": [],
     "gasData": [],
@@ -2353,10 +2419,32 @@
     "contract": "TestVault",
     "method": "isAppRegistered",
     "fnSig": "isAppRegistered(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21420,
+     21420,
+     21420,
+     21420,
+     21432
+    ],
+    "callData": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "gasData": [
+     24166,
+     24166,
+     24166,
+     24166,
+     24178
+    ],
+    "numberOfCalls": 5,
+    "executionGasAverage": 24168,
+    "calldataGasAverage": 0,
+    "min": 24166,
+    "max": 24178
    },
    "TestVault_b6363cf2": {
     "key": "b6363cf2",
@@ -2408,20 +2496,10 @@
     "contract": "TestVault",
     "method": "registerApp",
     "fnSig": "registerApp(address)",
-    "intrinsicGas": [
-     21420
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     47210
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 47210,
-    "calldataGasAverage": 0,
-    "min": 47210,
-    "max": 47210
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "TestVault_715018a6": {
     "key": "715018a6",
@@ -3259,10 +3337,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "LPFeeLibrary_f26ef49d": {
+   "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_f26ef49d": {
     "key": "f26ef49d",
     "isCall": true,
-    "contract": "LPFeeLibrary",
+    "contract": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
     "method": "DYNAMIC_FEE_FLAG",
     "fnSig": "DYNAMIC_FEE_FLAG()",
     "intrinsicGas": [],
@@ -3270,10 +3348,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "LPFeeLibrary_6f3888f5": {
+   "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_6f3888f5": {
     "key": "6f3888f5",
     "isCall": true,
-    "contract": "LPFeeLibrary",
+    "contract": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
     "method": "ONE_HUNDRED_PERCENT_FEE",
     "fnSig": "ONE_HUNDRED_PERCENT_FEE()",
     "intrinsicGas": [],
@@ -3281,10 +3359,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "LPFeeLibrary_3b01d64d": {
+   "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_3b01d64d": {
     "key": "3b01d64d",
     "isCall": true,
-    "contract": "LPFeeLibrary",
+    "contract": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
     "method": "OVERRIDE_FEE_FLAG",
     "fnSig": "OVERRIDE_FEE_FLAG()",
     "intrinsicGas": [],
@@ -3292,10 +3370,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "LPFeeLibrary_69a50da9": {
+   "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_69a50da9": {
     "key": "69a50da9",
     "isCall": true,
-    "contract": "LPFeeLibrary",
+    "contract": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
     "method": "OVERRIDE_MASK",
     "fnSig": "OVERRIDE_MASK()",
     "intrinsicGas": [],
@@ -3303,10 +3381,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "LPFeeLibrary_c1d217e9": {
+   "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary_c1d217e9": {
     "key": "c1d217e9",
     "isCall": true,
-    "contract": "LPFeeLibrary",
+    "contract": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
     "method": "TEN_PERCENT_FEE",
     "fnSig": "TEN_PERCENT_FEE()",
     "intrinsicGas": [],
@@ -3611,10 +3689,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "BalanceDeltaLibrary_91cb4669": {
+   "../infinity-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary_91cb4669": {
     "key": "91cb4669",
     "isCall": true,
-    "contract": "BalanceDeltaLibrary",
+    "contract": "../infinity-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary",
     "method": "ZERO_DELTA",
     "fnSig": "ZERO_DELTA()",
     "intrinsicGas": [],
@@ -3622,10 +3700,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "BeforeSwapDeltaLibrary_91cb4669": {
+   "../infinity-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary_91cb4669": {
     "key": "91cb4669",
     "isCall": true,
-    "contract": "BeforeSwapDeltaLibrary",
+    "contract": "../infinity-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary",
     "method": "ZERO_DELTA",
     "fnSig": "ZERO_DELTA()",
     "intrinsicGas": [],
@@ -3633,10 +3711,10 @@
     "gasData": [],
     "numberOfCalls": 0
    },
-   "CurrencyLibrary_a0cf0aea": {
+   "../infinity-core/src/types/Currency.sol:CurrencyLibrary_a0cf0aea": {
     "key": "a0cf0aea",
     "isCall": true,
-    "contract": "CurrencyLibrary",
+    "contract": "../infinity-core/src/types/Currency.sol:CurrencyLibrary",
     "method": "NATIVE",
     "fnSig": "NATIVE()",
     "intrinsicGas": [],
@@ -3682,6 +3760,86 @@
     "callData": []
    },
    {
+    "name": "../@uniswap/v4-core/src/interfaces/external/IERC20Minimal.sol:IERC20Minimal",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/interfaces/IExtsload.sol:IExtsload",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/interfaces/IHooks.sol:IHooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/interfaces/IPoolManager.sol:IPoolManager",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/interfaces/IProtocolFees.sol:IProtocolFees",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/BitMath.sol:BitMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/CustomRevert.sol:CustomRevert",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/Hooks.sol:Hooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/ParseBytes.sol:ParseBytes",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/SafeCast.sol:SafeCast",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/libraries/TickMath.sol:TickMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/types/Currency.sol:CurrencyLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../@uniswap/v4-core/src/types/PoolId.sol:PoolIdLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "../infinity-core/src/base/Ownable.sol:Ownable",
     "gasData": [],
     "callData": []
@@ -3692,27 +3850,87 @@
     "callData": []
    },
    {
+    "name": "../infinity-core/src/interfaces/IERC20Minimal.sol:IERC20Minimal",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/interfaces/IExtsload.sol:IExtsload",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/interfaces/IHooks.sol:IHooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/interfaces/IPoolManager.sol:IPoolManager",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/interfaces/IProtocolFees.sol:IProtocolFees",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/libraries/CustomRevert.sol:CustomRevert",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/libraries/Hooks.sol:Hooks",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/libraries/LPFeeLibrary.sol:LPFeeLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/libraries/ParseBytes.sol:ParseBytes",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "../infinity-core/src/libraries/SafeCast.sol:SafeCast",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "BalanceDeltaLibrary",
+    "name": "../infinity-core/src/pool-cl/libraries/BitMath.sol:BitMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/pool-cl/libraries/TickMath.sol:TickMath",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/types/BalanceDelta.sol:BalanceDeltaLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/types/BeforeSwapDelta.sol:BeforeSwapDeltaLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/types/Currency.sol:CurrencyLibrary",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "../infinity-core/src/types/PoolId.sol:PoolIdLibrary",
     "gasData": [],
     "callData": []
    },
    {
     "name": "Base64",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "BeforeSwapDeltaLibrary",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "BitMath",
     "gasData": [],
     "callData": []
    },
@@ -3778,16 +3996,6 @@
    },
    {
     "name": "CREATE3",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "CurrencyLibrary",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "CustomRevert",
     "gasData": [],
     "callData": []
    },
@@ -3907,17 +4115,17 @@
     "callData": []
    },
    {
+    "name": "ForkVaultLockProbe",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "FullMath",
     "gasData": [],
     "callData": []
    },
    {
     "name": "GasBurnerLib",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "Hooks",
     "gasData": [],
     "callData": []
    },
@@ -3962,12 +4170,17 @@
     "callData": []
    },
    {
+    "name": "IERC20Like",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "IERC20Metadata",
     "gasData": [],
     "callData": []
    },
    {
-    "name": "IERC20Minimal",
+    "name": "IERC6909Claims",
     "gasData": [],
     "callData": []
    },
@@ -3987,17 +4200,12 @@
     "callData": []
    },
    {
-    "name": "IExtsload",
+    "name": "IExttload",
     "gasData": [],
     "callData": []
    },
    {
     "name": "IHookRegistrar",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "IHooks",
     "gasData": [],
     "callData": []
    },
@@ -4027,17 +4235,7 @@
     "callData": []
    },
    {
-    "name": "IPoolManager",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "IProtocolFeeController",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "IProtocolFees",
     "gasData": [],
     "callData": []
    },
@@ -4068,6 +4266,11 @@
     "callData": []
    },
    {
+    "name": "IPumpCreateToken",
+    "gasData": [],
+    "callData": []
+   },
+   {
     "name": "ITipTagSwapHook",
     "gasData": [],
     "callData": []
@@ -4094,6 +4297,11 @@
    },
    {
     "name": "IUniswapV3Factory",
+    "gasData": [],
+    "callData": []
+   },
+   {
+    "name": "IUnlockCallback",
     "gasData": [],
     "callData": []
    },
@@ -4173,11 +4381,6 @@
     "callData": []
    },
    {
-    "name": "LPFeeLibrary",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "Math",
     "gasData": [],
     "callData": []
@@ -4209,17 +4412,8 @@
    },
    {
     "name": "MockCLSwapRouter",
-    "gasData": [
-     691985
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 691985,
-    "calldataGasAverage": 0,
-    "min": 691985,
-    "max": 691985,
-    "percent": 2.3
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "MockIPShareForHook",
@@ -4228,45 +4422,18 @@
    },
    {
     "name": "MockPumpForHook",
-    "gasData": [
-     306659
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 306659,
-    "calldataGasAverage": 0,
-    "min": 306659,
-    "max": 306659,
-    "percent": 1
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "MockTokenForHook",
-    "gasData": [
-     201057
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 201057,
-    "calldataGasAverage": 0,
-    "min": 201057,
-    "max": 201057,
-    "percent": 0.7
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "MockVaultForHook",
-    "gasData": [
-     145087
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 145087,
-    "calldataGasAverage": 0,
-    "min": 145087,
-    "max": 145087,
-    "percent": 0.5
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "Multicallable",
@@ -4309,16 +4476,6 @@
     "callData": []
    },
    {
-    "name": "ParseBytes",
-    "gasData": [],
-    "callData": []
-   },
-   {
-    "name": "PoolIdLibrary",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "ProtocolFeeLibrary",
     "gasData": [],
     "callData": []
@@ -4343,6 +4500,11 @@
     "min": 2239810,
     "max": 2239810,
     "percent": 7.5
+   },
+   {
+    "name": "PumpCaller",
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "Receiver",
@@ -4421,17 +4583,8 @@
    },
    {
     "name": "TestCLPoolManager",
-    "gasData": [
-     4104966
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 4104966,
-    "calldataGasAverage": 0,
-    "min": 4104966,
-    "max": 4104966,
-    "percent": 13.7
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "TestERC20",
@@ -4440,17 +4593,8 @@
    },
    {
     "name": "TestVault",
-    "gasData": [
-     1536632
-    ],
-    "callData": [
-     0
-    ],
-    "executionGasAverage": 1536632,
-    "calldataGasAverage": 0,
-    "min": 1536632,
-    "max": 1536632,
-    "percent": 5.1
+    "gasData": [],
+    "callData": []
    },
    {
     "name": "Tick",
@@ -4463,25 +4607,18 @@
     "callData": []
    },
    {
-    "name": "TickMath",
-    "gasData": [],
-    "callData": []
-   },
-   {
     "name": "TipTagSwapHook",
     "gasData": [
-     1110731,
-     1110731,
+     1110743,
      1110743
     ],
     "callData": [
      0,
-     0,
      0
     ],
-    "executionGasAverage": 1110735,
+    "executionGasAverage": 1110743,
     "calldataGasAverage": 0,
-    "min": 1110731,
+    "min": 1110743,
     "max": 1110743,
     "percent": 3.7
    },

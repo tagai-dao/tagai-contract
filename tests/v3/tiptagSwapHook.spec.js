@@ -96,6 +96,44 @@ describe("TipTagSwapHook (v3)", function () {
     );
   });
 
+  it("should reject beforeInitialize when sender token is not created by pump", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, other } = fixture;
+
+    await expect(hook.connect(poolManager).beforeInitialize(other.address, key, 0)).to.be.revertedWithCustomError(
+      hook,
+      "Unauthorized"
+    );
+  });
+
+  it("should skip fee collection for unregistered pool", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+
+    const beforeParams = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+    const afterParams = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(50000n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, beforeParams, "0x");
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, afterParams, delta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
   it("should collect and distribute fees in beforeSwap", async function () {
     const fixture = await loadFixture(deployHookFixture);
     const { hook, key, poolManager, feeReceiver, subject, ipshare } = fixture;
@@ -169,6 +207,58 @@ describe("TipTagSwapHook (v3)", function () {
     const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
     const capturedAfter = await ipshare.totalCaptured();
 
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  it("should skip afterSwap fee when unspecified ETH amount is zero", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(0n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, params, delta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  it("should skip fee when totalFee rounds down to zero", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const beforeParams = {
+      zeroForOne: true,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const afterParams = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const tinyDelta = toBalanceDelta(1n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, beforeParams, "0x");
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, afterParams, tinyDelta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
     expect(feeReceiverAfter).to.equal(feeReceiverBefore);
     expect(capturedAfter).to.equal(capturedBefore);
   });

@@ -246,4 +246,87 @@ describe("IPShare (v3)", function () {
       })
     ).to.be.revertedWithCustomError(ipshare, "OutOfSlippage");
   });
+
+  it("should reject non-EOA subject on createShare", async function () {
+    const { ipshare, creator } = await loadFixture(deployIpShareFixture);
+    const TestERC20 = await ethers.getContractFactory("TestERC20");
+    const nonEoa = await TestERC20.deploy();
+
+    await expect(ipshare.connect(creator).createShare(nonEoa.target)).to.be.revertedWith("Subject must be EOA");
+  });
+
+  it("should reject duplicate createShare for same subject", async function () {
+    const { ipshare, creator } = await loadFixture(deployIpShareFixture);
+    await ipshare.connect(creator).createShare(creator.address);
+    await expect(ipshare.connect(creator).createShare(creator.address)).to.be.revertedWithCustomError(
+      ipshare,
+      "IPShareAlreadyCreated"
+    );
+  });
+
+  it("should block key state-changing functions when paused", async function () {
+    const { ipshare, owner, creator, buyer } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+    await ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) });
+
+    await ipshare.connect(owner).pause();
+    await expect(ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) }))
+      .to.be.reverted;
+    await expect(ipshare.connect(buyer).sellShares(creator.address, 1n, 0)).to.be.reverted;
+    await expect(ipshare.connect(buyer).stake(creator.address, 1n)).to.be.reverted;
+    await expect(ipshare.connect(owner).valueCapture(creator.address, { value: toWei(1) })).to.be.reverted;
+  });
+
+  it("should revert sell when seller has insufficient shares", async function () {
+    const { ipshare, owner, creator, buyer } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+    await ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) });
+    const balance = await ipshare.ipshareBalance(creator.address, buyer.address);
+
+    await expect(ipshare.connect(buyer).sellShares(creator.address, balance + 1n, 0)).to.be.revertedWithCustomError(
+      ipshare,
+      "InsufficientShares"
+    );
+  });
+
+  it("should revert claim when no pending profits", async function () {
+    const { ipshare, owner, creator, buyer } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+    await ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) });
+    const buyerBalance = await ipshare.ipshareBalance(creator.address, buyer.address);
+    await ipshare.connect(buyer).stake(creator.address, buyerBalance);
+
+    await expect(ipshare.connect(buyer).claim(creator.address)).to.be.revertedWithCustomError(ipshare, "NoProfitToClaim");
+  });
+
+  it("should revert on repeated unstake before redeem", async function () {
+    const { ipshare, owner, creator, buyer } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+    await ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) });
+    const buyerBalance = await ipshare.ipshareBalance(creator.address, buyer.address);
+    await ipshare.connect(buyer).stake(creator.address, buyerBalance);
+    await ipshare.connect(buyer).unstake(creator.address, buyerBalance / 2n);
+
+    await expect(ipshare.connect(buyer).unstake(creator.address, 1n)).to.be.revertedWithCustomError(
+      ipshare,
+      "InUnstakingPeriodNow"
+    );
+  });
+
+  it("should revert redeem when nothing is redeemable", async function () {
+    const { ipshare, owner, creator, buyer } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+    await ipshare.connect(buyer).buyShares(creator.address, buyer.address, 0, { value: toWei(1) });
+    const buyerBalance = await ipshare.ipshareBalance(creator.address, buyer.address);
+    await ipshare.connect(buyer).stake(creator.address, buyerBalance);
+
+    await expect(ipshare.connect(buyer).redeem(creator.address)).to.be.revertedWithCustomError(ipshare, "NoIPShareToRedeem");
+  });
+
+  it("should revert valueCapture when msg.value is zero", async function () {
+    const { ipshare, owner, creator } = await loadFixture(deployIpShareFixture);
+    await createAndStartTrade(ipshare, owner, creator);
+
+    await expect(ipshare.valueCapture(creator.address, { value: 0n })).to.be.revertedWithCustomError(ipshare, "NoFunds");
+  });
 });
