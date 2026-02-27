@@ -615,18 +615,15 @@
     "method": "adminSetHookAddress",
     "fnSig": "adminSetHookAddress(address)",
     "intrinsicGas": [
-     21432,
      21432
     ],
     "callData": [
-     0,
      0
     ],
     "gasData": [
-     46011,
      46011
     ],
-    "numberOfCalls": 2,
+    "numberOfCalls": 1,
     "executionGasAverage": 46011,
     "calldataGasAverage": 0,
     "min": 46011,
@@ -708,31 +705,25 @@
      21660,
      21660,
      21660,
-     21660,
-     21696,
-     21696
+     21660
     ],
     "callData": [
-     0,
-     0,
      0,
      0,
      0,
      0
     ],
     "gasData": [
+     611276,
+     611276,
      628376,
-     628376,
-     628376,
-     628376,
-     628412,
-     628412
+     628376
     ],
-    "numberOfCalls": 6,
-    "executionGasAverage": 628388,
+    "numberOfCalls": 4,
+    "executionGasAverage": 619826,
     "calldataGasAverage": 0,
-    "min": 628376,
-    "max": 628412
+    "min": 611276,
+    "max": 628376
    },
    "Pump_d47a93f6": {
     "key": "d47a93f6",
@@ -1406,31 +1397,25 @@
      21448,
      21448,
      21448,
-     21448,
-     21448,
      21448
     ],
     "callData": [
      0,
      0,
      0,
-     0,
-     0,
      0
     ],
     "gasData": [
-     260390,
-     260390,
-     655697,
-     655697,
-     724752,
-     724752
+     257890,
+     257890,
+     638552,
+     638552
     ],
-    "numberOfCalls": 6,
-    "executionGasAverage": 546946,
+    "numberOfCalls": 4,
+    "executionGasAverage": 448221,
     "calldataGasAverage": 0,
-    "min": 260390,
-    "max": 724752
+    "min": 257890,
+    "max": 638552
    },
    "Token_cf09e0d0": {
     "key": "cf09e0d0",
@@ -1568,14 +1553,14 @@
      0
     ],
     "gasData": [
-     175454,
-     175454
+     172954,
+     172954
     ],
     "numberOfCalls": 2,
-    "executionGasAverage": 175454,
+    "executionGasAverage": 172954,
     "calldataGasAverage": 0,
-    "min": 175454,
-    "max": 175454
+    "min": 172954,
+    "max": 172954
    },
    "Token_95d89b41": {
     "key": "95d89b41",
@@ -2420,30 +2405,21 @@
     "method": "isAppRegistered",
     "fnSig": "isAppRegistered(address)",
     "intrinsicGas": [
-     21420,
-     21420,
-     21420,
-     21420,
+     21432,
      21432
     ],
     "callData": [
      0,
-     0,
-     0,
-     0,
      0
     ],
     "gasData": [
-     24166,
-     24166,
-     24166,
-     24166,
+     24178,
      24178
     ],
-    "numberOfCalls": 5,
-    "executionGasAverage": 24168,
+    "numberOfCalls": 2,
+    "executionGasAverage": 24178,
     "calldataGasAverage": 0,
-    "min": 24166,
+    "min": 24178,
     "max": 24178
    },
    "TestVault_b6363cf2": {
@@ -4242,11 +4218,9 @@
    {
     "name": "IPShare",
     "gasData": [
-     2490555,
      2490555
     ],
     "callData": [
-     0,
      0
     ],
     "executionGasAverage": 2490555,
@@ -4488,11 +4462,9 @@
    {
     "name": "Pump",
     "gasData": [
-     2239810,
      2239810
     ],
     "callData": [
-     0,
      0
     ],
     "executionGasAverage": 2239810,
@@ -4609,11 +4581,9 @@
    {
     "name": "TipTagSwapHook",
     "gasData": [
-     1110743,
      1110743
     ],
     "callData": [
-     0,
      0
     ],
     "executionGasAverage": 1110743,
@@ -4625,11 +4595,9 @@
    {
     "name": "Token",
     "gasData": [
-     2768338,
      2768338
     ],
     "callData": [
-     0,
      0
     ],
     "executionGasAverage": 2768338,
