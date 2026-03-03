@@ -6,6 +6,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "deploy": "hardhat run --network bsc scripts/deploy.js",
+    "deploy:bsc": "hardhat ignition deploy ignition/modules/PumpBsc.js --network bsc --verify --parameters ignition/parameters/bsc.json",
+    "deploy:bsc:no-verify": "hardhat ignition deploy ignition/modules/PumpBsc.js --network bsc --parameters ignition/parameters/bsc.json",
     "deploy-chapel": "hardhat run --network chapel scripts/deploy.js",
     "test": "hardhat test",
     "test:fork:v3": "ENABLE_FORK=1 hardhat test tests/fork/v3/pancakeV4.mainnet-fork.spec.js",

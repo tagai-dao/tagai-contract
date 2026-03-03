@@ -22,7 +22,7 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     uint256 private secondPerDay = 86400;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
-    uint256[2] private feeRatio = [100, 100]; // 0: to tiptag; 1: to salesman
+    uint256[2] private feeRatio = [30, 30]; // 0: to tiptag; 1: to salesman
 
     // PancakeSwap V4 (Infinity)
     address private poolManager = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b; // BSC CLPoolManager
