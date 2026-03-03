@@ -146,8 +146,9 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
                 revert CostFeeFail();
             }
 
-            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-            emit Trade(msg.sender, sellsman, true, tokenReceived, msg.value, tiptagFee, sellsmanFee);
+            address feeRecipient = _getFeeRecipient(sellsman);
+            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+            emit Trade(msg.sender, feeRecipient, true, tokenReceived, msg.value, tiptagFee, sellsmanFee);
             return tokenReceived;
         }
     }
@@ -192,9 +193,9 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
             }
         }
 
-        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-
-        emit Trade(msg.sender, sellsman, false, sellAmount, price, tiptagFee, sellsmanFee);
+        address feeRecipient = _getFeeRecipient(sellsman);
+        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+        emit Trade(msg.sender, feeRecipient, false, sellAmount, price, tiptagFee, sellsmanFee);
     }
 
     /**
@@ -246,8 +247,9 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
 
         (bool success1, ) = tiptapFeeAddress.call{value: tiptagFee}("");
         if (!success1) revert CostFeeFail();
-        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-        emit Trade(msg.sender, sellsman, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
+        address feeRecipient = _getFeeRecipient(sellsman);
+        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+        emit Trade(msg.sender, feeRecipient, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
         _makeLiquidityPool();
         return actualAmount;
     }
@@ -260,6 +262,14 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
             sellsman = ipshareSubject;
         } else if (!IIPShare(IPump(manager).getIPShare()).ipshareCreated(sellsman)) {
             revert IPShareNotCreated();
+        }
+        return sellsman;
+    }
+
+    /// @notice 动态交易期（15s 内）费用固定归部署者，防止 MEV 攻击者通过传入自己为 sellsman 回收费用
+    function _getFeeRecipient(address sellsman) private view returns (address) {
+        if (block.timestamp - createdAt < ANTI_SNIPE_WINDOW) {
+            return ipshareSubject;
         }
         return sellsman;
     }

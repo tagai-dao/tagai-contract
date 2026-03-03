@@ -200,4 +200,84 @@ describe("Token (v3)", function () {
 
     await expect(token.connect(buyer).transfer(vaultAddress, 1n)).to.be.revertedWithCustomError(token, "TokenNotListed");
   });
+
+  describe("anti-MEV: fee recipient during dynamic window (15s)", function () {
+    it("should use ipshareSubject as fee recipient for buy within 15s even when custom sellsman passed", async function () {
+      const { token, pump, buyer, creator, alice } = await loadFixture(deployTokenFixture);
+      // 让 alice 拥有 IPShare（通过创建 token）
+      const aliceSalt = saltFromNumber(99);
+      const createFee = await pump.createFee();
+      await createTokenByEvent(pump, alice, "ALICE", aliceSalt, createFee);
+
+      // 首笔 buy 使 bondingCurveSupply > 0，触发动态费用
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+
+      await time.increase(3); // 仍在 15s 内
+
+      // 传入 alice 为 sellsman，但 15s 内应强制归 creator（ipshareSubject）
+      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(0.5) });
+      const receipt = await tx.wait();
+      const tradeArgs = parseTradeEvent(receipt, token);
+
+      expect(tradeArgs.sellsman).to.equal(creator.address);
+      expect(tradeArgs.sellsman).to.not.equal(alice.address);
+    });
+
+    it("should use ipshareSubject as fee recipient for sell within 15s even when custom sellsman passed", async function () {
+      const { token, pump, buyer, creator, alice } = await loadFixture(deployTokenFixture);
+      const aliceSalt = saltFromNumber(98);
+      const createFee = await pump.createFee();
+      await createTokenByEvent(pump, alice, "ALC2", aliceSalt, createFee);
+
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+      const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
+
+      const createdAt = await token.createdAt();
+      await time.increaseTo(createdAt + 3n); // 仍在 15s 内
+
+      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0);
+      const receipt = await tx.wait();
+      const tradeArgs = parseTradeEvent(receipt, token);
+
+      expect(tradeArgs.sellsman).to.equal(creator.address);
+      expect(tradeArgs.sellsman).to.not.equal(alice.address);
+    });
+
+    it("should use passed sellsman as fee recipient after 15s window", async function () {
+      const { token, pump, buyer, creator, alice } = await loadFixture(deployTokenFixture);
+      const aliceSalt = saltFromNumber(97);
+      const createFee = await pump.createFee();
+      await createTokenByEvent(pump, alice, "ALC3", aliceSalt, createFee);
+
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+
+      const createdAt = await token.createdAt();
+      await time.increaseTo(createdAt + 16n); // 超过 15s
+
+      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(0.5) });
+      const receipt = await tx.wait();
+      const tradeArgs = parseTradeEvent(receipt, token);
+
+      expect(tradeArgs.sellsman).to.equal(alice.address);
+    });
+
+    it("should use passed sellsman as fee recipient for sell after 15s window", async function () {
+      const { token, pump, buyer, creator, alice } = await loadFixture(deployTokenFixture);
+      const aliceSalt = saltFromNumber(96);
+      const createFee = await pump.createFee();
+      await createTokenByEvent(pump, alice, "ALC4", aliceSalt, createFee);
+
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+
+      const createdAt = await token.createdAt();
+      await time.increaseTo(createdAt + 16n);
+
+      const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
+      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0);
+      const receipt = await tx.wait();
+      const tradeArgs = parseTradeEvent(receipt, token);
+
+      expect(tradeArgs.sellsman).to.equal(alice.address);
+    });
+  });
 });

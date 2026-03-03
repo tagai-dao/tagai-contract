@@ -163,20 +163,10 @@
     "contract": "IPShare",
     "method": "adminStartTrade",
     "fnSig": "adminStartTrade()",
-    "intrinsicGas": [
-     21064
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     28540
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 28540,
-    "calldataGasAverage": 0,
-    "min": 28540,
-    "max": 28540
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_dd06f6bd": {
     "key": "dd06f6bd",
@@ -217,20 +207,10 @@
     "contract": "IPShare",
     "method": "createShare",
     "fnSig": "createShare(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     185601
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 185601,
-    "calldataGasAverage": 0,
-    "min": 185601,
-    "max": 185601
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "IPShare_b3368bb2": {
     "key": "b3368bb2",
@@ -655,10 +635,20 @@
     "contract": "Pump",
     "method": "adminSetPoolManager",
     "fnSig": "adminSetPoolManager(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21432
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     29307
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 29307,
+    "calldataGasAverage": 0,
+    "min": 29307,
+    "max": 29307
    },
    "Pump_faf09554": {
     "key": "faf09554",
@@ -666,10 +656,20 @@
     "contract": "Pump",
     "method": "adminSetVault",
     "fnSig": "adminSetVault(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21432
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     29742
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 29742,
+    "calldataGasAverage": 0,
+    "min": 29742,
+    "max": 29742
    },
    "Pump_13ed0846": {
     "key": "13ed0846",
@@ -722,22 +722,52 @@
     "method": "createToken",
     "fnSig": "createToken(string,bytes32)",
     "intrinsicGas": [
-     21696,
-     21696
+     21648,
+     21648,
+     21648,
+     21648,
+     21672,
+     21672,
+     21660,
+     21660,
+     21660,
+     21660,
+     21660,
+     21660
     ],
     "callData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
      0,
      0
     ],
     "gasData": [
-     628412,
-     628412
+     611276,
+     611276,
+     611276,
+     611276,
+     611276,
+     611276,
+     611288,
+     611288,
+     628364,
+     628364,
+     628364,
+     628364
     ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 628412,
+    "numberOfCalls": 12,
+    "executionGasAverage": 616974,
     "calldataGasAverage": 0,
-    "min": 628412,
-    "max": 628412
+    "min": 611276,
+    "max": 628364
    },
    "Pump_d47a93f6": {
     "key": "d47a93f6",
@@ -1042,20 +1072,10 @@
     "contract": "TestERC20",
     "method": "approve",
     "fnSig": "approve(address,uint256)",
-    "intrinsicGas": [
-     21944
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     48831
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 48831,
-    "calldataGasAverage": 0,
-    "min": 48831,
-    "max": 48831
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "TestERC20_70a08231": {
     "key": "70a08231",
@@ -1408,25 +1428,61 @@
      21448,
      21448,
      21448,
+     21448,
+     21448,
+     21448,
+     21448,
+     21448,
+     21448,
+     21688,
+     21688,
+     21448,
+     21448,
+     21688,
+     21688,
      21448
     ],
     "callData": [
      0,
      0,
      0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
      0
     ],
     "gasData": [
-     260390,
-     260390,
-     655697,
-     655697
+     179635,
+     179635,
+     209138,
+     209138,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     262729,
+     738892
     ],
-    "numberOfCalls": 4,
-    "executionGasAverage": 458044,
+    "numberOfCalls": 16,
+    "executionGasAverage": 275404,
     "calldataGasAverage": 0,
-    "min": 260390,
-    "max": 655697
+    "min": 179635,
+    "max": 738892
    },
    "Token_cf09e0d0": {
     "key": "cf09e0d0",
@@ -1557,21 +1613,33 @@
     "fnSig": "sellToken(uint256,uint256,address,uint16)",
     "intrinsicGas": [
      21708,
-     21708
+     21708,
+     21948,
+     21948,
+     21948,
+     21948
     ],
     "callData": [
+     0,
+     0,
+     0,
+     0,
      0,
      0
     ],
     "gasData": [
-     175454,
-     175454
+     177802,
+     177802,
+     182200,
+     182200,
+     212186,
+     212186
     ],
-    "numberOfCalls": 2,
-    "executionGasAverage": 175454,
+    "numberOfCalls": 6,
+    "executionGasAverage": 190729,
     "calldataGasAverage": 0,
-    "min": 175454,
-    "max": 175454
+    "min": 177802,
+    "max": 212186
    },
    "Token_95d89b41": {
     "key": "95d89b41",
@@ -2437,20 +2505,10 @@
     "contract": "TestVault",
     "method": "isAppRegistered",
     "fnSig": "isAppRegistered(address)",
-    "intrinsicGas": [
-     21432
-    ],
-    "callData": [
-     0
-    ],
-    "gasData": [
-     24178
-    ],
-    "numberOfCalls": 1,
-    "executionGasAverage": 24178,
-    "calldataGasAverage": 0,
-    "min": 24178,
-    "max": 24178
+    "intrinsicGas": [],
+    "callData": [],
+    "gasData": [],
+    "numberOfCalls": 0
    },
    "TestVault_b6363cf2": {
     "key": "b6363cf2",
@@ -2502,10 +2560,20 @@
     "contract": "TestVault",
     "method": "registerApp",
     "fnSig": "registerApp(address)",
-    "intrinsicGas": [],
-    "callData": [],
-    "gasData": [],
-    "numberOfCalls": 0
+    "intrinsicGas": [
+     21432
+    ],
+    "callData": [
+     0
+    ],
+    "gasData": [
+     47222
+    ],
+    "numberOfCalls": 1,
+    "executionGasAverage": 47222,
+    "calldataGasAverage": 0,
+    "min": 47222,
+    "max": 47222
    },
    "TestVault_715018a6": {
     "key": "715018a6",
@@ -4248,9 +4316,11 @@
    {
     "name": "IPShare",
     "gasData": [
+     2490555,
      2490555
     ],
     "callData": [
+     0,
      0
     ],
     "executionGasAverage": 2490555,
@@ -4492,14 +4562,16 @@
    {
     "name": "Pump",
     "gasData": [
+     2239798,
      2239810
     ],
     "callData": [
+     0,
      0
     ],
-    "executionGasAverage": 2239810,
+    "executionGasAverage": 2239804,
     "calldataGasAverage": 0,
-    "min": 2239810,
+    "min": 2239798,
     "max": 2239810,
     "percent": 7.5
    },
@@ -4585,8 +4657,17 @@
    },
    {
     "name": "TestCLPoolManager",
-    "gasData": [],
-    "callData": []
+    "gasData": [
+     4104966
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 4104966,
+    "calldataGasAverage": 0,
+    "min": 4104966,
+    "max": 4104966,
+    "percent": 13.7
    },
    {
     "name": "TestERC20",
@@ -4595,8 +4676,17 @@
    },
    {
     "name": "TestVault",
-    "gasData": [],
-    "callData": []
+    "gasData": [
+     1536632
+    ],
+    "callData": [
+     0
+    ],
+    "executionGasAverage": 1536632,
+    "calldataGasAverage": 0,
+    "min": 1536632,
+    "max": 1536632,
+    "percent": 5.1
    },
    {
     "name": "Tick",
@@ -4625,16 +4715,18 @@
    {
     "name": "Token",
     "gasData": [
-     2768338
+     2783213,
+     2783213
     ],
     "callData": [
+     0,
      0
     ],
-    "executionGasAverage": 2768338,
+    "executionGasAverage": 2783213,
     "calldataGasAverage": 0,
-    "min": 2768338,
-    "max": 2768338,
-    "percent": 9.2
+    "min": 2783213,
+    "max": 2783213,
+    "percent": 9.3
    },
    {
     "name": "UnsafeMath",
