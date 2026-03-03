@@ -262,4 +262,98 @@ describe("TipTagSwapHook (v3)", function () {
     expect(feeReceiverAfter).to.equal(feeReceiverBefore);
     expect(capturedAfter).to.equal(capturedBefore);
   });
+
+  // ======================== hookData: custom IPShare subject ========================
+
+  it("should distribute fee to custom subject specified in hookData (beforeSwap)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, other } = fixture;
+    await registerPool(fixture);
+
+    // Register other's IPShare so it passes the ipshareCreated check
+    await ipshare.setIPShareCreated(other.address, true);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(other.address);
+  });
+
+  it("should distribute fee to custom subject specified in hookData (afterSwap)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, other } = fixture;
+    await registerPool(fixture);
+
+    await ipshare.setIPShareCreated(other.address, true);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(50000n, 0n);
+
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, params, delta, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(other.address);
+  });
+
+  it("should fall back to token creator when hookData subject has no IPShare", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject, other } = fixture;
+    await registerPool(fixture);
+
+    // other's IPShare is NOT created — should fall back to default subject
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should fall back to token creator when hookData is address(0)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject } = fixture;
+    await registerPool(fixture);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [ethers.ZeroAddress]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should fall back to token creator when hookData is too short", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    // Pass hookData shorter than 32 bytes
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, "0x1234");
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
 });

@@ -18,8 +18,9 @@ import "./interface/IToken.sol";
 /// @title TipTagSwapHook
 /// @notice PancakeSwap V4 (Infinity) CL Hook that collects trading fees on every swap:
 ///   - feeRatio[0] → platform feeReceiver
-///   - feeRatio[1] → deployer's IPShare.valueCapture()
+///   - feeRatio[1] → IPShare.valueCapture() for user-specified subject (or token creator as fallback)
 /// Fees are always collected from the ETH side for immediate distribution.
+/// Users can specify an IPShare subject via hookData = abi.encode(subjectAddress) when calling swap.
 contract TipTagSwapHook is ICLHooks {
     using PoolIdLibrary for PoolKey;
     using SafeCast for uint256;
@@ -104,7 +105,7 @@ contract TipTagSwapHook is ICLHooks {
         PoolKey calldata key,
         ICLPoolManager.SwapParams calldata params,
         BalanceDelta delta,
-        bytes calldata
+        bytes calldata hookData
     ) external virtual override onlyPoolManager returns (bytes4, int128) {
         if (poolToken[key.toId()] == address(0)) return (ICLHooks.afterSwap.selector, 0);
 
@@ -133,16 +134,38 @@ contract TipTagSwapHook is ICLHooks {
         uint256 deployerFee = totalFee - platformFee;
         address token = poolToken[key.toId()];
 
-        _distributeFees(token, platformFee, deployerFee);
+        _distributeFees(token, platformFee, deployerFee, hookData);
         emit SwapFeeCollected(key.toId(), token, platformFee, deployerFee);
 
         return (ICLHooks.afterSwap.selector, totalFee.toInt128());
     }
 
-    function _distributeFees(address token, uint256 platformFee, uint256 deployerFee) internal {
+    /// @notice Resolve the IPShare subject from hookData, falling back to token creator.
+    ///   hookData format: abi.encode(address subjectAddress)
+    ///   - If hookData is empty or the decoded address has no IPShare created, use token creator.
+    function _resolveSubject(address token, bytes calldata hookData) internal returns (address) {
+        address defaultSubject = IToken(token).getIPShare();
+
+        if (hookData.length < 32) return defaultSubject;
+
+        address candidate = abi.decode(hookData, (address));
+        if (candidate == address(0)) return defaultSubject;
+
+        address ipshare = pump.getIPShare();
+        if (!IIPShare(ipshare).ipshareCreated(candidate)) return defaultSubject;
+
+        return candidate;
+    }
+
+    function _distributeFees(
+        address token,
+        uint256 platformFee,
+        uint256 deployerFee,
+        bytes calldata hookData
+    ) internal {
         address feeReceiver = pump.getFeeReceiver();
         address ipshare = pump.getIPShare();
-        address subject = IToken(token).getIPShare(); // ipshareSubject
+        address subject = _resolveSubject(token, hookData);
 
         if (platformFee > 0) {
             (bool success, ) = feeReceiver.call{value: platformFee}("");
@@ -158,7 +181,7 @@ contract TipTagSwapHook is ICLHooks {
         address,
         PoolKey calldata key,
         ICLPoolManager.SwapParams calldata params,
-        bytes calldata
+        bytes calldata hookData
     ) external virtual override onlyPoolManager returns (bytes4, BeforeSwapDelta, uint24) {
         if (poolToken[key.toId()] == address(0))
             return (ICLHooks.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
@@ -185,7 +208,7 @@ contract TipTagSwapHook is ICLHooks {
         uint256 deployerFee = totalFee - platformFee;
         address token = poolToken[key.toId()];
 
-        _distributeFees(token, platformFee, deployerFee);
+        _distributeFees(token, platformFee, deployerFee, hookData);
         emit SwapFeeCollected(key.toId(), token, platformFee, deployerFee);
 
         return (ICLHooks.beforeSwap.selector, toBeforeSwapDelta(totalFee.toInt128(), 0), 0);

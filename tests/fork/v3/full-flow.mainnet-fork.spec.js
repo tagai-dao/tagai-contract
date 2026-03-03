@@ -338,5 +338,121 @@ describe("Fork(v3): Full onchain flow", function () {
     );
     expect(pendingAfterReverse - pendingBeforeReverse).to.be.gte(expectedDexPendingDelta2 - 3n);
     expect(pendingAfterReverse - pendingBeforeReverse).to.be.lte(expectedDexPendingDelta2 + 3n);
+
+    // ======================== 6) hookData: custom IPShare subject on DEX ========================
+    // Create IPShare for alice so we can use her as a custom subject
+    const { alice, bob } = fixture;
+    await ipshare.adminStartTrade();
+    const minHoldPrice = await ipshare.getPrice(10n * 10n ** 18n, 0n);
+    const aliceIPShareFee = await ipshare.createFee();
+    await ipshare.connect(alice).createShare(alice.address, { value: minHoldPrice + aliceIPShareFee });
+
+    // Helper to build swap payloads
+    function buildSwapPayload(swapKey, zeroForOne, amountIn, hookData) {
+      const clSwap = ethers.AbiCoder.defaultAbiCoder().encode(
+        ["tuple(tuple(address currency0,address currency1,address hooks,address poolManager,uint24 fee,bytes32 parameters) poolKey,bool zeroForOne,uint128 amountIn,uint128 amountOutMinimum,bytes hookData)"],
+        [[swapKey, zeroForOne, BigInt(amountIn), 0n, hookData]]
+      );
+      const settleToken = zeroForOne ? ethers.ZeroAddress : swapKey.currency1;
+      const takeToken = zeroForOne ? swapKey.currency1 : ethers.ZeroAddress;
+      const settle = ethers.AbiCoder.defaultAbiCoder().encode(["address", "uint256"], [settleToken, ethers.MaxUint256]);
+      const take = ethers.AbiCoder.defaultAbiCoder().encode(["address", "uint256"], [takeToken, 0n]);
+      return ethers.AbiCoder.defaultAbiCoder().encode(
+        ["bytes", "bytes[]"],
+        [
+          "0x" + ACTION_CL_SWAP_EXACT_IN_SINGLE.slice(2) + ACTION_SETTLE_ALL.slice(2) + ACTION_TAKE_ALL.slice(2),
+          [clSwap, settle, take],
+        ]
+      );
+    }
+
+    // 6a) TOKEN -> BNB swap with hookData specifying alice as the IPShare subject
+    {
+      const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [alice.address]);
+      const hookSwapIn = toWei(5000000);
+      const infiPayload6a = buildSwapPayload(key, false, hookSwapIn, hookData);
+
+      const feeReceiverBefore6a = await ethers.provider.getBalance(feeReceiver.address);
+      const alicePendingBefore6a = await ipshare.getPendingProfits(alice.address, alice.address);
+      const creatorPendingBefore6a = await ipshare.getPendingProfits(creator.address, creator.address);
+
+      const deadline6a = BigInt((await ethers.provider.getBlock("latest")).timestamp) + 600n;
+      const swapTx6a = await universalRouter.execute(COMMAND_INFI_SWAP, [infiPayload6a], deadline6a);
+      const swapReceipt6a = await swapTx6a.wait();
+
+      const hookEvents6a = getParsedEvents(swapReceipt6a, hook.interface, "SwapFeeCollected", hook.target);
+      expect(hookEvents6a.length).to.equal(1);
+      expect(hookEvents6a[0].args.deployerFee).to.be.gt(0n);
+
+      const feeReceiverAfter6a = await ethers.provider.getBalance(feeReceiver.address);
+      expect(feeReceiverAfter6a - feeReceiverBefore6a).to.equal(hookEvents6a[0].args.platformFee);
+
+      // Fee should go to alice's IPShare, NOT creator's
+      const alicePendingAfter6a = await ipshare.getPendingProfits(alice.address, alice.address);
+      const creatorPendingAfter6a = await ipshare.getPendingProfits(creator.address, creator.address);
+      expect(alicePendingAfter6a).to.be.gt(alicePendingBefore6a);
+      expect(creatorPendingAfter6a).to.equal(creatorPendingBefore6a);
+    }
+
+    // 6b) BNB -> TOKEN swap with hookData specifying alice
+    {
+      const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [alice.address]);
+      const hookBuyBnb = toWei(0.1);
+      const infiPayload6b = buildSwapPayload(key, true, hookBuyBnb, hookData);
+
+      const alicePendingBefore6b = await ipshare.getPendingProfits(alice.address, alice.address);
+      const creatorPendingBefore6b = await ipshare.getPendingProfits(creator.address, creator.address);
+
+      const deadline6b = BigInt((await ethers.provider.getBlock("latest")).timestamp) + 600n;
+      const swapTx6b = await universalRouter.execute(COMMAND_INFI_SWAP, [infiPayload6b], deadline6b, { value: hookBuyBnb });
+      const swapReceipt6b = await swapTx6b.wait();
+
+      const hookEvents6b = getParsedEvents(swapReceipt6b, hook.interface, "SwapFeeCollected", hook.target);
+      expect(hookEvents6b.length).to.equal(1);
+      expect(hookEvents6b[0].args.deployerFee).to.be.gt(0n);
+
+      const alicePendingAfter6b = await ipshare.getPendingProfits(alice.address, alice.address);
+      const creatorPendingAfter6b = await ipshare.getPendingProfits(creator.address, creator.address);
+      expect(alicePendingAfter6b).to.be.gt(alicePendingBefore6b);
+      expect(creatorPendingAfter6b).to.equal(creatorPendingBefore6b);
+    }
+
+    // 6c) hookData subject with no IPShare (bob) — should fall back to creator
+    {
+      const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [bob.address]);
+      const hookBuyBnb = toWei(0.1);
+      const infiPayload6c = buildSwapPayload(key, true, hookBuyBnb, hookData);
+
+      const creatorPendingBefore6c = await ipshare.getPendingProfits(creator.address, creator.address);
+
+      const deadline6c = BigInt((await ethers.provider.getBlock("latest")).timestamp) + 600n;
+      const swapTx6c = await universalRouter.execute(COMMAND_INFI_SWAP, [infiPayload6c], deadline6c, { value: hookBuyBnb });
+      const swapReceipt6c = await swapTx6c.wait();
+
+      const hookEvents6c = getParsedEvents(swapReceipt6c, hook.interface, "SwapFeeCollected", hook.target);
+      expect(hookEvents6c.length).to.equal(1);
+
+      // Should fall back to creator since bob has no IPShare
+      const creatorPendingAfter6c = await ipshare.getPendingProfits(creator.address, creator.address);
+      expect(creatorPendingAfter6c).to.be.gt(creatorPendingBefore6c);
+    }
+
+    // 6d) Empty hookData — backward compatible, fee goes to creator
+    {
+      const hookBuyBnb = toWei(0.1);
+      const infiPayload6d = buildSwapPayload(key, true, hookBuyBnb, "0x");
+
+      const creatorPendingBefore6d = await ipshare.getPendingProfits(creator.address, creator.address);
+
+      const deadline6d = BigInt((await ethers.provider.getBlock("latest")).timestamp) + 600n;
+      const swapTx6d = await universalRouter.execute(COMMAND_INFI_SWAP, [infiPayload6d], deadline6d, { value: hookBuyBnb });
+      const swapReceipt6d = await swapTx6d.wait();
+
+      const hookEvents6d = getParsedEvents(swapReceipt6d, hook.interface, "SwapFeeCollected", hook.target);
+      expect(hookEvents6d.length).to.equal(1);
+
+      const creatorPendingAfter6d = await ipshare.getPendingProfits(creator.address, creator.address);
+      expect(creatorPendingAfter6d).to.be.gt(creatorPendingBefore6d);
+    }
   });
 });
