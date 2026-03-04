@@ -33,7 +33,11 @@ IP value capture, fair token launch, and DEX fee distribution.
 
 ## Contract Addresses (BSC Mainnet)
 
-```text
-IPShare: 0x24328DccA1bA54EeE82e2993F021802e64290486
-Pump:    0x0476571a77Cc8Fc28796935Cf173c265F2021448
+```json
+{
+  "PumpBsc#IPShare": "0x95450AaD4Cc195e03BB4791B7f6f04aC6D9BA922",
+  "PumpBsc#TokenImplementation": "0x679a06AB0970CA68007777b5460bDca240B59cD2",
+  "PumpBsc#Pump": "0x3E75E2db40E7cc9C7d7869Fc2d97eDAb01724212",
+  "PumpBsc#TipTagSwapHook": "0xF815dB0fbeafED4C719F65E41dEC9C50fb357896"
+}
 ```
