@@ -1,6 +1,7 @@
 
 require('@nomicfoundation/hardhat-toolbox')
 require('@nomicfoundation/hardhat-ignition-ethers')
+require('@nomicfoundation/hardhat-verify')
 require('hardhat-deploy')
 require('hardhat-gas-reporter')
 require('dotenv').config();
@@ -135,11 +136,30 @@ module.exports = {
       ]
     }
   },
+  // Etherscan V2 统一 API：同一 API Key 支持多链，使用 api.etherscan.io/v2/api
   etherscan: {
     apiKey: {
       base: process.env.BASE_API_KEY,
       bsc: process.env.BSC_API_KEY
-    }
+    },
+    customChains: [
+      {
+        network: 'bsc',
+        chainId: 56,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=56',
+          browserURL: 'https://bscscan.com'
+        }
+      },
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=8453',
+          browserURL: 'https://basescan.org'
+        }
+      }
+    ]
   },
   // flattenExporter: {
   //   src: "./contracts",
