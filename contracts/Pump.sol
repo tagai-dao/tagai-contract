@@ -12,6 +12,7 @@ import "./interface/IBondingCurve.sol";
 import "./solady/src/utils/FixedPointMathLib.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "./interface/INutbox.sol";
 
 contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private ipshare;
@@ -23,6 +24,10 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
     address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
     uint256[2] private feeRatio = [30, 30]; // 0: to tiptag; 1: to salesman
+    address public nuboxCommunityFactory = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
+    address public linearCalculator = 0x0000000000000000000000000000000000000000;
+    address public socialCurationFactory = 0x0000000000000000000000000000000000000000;
+    address public nutboxCommittee = 0x0000000000000000000000000000000000000000;
 
     // PancakeSwap V4 (Infinity)
     address private poolManager = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b; // BSC CLPoolManager
@@ -197,6 +202,8 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         // before dawn of today
         lastClaimTime[instance] = block.timestamp - (block.timestamp % secondPerDay) - 1;
 
+        totalFixedFee += ICommittee(nutboxCommittee).getCreateCommunityFee() + ICommittee(nutboxCommittee).getCommunitySettingsFee();
+
         if (msg.value > totalFixedFee) {
             (bool success1, bytes memory receiveAmount) = instance.call{value: msg.value - totalFixedFee}(
                 abi.encodeWithSignature("buyToken(uint256,address,uint16)", 0, creator, 0)
@@ -215,6 +222,17 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
                 }
             }
         }
+
+        // create nutbox community
+        
+        ICommunityFactory(nuboxCommunityFactory)
+                .createCommunity(
+                    true, 
+                    instance, 
+                    socialCurationFactory, 
+                    bytes(""), 
+                    linearCalculator, 
+                    abi.encode(instance));
         createdTokens[instance] = true;
         totalTokens += 1;
         return instance;

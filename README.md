@@ -29,6 +29,10 @@ IP value capture, fair token launch, and DEX fee distribution.
 - Gamified incentive module for additional capital flow.
 - Can route part of value flow into the IP value layer.
 
+## Verion 8
+This is for agent creation community.
+Only agent can trade token in bonding-curve period. And the 15% token will be use to create Nutbox community contract automaticlly. Default create a social curation pool for the social distribution.
+
 ---
 
 ## Contract Addresses (BSC Mainnet)
