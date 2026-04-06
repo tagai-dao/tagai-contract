@@ -97,7 +97,7 @@ describe("Integration: Hook fee flow", function () {
 
     const capAmount = toWei(650000000);
     const needEth = await pump.getBuyPriceAfterFee(0, capAmount);
-    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: needEth + 10_000_000_000n });
 
     const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
     const vaultEthAfter = await ethers.provider.getBalance(vault.target);
@@ -203,8 +203,6 @@ describe("Integration: Hook fee flow", function () {
     const fixture = await loadFixture(deployListingFixture);
     const { owner, creator, pump, swapRouter, clPoolManager, ipshare, feeReceiver } = fixture;
 
-    await pump.connect(owner).adminChangeClaimSigner(owner.address);
-
     const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
     const hook = await TipTagSwapHook.deploy(clPoolManager.target, fixture.vault.target, pump.target);
     await pump.connect(owner).adminSetHookAddress(hook.target);
@@ -212,25 +210,9 @@ describe("Integration: Hook fee flow", function () {
     const { token } = await listToken(fixture, hook.target);
     expect(await token.listed()).to.equal(true);
 
-    // claim 150M social-distribution token for creator
-    const claimAmount = toWei(150000000);
-    const claimRatePerSecond = 12_870_000_000_000_000_000n; // 12.87 token/sec
-    const waitSeconds = claimAmount / claimRatePerSecond + 1n;
-    await time.increase(waitSeconds);
-
-    const orderId = 1n;
-    const chainId = (await ethers.provider.getNetwork()).chainId;
-    const digest = ethers.solidityPackedKeccak256(
-      ["uint256", "address", "uint256", "address", "uint256"],
-      [chainId, token.target, orderId, creator.address, claimAmount]
-    );
-    const signature = await owner.signMessage(ethers.getBytes(digest));
-    const claimFee = await pump.getClaimFee();
-    await pump.connect(creator).userClaim(token.target, orderId, claimAmount, signature, { value: claimFee });
-
-    // creator should hold 650M (curve) + 150M (social) = 800M token
-    const totalToSell = toWei(800000000);
-    expect(await token.balanceOf(creator.address)).to.equal(totalToSell);
+    // Social allocation (150M) is in Nutbox community; creator only has bonding-curve tokens.
+    const totalToSell = await token.balanceOf(creator.address);
+    expect(totalToSell).to.be.gt(0n);
 
     const hookBitmap = await hook.getHooksRegistrationBitmap();
     const key = buildPoolKey(token.target, hook.target, clPoolManager.target, hookBitmap);
@@ -268,7 +250,7 @@ describe("Integration: Hook fee flow", function () {
 
     const firstTargetAmount = toWei(649000000);
     const firstNeedEth = await pump.getBuyPriceAfterFee(0, firstTargetAmount);
-    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: firstNeedEth });
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: firstNeedEth });
 
     expect(await token.listed()).to.equal(false);
     expect(await token.bondingCurveSupply()).to.be.lt(toWei(650000000));
@@ -278,7 +260,7 @@ describe("Integration: Hook fee flow", function () {
 
     const currentSupply = await token.bondingCurveSupply();
     const secondNeedEth = await pump.getBuyPriceAfterFee(currentSupply, toWei(2000000));
-    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: secondNeedEth + 10_000_000_000n });
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: secondNeedEth + 10_000_000_000n });
 
     expect(await token.listed()).to.equal(true);
     expect(await token.bondingCurveSupply()).to.equal(toWei(650000000));
@@ -288,7 +270,6 @@ describe("Integration: Hook fee flow", function () {
     const fixture = await loadFixture(deployListingFixture);
     const { owner, creator, pump, swapRouter, clPoolManager, ipshare, feeReceiver } = fixture;
 
-    await pump.connect(owner).adminChangeClaimSigner(owner.address);
     const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
     const hook = await TipTagSwapHook.deploy(clPoolManager.target, fixture.vault.target, pump.target);
     await pump.connect(owner).adminSetHookAddress(hook.target);
@@ -296,22 +277,7 @@ describe("Integration: Hook fee flow", function () {
     const { token } = await listToken(fixture, hook.target);
     expect(await token.listed()).to.equal(true);
 
-    // Claim 150M social rewards so creator has full 800M for two-step sell.
-    const claimAmount = toWei(150000000);
-    const claimRatePerSecond = 12_870_000_000_000_000_000n;
-    await time.increase(claimAmount / claimRatePerSecond + 1n);
-
-    const orderId = 100n;
-    const chainId = (await ethers.provider.getNetwork()).chainId;
-    const digest = ethers.solidityPackedKeccak256(
-      ["uint256", "address", "uint256", "address", "uint256"],
-      [chainId, token.target, orderId, creator.address, claimAmount]
-    );
-    const signature = await owner.signMessage(ethers.getBytes(digest));
-    const claimFee = await pump.getClaimFee();
-    await pump.connect(creator).userClaim(token.target, orderId, claimAmount, signature, { value: claimFee });
-
-    const totalToSell = toWei(800000000);
+    const totalToSell = await token.balanceOf(creator.address);
     const halfSell = totalToSell / 2n;
     await token.connect(creator).approve(swapRouter.target, totalToSell);
 

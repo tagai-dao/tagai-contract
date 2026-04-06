@@ -57,7 +57,7 @@ describe("Token (v3)", function () {
 
     const capAmount = toWei(650000000);
     const needEth = await pump.getBuyPriceAfterFee(0, capAmount);
-    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+    await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: needEth + 10_000_000_000n });
 
     return {
       ...fixture,
@@ -73,7 +73,7 @@ describe("Token (v3)", function () {
     const buyValue = toWei(1);
 
     const feeRatio = await pump.getFeeRatio();
-    const tx = await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: buyValue });
+    const tx = await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: buyValue });
     const receipt = await tx.wait();
     const tradeArgs = parseTradeEvent(receipt, token);
 
@@ -90,7 +90,7 @@ describe("Token (v3)", function () {
     const feeRatio = await pump.getFeeRatio();
 
     // First buy sets bondingCurveSupply > 0, dynamic fee applies afterwards.
-    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
 
     const createdAt = await token.createdAt();
 
@@ -119,14 +119,14 @@ describe("Token (v3)", function () {
     const { token, pump, buyer } = await loadFixture(deployTokenFixture);
     const feeRatio = await pump.getFeeRatio();
 
-    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
 
     const supplyBefore = await token.bondingCurveSupply();
     const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
 
     await time.increase(8);
 
-    const tx = await token.connect(buyer).sellToken(sellAmount, 0, ethers.ZeroAddress, 0);
+    const tx = await token.connect(buyer).sellToken(sellAmount, 0, ethers.ZeroAddress, 0, "0x", 0);
     const receipt = await tx.wait();
     const tradeArgs = parseTradeEvent(receipt, token);
 
@@ -144,11 +144,11 @@ describe("Token (v3)", function () {
     const { token, creator } = await loadFixture(deployListedTokenFixture);
     expect(await token.listed()).to.equal(true);
 
-    await expect(token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+    await expect(token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) })).to.be.revertedWithCustomError(
       token,
       "TokenListed"
     );
-    await expect(token.connect(creator).sellToken(1n, 0, ethers.ZeroAddress, 0)).to.be.revertedWithCustomError(
+    await expect(token.connect(creator).sellToken(1n, 0, ethers.ZeroAddress, 0, "0x", 0)).to.be.revertedWithCustomError(
       token,
       "TokenListed"
     );
@@ -157,14 +157,14 @@ describe("Token (v3)", function () {
   it("should revert when non-zero sellsman has no ipshare", async function () {
     const { token, buyer, alice } = await loadFixture(deployTokenFixture);
 
-    await expect(token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+    await expect(token.connect(buyer).buyToken(0, alice.address, 0, "0x", 0, { value: toWei(1) })).to.be.revertedWithCustomError(
       token,
       "IPShareNotCreated"
     );
 
-    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
     const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
-    await expect(token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0)).to.be.revertedWithCustomError(
+    await expect(token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0, "0x", 0)).to.be.revertedWithCustomError(
       token,
       "IPShareNotCreated"
     );
@@ -173,13 +173,13 @@ describe("Token (v3)", function () {
   it("should revert tiny buy and tiny sell with DustIssue", async function () {
     const { token, buyer } = await loadFixture(deployTokenFixture);
 
-    await expect(token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: 1_000_000_000n })).to.be.revertedWithCustomError(
+    await expect(token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: 1_000_000_000n })).to.be.revertedWithCustomError(
       token,
       "DustIssue"
     );
 
-    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
-    await expect(token.connect(buyer).sellToken(1n, 0, ethers.ZeroAddress, 0)).to.be.revertedWithCustomError(
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
+    await expect(token.connect(buyer).sellToken(1n, 0, ethers.ZeroAddress, 0, "0x", 0)).to.be.revertedWithCustomError(
       token,
       "DustIssue"
     );
@@ -195,7 +195,7 @@ describe("Token (v3)", function () {
 
   it("should block external transfer to vault before listed", async function () {
     const { token, buyer, pump } = await loadFixture(deployTokenFixture);
-    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
     const vaultAddress = await pump.getVault();
 
     await expect(token.connect(buyer).transfer(vaultAddress, 1n)).to.be.revertedWithCustomError(token, "TokenNotListed");
@@ -210,12 +210,12 @@ describe("Token (v3)", function () {
       await createTokenByEvent(pump, alice, "ALICE", aliceSalt, createFee);
 
       // 首笔 buy 使 bondingCurveSupply > 0，触发动态费用
-      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
 
       await time.increase(3); // 仍在 15s 内
 
       // 传入 alice 为 sellsman，但 15s 内应强制归 creator（ipshareSubject）
-      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(0.5) });
+      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, "0x", 0, { value: toWei(0.5) });
       const receipt = await tx.wait();
       const tradeArgs = parseTradeEvent(receipt, token);
 
@@ -229,13 +229,13 @@ describe("Token (v3)", function () {
       const createFee = await pump.createFee();
       await createTokenByEvent(pump, alice, "ALC2", aliceSalt, createFee);
 
-      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
       const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
 
       const createdAt = await token.createdAt();
       await time.increaseTo(createdAt + 3n); // 仍在 15s 内
 
-      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0);
+      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0, "0x", 0);
       const receipt = await tx.wait();
       const tradeArgs = parseTradeEvent(receipt, token);
 
@@ -249,12 +249,12 @@ describe("Token (v3)", function () {
       const createFee = await pump.createFee();
       await createTokenByEvent(pump, alice, "ALC3", aliceSalt, createFee);
 
-      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
 
       const createdAt = await token.createdAt();
       await time.increaseTo(createdAt + 16n); // 超过 15s
 
-      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, { value: toWei(0.5) });
+      const tx = await token.connect(buyer).buyToken(0, alice.address, 0, "0x", 0, { value: toWei(0.5) });
       const receipt = await tx.wait();
       const tradeArgs = parseTradeEvent(receipt, token);
 
@@ -267,17 +267,106 @@ describe("Token (v3)", function () {
       const createFee = await pump.createFee();
       await createTokenByEvent(pump, alice, "ALC4", aliceSalt, createFee);
 
-      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+      await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
 
       const createdAt = await token.createdAt();
       await time.increaseTo(createdAt + 16n);
 
       const sellAmount = (await token.balanceOf(buyer.address)) / 2n;
-      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0);
+      const tx = await token.connect(buyer).sellToken(sellAmount, 0, alice.address, 0, "0x", 0);
       const receipt = await tx.wait();
       const tradeArgs = parseTradeEvent(receipt, token);
 
       expect(tradeArgs.sellsman).to.equal(alice.address);
+    });
+  });
+
+  describe("trade gate: 内盘交易门控", function () {
+    async function deployGateFixture() {
+      const fixture = await deployCoreFixture();
+      const { pump, owner, creator, buyer } = fixture;
+      const [tradeSigner] = await ethers.getSigners(); // 用第一个账户作为 signer
+      const signerWallet = ethers.Wallet.createRandom().connect(ethers.provider);
+      // 给 signerWallet 充值 gas
+      await owner.sendTransaction({ to: signerWallet.address, value: toWei(1) });
+
+      const createFee = await pump.createFee();
+      const { token } = await createTokenByEvent(pump, creator, "GATE", saltFromNumber(200), createFee);
+      return { ...fixture, token, signerWallet };
+    }
+
+    async function signTradePermit(signerWallet, tokenAddress, traderAddress, deadline, chainId) {
+      const hash = ethers.solidityPackedKeccak256(
+        ["uint256", "address", "address", "uint256"],
+        [chainId, tokenAddress, traderAddress, deadline]
+      );
+      return signerWallet.signMessage(ethers.getBytes(hash));
+    }
+
+    it("门控关闭时（tradeSigner=0）任何人可交易", async function () {
+      const { token, buyer } = await loadFixture(deployGateFixture);
+      await expect(
+        token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) })
+      ).to.not.be.reverted;
+    });
+
+    it("门控开启时，有效签名可以交易", async function () {
+      const { token, pump, owner, buyer, signerWallet } = await loadFixture(deployGateFixture);
+      await pump.connect(owner).adminSetTradeSigner(signerWallet.address);
+
+      const chainId = (await ethers.provider.getNetwork()).chainId;
+      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const sig = await signTradePermit(signerWallet, token.target, buyer.address, deadline, chainId);
+
+      await expect(
+        token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, sig, deadline, { value: toWei(1) })
+      ).to.not.be.reverted;
+    });
+
+    it("门控开启时，签名过期后交易被拒绝", async function () {
+      const { token, pump, owner, buyer, signerWallet } = await loadFixture(deployGateFixture);
+      await pump.connect(owner).adminSetTradeSigner(signerWallet.address);
+
+      const chainId = (await ethers.provider.getNetwork()).chainId;
+      const deadline = Math.floor(Date.now() / 1000) - 1; // 已过期
+      const sig = await signTradePermit(signerWallet, token.target, buyer.address, deadline, chainId);
+
+      await expect(
+        token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, sig, deadline, { value: toWei(1) })
+      ).to.be.revertedWithCustomError(token, "InvalidSignature");
+    });
+
+    it("门控开启时，错误签名者被拒绝", async function () {
+      const { token, pump, owner, buyer, signerWallet } = await loadFixture(deployGateFixture);
+      await pump.connect(owner).adminSetTradeSigner(signerWallet.address);
+
+      // 用另一个随机钱包签名
+      const wrongSigner = ethers.Wallet.createRandom();
+      const chainId = (await ethers.provider.getNetwork()).chainId;
+      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      const sig = await signTradePermit(wrongSigner, token.target, buyer.address, deadline, chainId);
+
+      await expect(
+        token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, sig, deadline, { value: toWei(1) })
+      ).to.be.revertedWithCustomError(token, "InvalidSignature");
+    });
+
+    it("门控开启时，签名绑定的 token 地址不匹配则被拒绝", async function () {
+      const { token, pump, owner, buyer, creator, signerWallet } = await loadFixture(deployGateFixture);
+      await pump.connect(owner).adminSetTradeSigner(signerWallet.address);
+
+      // 创建另一个 token，用它的地址签名
+      const createFee = await pump.createFee();
+      const { token: otherToken } = await createTokenByEvent(pump, creator, "OTHER", saltFromNumber(201), createFee);
+
+      const chainId = (await ethers.provider.getNetwork()).chainId;
+      const deadline = Math.floor(Date.now() / 1000) + 3600;
+      // 签名用的是 otherToken 地址，但提交到 token
+      const sig = await signTradePermit(signerWallet, otherToken.target, buyer.address, deadline, chainId);
+
+      await expect(
+        token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, sig, deadline, { value: toWei(1) })
+      ).to.be.revertedWithCustomError(token, "InvalidSignature");
     });
   });
 });

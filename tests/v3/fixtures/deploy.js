@@ -21,6 +21,24 @@ async function deployCoreFixture() {
   const Pump = await ethers.getContractFactory("Pump");
   const pump = await Pump.deploy(ipshare.target, tokenImplementation.target, feeReceiver.address);
 
+  const Committee = await ethers.getContractFactory("MockNutboxCommittee");
+  const nutboxCommittee = await Committee.deploy();
+  const Calculator = await ethers.getContractFactory("MockNutboxCalculator");
+  const nutboxCalculator = await Calculator.deploy();
+  const SocialFactory = await ethers.getContractFactory("MockSocialCurationFactory");
+  const nutboxSocialFactory = await SocialFactory.deploy();
+  const CommFactory = await ethers.getContractFactory("MockNutboxCommunityFactory");
+  const nutboxCommunityFactory = await CommFactory.deploy(nutboxCommittee.target);
+
+  await nutboxCommittee.adminWhitelist(nutboxCalculator.target);
+
+  await pump.connect(owner).adminSetNutbox(
+    nutboxCommunityFactory.target,
+    nutboxCalculator.target,
+    nutboxSocialFactory.target,
+    nutboxCommittee.target
+  );
+
   return {
     owner,
     creator,
@@ -33,6 +51,10 @@ async function deployCoreFixture() {
     ipshare,
     tokenImplementation,
     pump,
+    nutboxCommittee,
+    nutboxCalculator,
+    nutboxSocialFactory,
+    nutboxCommunityFactory,
   };
 }
 

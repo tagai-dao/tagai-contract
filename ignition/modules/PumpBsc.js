@@ -60,6 +60,9 @@ module.exports = buildModule("PumpBsc", (m) => {
   // ========== 5. Pump 设置 Hook 地址 ==========
   m.call(pump, "adminSetHookAddress", [hook], { id: "PumpSetHook" });
 
+  // Nutbox：`createToken` 要求 Committee / CommunityFactory / LinearTimeCalculator / SocialCurationFactory
+  // 均已配置。部署 Nutbox 协议后由 owner 调用 `pump.adminSetNutbox(factory, calculator, socialFactory, committee)`。
+
   // 注：Pump 所有权转移需部署后手动执行: pump.transferOwnership(newOwner)
   // 新 owner 需调用 pump.acceptOwnership() 完成转移
 

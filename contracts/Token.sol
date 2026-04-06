@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {ERC20} from "./solady/src/tokens/ERC20.sol";
+import {ECDSA} from "./solady/src/utils/ECDSA.sol";
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -26,6 +27,10 @@ interface ITipTagSwapHook {
     function registerPool(PoolId poolId, address token) external;
 }
 
+error OnlyPump();
+error NutboxAddressesAlreadySet();
+error InvalidGatePermission();
+
 contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
     using PoolIdLibrary for PoolKey;
     using CurrencyLibrary for Currency;
@@ -35,8 +40,8 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
     uint256 private constant divisor = 10000;
     address private constant BlackHole = 0x000000000000000000000000000000000000dEaD;
 
-    // distribute token total amount
-    uint256 private constant socialDistributionAmount = 150000000 ether;
+    /// @dev 15% supply for Nutbox community rewards vault (Pump transfers to Community).
+    uint256 public constant NUTBOX_ALLOCATION = 150_000_000 ether;
     uint256 private constant bondingCurveTotalAmount = 650000000 ether;
     uint256 private constant liquidityAmount = 200000000 ether;
 
@@ -54,6 +59,10 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
     IBondingCurve public bondingCurve;
     bool public listed = false;
     bool initialized = false;
+
+    /// @dev Filled once by Pump after Nutbox community + SocialCuration pool exist.
+    address public nutboxCommunity;
+    address public nutboxSocialPool;
 
     // PCS V4 pool info
     ICLPoolManager public clPoolManager;
@@ -74,7 +83,32 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
 
     receive() external payable {
         if (!listed) {
-            buyToken(0, address(0), 0);
+            if (IPump(manager).getTradeSigner() != address(0)) revert InvalidGatePermission();
+            _buyTokenDirect();
+        }
+    }
+
+    /// @dev receive() 专用：门控关闭时直接买入，避免 calldata 类型限制
+    function _buyTokenDirect() private {
+        address sellsman = _checkBondingCurveState(address(0));
+        (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) = _getBuyFeeRatiosView();
+        uint256 buyFunds = msg.value;
+        uint256 tiptagFee = (buyFunds * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (buyFunds * sellsmanFeePercent) / divisor;
+        if (sellsmanFee < 100000000) revert DustIssue();
+        uint256 tokenReceived = bondingCurve.getBuyAmountByValue(bondingCurveSupply, buyFunds - tiptagFee - sellsmanFee);
+        address tiptapFeeAddress = IPump(manager).getFeeReceiver();
+        if (tokenReceived + bondingCurveSupply >= bondingCurveTotalAmount) {
+            uint256 actualAmount = bondingCurveTotalAmount - bondingCurveSupply;
+            _buyTokenFillToCap(actualAmount, tiptagFeePercent, sellsmanFeePercent, sellsman);
+        } else {
+            bondingCurveSupply += tokenReceived;
+            this.transfer(msg.sender, tokenReceived);
+            (bool success, ) = tiptapFeeAddress.call{value: tiptagFee}("");
+            if (!success) revert CostFeeFail();
+            address feeRecipient = _getFeeRecipient(sellsman);
+            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+            emit Trade(msg.sender, feeRecipient, true, tokenReceived, buyFunds, tiptagFee, sellsmanFee);
         }
     }
 
@@ -94,20 +128,32 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
         _name = tick;
         _symbol = tick;
         _mint(address(this), bondingCurveTotalAmount + liquidityAmount);
-        _mint(address(manager), socialDistributionAmount);
+        _mint(address(manager), NUTBOX_ALLOCATION);
 
         // Set PCS V4 references
         clPoolManager = ICLPoolManager(IPump(manager).getPoolManager());
         vault = IVault(IPump(manager).getVault());
     }
 
+    /// @notice Records Nutbox `Community` and SocialCuration pool; callable once by Pump only.
+    function setNutboxAddresses(address community, address pool) external {
+        if (msg.sender != manager) revert OnlyPump();
+        if (nutboxCommunity != address(0)) revert NutboxAddressesAlreadySet();
+        require(community != address(0) && pool != address(0));
+        nutboxCommunity = community;
+        nutboxSocialPool = pool;
+    }
+
     /********************************** bonding curve ********************************/
     function buyToken(
         uint256 expectAmount,
         address sellsman,
-        uint16 slippage
+        uint16 slippage,
+        bytes calldata signature,
+        uint256 deadline
     ) public payable nonReentrant returns (uint256) {
         require(msg.sender != address(clPoolManager), "can't buy token from pool");
+        _verifyTradeGate(signature, deadline);
         sellsman = _checkBondingCurveState(sellsman);
         (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) = _getBuyFeeRatiosView();
         uint256 buyFunds = msg.value;
@@ -153,7 +199,8 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
         }
     }
 
-    function sellToken(uint256 amount, uint256 expectReceive, address sellsman, uint16 slippage) public nonReentrant {
+    function sellToken(uint256 amount, uint256 expectReceive, address sellsman, uint16 slippage, bytes calldata signature, uint256 deadline) public nonReentrant {
+        _verifyTradeGate(signature, deadline);
         sellsman = _checkBondingCurveState(sellsman);
 
         uint256 sellAmount = amount;
@@ -252,6 +299,18 @@ contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
         emit Trade(msg.sender, feeRecipient, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
         _makeLiquidityPool();
         return actualAmount;
+    }
+
+    /// @notice 验证交易门控签名。tradeSigner == address(0) 时门控关闭，任何人可交易。
+    /// 签名内容：keccak256(chainId, tokenAddress, msg.sender, deadline)
+    function _verifyTradeGate(bytes calldata signature, uint256 deadline) private view {
+        address signer = IPump(manager).getTradeSigner();
+        if (signer == address(0)) return;
+        if (block.timestamp > deadline) revert InvalidSignature();
+        bytes32 hash = keccak256(abi.encodePacked(block.chainid, address(this), msg.sender, deadline));
+        bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+        address recovered = ECDSA.recoverCalldata(ethHash, signature);
+        if (recovered != signer) revert InvalidSignature();
     }
 
     function _checkBondingCurveState(address sellsman) private returns (address) {

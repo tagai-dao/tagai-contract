@@ -11,23 +11,22 @@ import "./interface/IBondingCurve.sol";
 
 import "./solady/src/utils/FixedPointMathLib.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./interface/INutbox.sol";
 
 contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     address private ipshare;
     address public tokenImplementation;
-    uint256 public createFee = 0.01 ether;
-    uint256 private claimFee = 0.0005 ether;
+    uint256 public createFee = 0.005 ether;
     uint256 private divisor = 10000;
-    uint256 private secondPerDay = 86400;
     address private feeReceiver = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
-    address private claimSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
+    address private tradeSigner = 0x78C2aF38330C5b41Ae7946A313e43cDCEEaf8611;
     uint256[2] private feeRatio = [30, 30]; // 0: to tiptag; 1: to salesman
-    address public nuboxCommunityFactory = 0x06Deb72b2e156Ddd383651aC3d2dAb5892d9c048;
-    address public linearCalculator = 0x0000000000000000000000000000000000000000;
-    address public socialCurationFactory = 0x0000000000000000000000000000000000000000;
-    address public nutboxCommittee = 0x0000000000000000000000000000000000000000;
+
+    // BSC Nutbox stack — nutbox-contract ignition/deployments/chain-56/deployed_addresses.json
+    address public nutboxCommunityFactory = 0x5597e814399906095ecaA5769A40394F58E5E0Cf;
+    address public linearTimeCalculator = 0xc76e00e150e13EC95514E9a52Ab0314c7faE8207; // LinearTimeCalculator
+    address public socialCurationFactory = 0xc4674D3fBbD201Ea401a8B7e7285F956178593D8;
+    address public nutboxCommittee = 0xe10F967DD356504EDB731612789D0D0f0ba2929f;
 
     // PancakeSwap V4 (Infinity)
     address private poolManager = 0xa0FfB9c1CE1Fe56963B0321B32E7A0302114058b; // BSC CLPoolManager
@@ -38,12 +37,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     mapping(string => bool) public createdTicks;
     mapping(address => uint256) private createdSaltsIndex;
 
-    // social distribution
-    uint256 private constant claimAmountPerSecond = 12.87 ether;
-    mapping(address => uint256) private lastClaimTime;
-    mapping(address => mapping(uint256 => bool)) public claimedOrder;
-    mapping(address => uint256) public pendingClaimSocialRewards;
-    mapping(address => uint256) public totalClaimedSocialRewards;
     uint256 public totalTokens;
 
     /**
@@ -67,6 +60,19 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
     function adminSetHookAddress(address _hookAddress) public onlyOwner {
         hookAddress = _hookAddress;
+    }
+
+    /// @notice Wire Nutbox stack (CommunityFactory, LinearTimeCalculator, SocialCurationFactory, Committee).
+    function adminSetNutbox(
+        address communityFactory_,
+        address linearCalculator_,
+        address socialCurationFactory_,
+        address committee_
+    ) external onlyOwner {
+        nutboxCommunityFactory = communityFactory_;
+        linearTimeCalculator = linearCalculator_;
+        socialCurationFactory = socialCurationFactory_;
+        nutboxCommittee = committee_;
     }
 
     receive() external payable {}
@@ -93,19 +99,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         emit FeeRatiosChanged(ratios[0], ratios[1]);
     }
 
-    function adminChangeClaimSigner(address signer) public onlyOwner {
-        emit ClaimSignerChanged(claimSigner, signer);
-        claimSigner = signer;
-    }
-
-    function adminSetClaimFee(uint256 _claimFee) public onlyOwner {
-        if (_claimFee > 0.02 ether) {
-            revert TooMuchFee();
-        }
-        emit ClaimFeeChanged(claimFee, _claimFee);
-        claimFee = _claimFee;
-    }
-
     function adminChangeTokenImplementation(address _tokenImplementation) public onlyOwner {
         emit TokenImplementationChanged(tokenImplementation, _tokenImplementation);
         tokenImplementation = _tokenImplementation;
@@ -114,6 +107,10 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     function adminChangeFeeAddress(address _feeReceiver) public onlyOwner {
         emit FeeAddressChanged(feeReceiver, _feeReceiver);
         feeReceiver = _feeReceiver;
+    }
+
+    function adminSetTradeSigner(address _tradeSigner) public onlyOwner {
+        tradeSigner = _tradeSigner;
     }
 
     function getIPShare() public view override returns (address) {
@@ -127,12 +124,9 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     function getFeeRatio() public view override returns (uint256[2] memory) {
         return feeRatio;
     }
-    function getClaimFee() public view override returns (uint256) {
-        return claimFee;
-    }
 
-    function getClaimSigner() public view override returns (address) {
-        return claimSigner;
+    function getTradeSigner() public view override returns (address) {
+        return tradeSigner;
     }
 
     function getPoolManager() public view override returns (address) {
@@ -151,9 +145,32 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         return createdSaltsIndex[user];
     }
 
+    /// @dev LinearTimeCalculator policy: 3 eras, per-second amounts (wei), fixed calendar lengths.
+    function _nutboxDistributionPolicy(uint256 t0) internal pure returns (bytes memory) {
+        uint256 rate1 = 12_857_000_000_000_000_000; // 12.857 ether / sec
+        uint256 rate2 = 6_423_500_000_000_000_000; // 6.4235 ether / sec
+        uint256 rate3 = 3_211_700_000_000_000_000; // 3.2117 ether / sec
+        uint256 len1 = 30 days;
+        uint256 len2 = 90 days;
+        uint256 len3 = 240 days;
+        uint256 s1 = t0;
+        uint256 e1 = s1 + len1 - 1;
+        uint256 s2 = e1 + 1;
+        uint256 e2 = s2 + len2 - 1;
+        uint256 s3 = e2 + 1;
+        uint256 e3 = s3 + len3 - 1;
+        return abi.encodePacked(uint8(3), s1, e1, rate1, s2, e2, rate2, s3, e3, rate3);
+    }
+
     function createToken(string calldata tick, bytes32 salt) public payable override nonReentrant returns (address) {
-        // Only EOA can create token (prevent phishing via tx.origin)
         require(msg.sender == tx.origin, "Only EOA");
+
+        if (
+            nutboxCommunityFactory == address(0) || linearTimeCalculator == address(0)
+                || socialCurationFactory == address(0) || nutboxCommittee == address(0)
+        ) {
+            revert NutboxNotConfigured();
+        }
 
         if (createdTicks[tick]) {
             revert TickHasBeenCreated();
@@ -163,7 +180,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         }
         createdTicks[tick] = true;
 
-        // check user created ipshare
         address creator = msg.sender;
         bool needCreateIPShare = !IIPShare(ipshare).ipshareCreated(creator);
         uint256 ipshareCreateFee = 0;
@@ -171,14 +187,14 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
             ipshareCreateFee = IIPShare(ipshare).createFee();
         }
 
-        uint256 totalFixedFee = createFee + ipshareCreateFee;
+        uint256 nutboxFees = ICommittee(nutboxCommittee).getCreateCommunityFee()
+            + ICommittee(nutboxCommittee).getCommunitySettingsFee();
+        uint256 totalFixedFee = createFee + ipshareCreateFee + nutboxFees;
 
-        // cost fee
         if (msg.value < totalFixedFee) {
             revert InsufficientCreateFee();
         }
 
-        // auto create IPShare for creator and pass-through create fee if needed
         if (needCreateIPShare) {
             IIPShare(ipshare).createShare{value: ipshareCreateFee}(creator);
         }
@@ -190,7 +206,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
             }
         }
 
-        // Deploy token via clone + CREATE2 (lower gas, deterministic address)
         bytes32 cloneSalt = keccak256(abi.encode(msg.sender, salt));
         address instance = Clones.cloneDeterministic(tokenImplementation, cloneSalt);
         createdSaltsIndex[msg.sender] = uint256(salt);
@@ -198,11 +213,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         emit NewToken(tick, instance, creator);
 
         Token(payable(instance)).initialize(address(this), creator, tick);
-
-        // before dawn of today
-        lastClaimTime[instance] = block.timestamp - (block.timestamp % secondPerDay) - 1;
-
-        totalFixedFee += ICommittee(nutboxCommittee).getCreateCommunityFee() + ICommittee(nutboxCommittee).getCommunitySettingsFee();
 
         if (msg.value > totalFixedFee) {
             (bool success1, bytes memory receiveAmount) = instance.call{value: msg.value - totalFixedFee}(
@@ -223,19 +233,43 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
             }
         }
 
-        // create nutbox community
-        
-        ICommunityFactory(nuboxCommunityFactory)
-                .createCommunity(
-                    true, 
-                    instance, 
-                    socialCurationFactory, 
-                    bytes(""), 
-                    linearCalculator, 
-                    abi.encode(instance));
+        uint256 t0 = block.timestamp + 1;
+        bytes memory policy = _nutboxDistributionPolicy(t0);
+
+        uint256 createCommFee = ICommittee(nutboxCommittee).getCreateCommunityFee();
+        uint256 settingsFee = ICommittee(nutboxCommittee).getCommunitySettingsFee();
+
+        address community = ICommunityFactory(nutboxCommunityFactory).createCommunity{value: createCommFee}(
+            false,
+            instance,
+            address(0),
+            bytes(""),
+            linearTimeCalculator,
+            policy
+        );
+
+        uint256 allocation = Token(payable(instance)).NUTBOX_ALLOCATION();
+        IERC20(instance).transfer(community, allocation);
+
+        ICommunity(community).adminAddPool{value: settingsFee}(
+            "Social Curation", _singlePoolRatios(), socialCurationFactory, bytes("")
+        );
+
+        address pool = ICommunity(community).activedPools(0);
+        Token(payable(instance)).setNutboxAddresses(community, pool);
+
+        emit NutboxLinked(instance, community, pool);
+
+        ICommunity(community).transferOwnership(creator);
+
         createdTokens[instance] = true;
         totalTokens += 1;
         return instance;
+    }
+
+    function _singlePoolRatios() private pure returns (uint16[] memory ratios) {
+        ratios = new uint16[](1);
+        ratios[0] = 10_000;
     }
 
     /**
@@ -244,77 +278,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
     function predictTokenAddress(address deployer, bytes32 salt) public view returns (address) {
         bytes32 cloneSalt = keccak256(abi.encode(deployer, salt));
         return Clones.predictDeterministicAddress(tokenImplementation, cloneSalt, address(this));
-    }
-
-    /********************************** social distribution ********************************/
-    function calculateReward(uint256 from, uint256 to) public pure returns (uint256 rewards) {
-        if (from >= to) return 0;
-        return (to - from) * claimAmountPerSecond;
-    }
-
-    // set distributed rewards can be claimed by user
-    function claimPendingSocialRewards(address token) public {
-        // calculate rewards
-        uint256 rewards = calculateReward(lastClaimTime[token], block.timestamp);
-        if (rewards > 0) {
-            pendingClaimSocialRewards[token] += rewards;
-            lastClaimTime[token] = block.timestamp;
-            emit ClaimDistributedReward(token, block.timestamp, rewards);
-        }
-    }
-
-    function userClaim(address token, uint256 orderId, uint256 amount, bytes calldata signature) public payable {
-        if (!IToken(token).listed()) {
-            revert TokenNotListed();
-        }
-        if (claimedOrder[token][orderId]) {
-            revert ClaimOrderExist();
-        }
-        if (signature.length != 65) {
-            revert InvalidSignature();
-        }
-        if (!createdTokens[token]) {
-            revert TokenNotCreated();
-        }
-
-        if (msg.value < claimFee) {
-            revert CostFeeFail();
-        } else {
-            (bool success, ) = feeReceiver.call{value: claimFee}("");
-            if (!success) {
-                revert CostFeeFail();
-            }
-        }
-
-        bytes32 data = keccak256(abi.encodePacked(block.chainid, token, orderId, msg.sender, amount));
-
-        if (!_check(data, signature)) {
-            revert InvalidSignature();
-        }
-
-        if (pendingClaimSocialRewards[token] < amount) {
-            claimPendingSocialRewards(token);
-        }
-
-        if (pendingClaimSocialRewards[token] < amount) {
-            revert InvalidClaimAmount();
-        }
-
-        pendingClaimSocialRewards[token] -= amount;
-        totalClaimedSocialRewards[token] += amount;
-
-        claimedOrder[token][orderId] = true;
-
-        IERC20(token).transfer(msg.sender, amount);
-
-        emit UserClaimReward(token, orderId, msg.sender, amount);
-    }
-
-    function _check(bytes32 data, bytes calldata sign) internal view returns (bool) {
-        // Use OZ ECDSA to handle v/r/s parsing and malleability checks internally.
-        bytes32 ethSignedHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", data));
-        address addr = ECDSA.recover(ethSignedHash, sign);
-        return addr == claimSigner;
     }
 
     /********************************** bonding curve ********************************/
@@ -350,7 +313,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         require(bondingCurveSupply <= 1000000000 ether && ethAmount <= 1000000000 ether, "supply or amount too large");
         uint256 a = 6_500_000_000;
         uint256 b = 2.5175516438e26;
-        // b * ln(ethAmount / (a*b) + exp(bondingCurveSupply/b)) - bondingCurveSupply;
         uint256 ab = FixedPointMathLib.mulWad(a, b);
         uint256 sab = FixedPointMathLib.divWad(ethAmount, ab);
         uint256 e = uint256(FixedPointMathLib.expWad(int256((bondingCurveSupply * 1e18) / b)));
