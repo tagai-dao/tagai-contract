@@ -368,5 +368,20 @@ describe("Token (v3)", function () {
         token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, sig, deadline, { value: toWei(1) })
       ).to.be.revertedWithCustomError(token, "InvalidSignature");
     });
+
+    it("门控开启时，receive() 直接发 ETH 被拒绝", async function () {
+      const { token, pump, owner, buyer, signerWallet } = await loadFixture(deployGateFixture);
+      await pump.connect(owner).adminSetTradeSigner(signerWallet.address);
+      await expect(
+        buyer.sendTransaction({ to: token.target, value: toWei(1) })
+      ).to.be.revertedWithCustomError(token, "InvalidGatePermission");
+    });
+
+    it("门控关闭时，receive() 直接发 ETH 仍可正常买入", async function () {
+      const { token, buyer } = await loadFixture(deployGateFixture);
+      const before = await token.balanceOf(buyer.address);
+      await buyer.sendTransaction({ to: token.target, value: toWei(1) });
+      expect(await token.balanceOf(buyer.address)).to.be.gt(before);
+    });
   });
 });

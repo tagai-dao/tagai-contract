@@ -4,6 +4,12 @@ const { loadFixture, time } = require("@nomicfoundation/hardhat-toolbox/network-
 const { deployCoreFixture, toWei, saltFromNumber, createTokenByEvent } = require("../../v3/fixtures/deploy");
 
 describe("Fork(v3): Multi-token isolation", function () {
+  before(function () {
+    if (process.env.ENABLE_FORK !== "1") {
+      this.skip();
+    }
+  });
+
   const UNIVERSAL_ROUTER = "0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB";
   const PERMIT2 = "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768";
   const COMMAND_INFI_SWAP = "0x10";
@@ -112,9 +118,9 @@ describe("Fork(v3): Multi-token isolation", function () {
     const { token } = await createTokenByEvent(pump, signer, tick, saltFromNumber(saltNum), createFee);
 
     // pre-list normal buy/sell
-    await token.connect(signer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) });
+    await token.connect(signer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) });
     const bal = await token.balanceOf(signer.address);
-    await token.connect(signer).sellToken(bal / 4n, 0, ethers.ZeroAddress, 0);
+    await token.connect(signer).sellToken(bal / 4n, 0, ethers.ZeroAddress, 0, "0x", 0);
 
     await registerVaultAppIfNeeded(vault, token.target, signer);
     const createdAt = await token.createdAt();
@@ -124,7 +130,7 @@ describe("Fork(v3): Multi-token isolation", function () {
     const supplyNow = await token.bondingCurveSupply();
     const remain = capAmount - supplyNow;
     const needEth = await pump.getBuyPriceAfterFee(supplyNow, remain);
-    await token.connect(signer).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+    await token.connect(signer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: needEth + 10_000_000_000n });
 
     expect(await token.listed()).to.equal(true);
     return token;
@@ -239,11 +245,15 @@ describe("Fork(v3): Multi-token isolation", function () {
     expect(absDiff(pendingDeltaA, expectedPendingDeltaA) <= 3n).to.equal(true);
     expect(absDiff(pendingDeltaB, expectedPendingDeltaB) <= 3n).to.equal(true);
 
-    await expect(tokenA.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+    await expect(
+      tokenA.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) })
+    ).to.be.revertedWithCustomError(
       tokenA,
       "TokenListed"
     );
-    await expect(tokenB.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+    await expect(
+      tokenB.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) })
+    ).to.be.revertedWithCustomError(
       tokenB,
       "TokenListed"
     );

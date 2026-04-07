@@ -15,11 +15,8 @@ async function deployCoreFixture() {
   const IPShare = await ethers.getContractFactory("IPShare");
   const ipshare = await IPShare.deploy(ipshareFeeDestination.address);
 
-  const Token = await ethers.getContractFactory("Token");
-  const tokenImplementation = await Token.deploy();
-
   const Pump = await ethers.getContractFactory("Pump");
-  const pump = await Pump.deploy(ipshare.target, tokenImplementation.target, feeReceiver.address);
+  const pump = await Pump.deploy(ipshare.target, feeReceiver.address);
 
   const Committee = await ethers.getContractFactory("MockNutboxCommittee");
   const nutboxCommittee = await Committee.deploy();
@@ -39,6 +36,9 @@ async function deployCoreFixture() {
     nutboxCommittee.target
   );
 
+  // 主网 Pump 默认 tradeSigner 非零；单元/集成测试默认关闭内盘门控（与 production 部署后由 owner 再开启一致）
+  await pump.connect(owner).adminSetTradeSigner(ethers.ZeroAddress);
+
   return {
     owner,
     creator,
@@ -49,7 +49,6 @@ async function deployCoreFixture() {
     bob,
     carol,
     ipshare,
-    tokenImplementation,
     pump,
     nutboxCommittee,
     nutboxCalculator,

@@ -4,6 +4,12 @@ const { loadFixture, time } = require("@nomicfoundation/hardhat-toolbox/network-
 const { deployCoreFixture, toWei, saltFromNumber, createTokenByEvent } = require("../../v3/fixtures/deploy");
 
 describe("Fork(v3): Full onchain flow", function () {
+  before(function () {
+    if (process.env.ENABLE_FORK !== "1") {
+      this.skip();
+    }
+  });
+
   const FORK_BLOCK = 83628324n;
   const UNIVERSAL_ROUTER = "0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB";
   const PERMIT2 = "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768";
@@ -128,7 +134,7 @@ describe("Fork(v3): Full onchain flow", function () {
     const pendingBeforeCurve = await ipshare.getPendingProfits(creator.address, creator.address);
     const curveSupplyBeforeCapture = await ipshare.ipshareSupply(creator.address);
 
-    const buyTx = await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: buyValue });
+    const buyTx = await token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: buyValue });
     const buyReceipt = await buyTx.wait();
     const buyTrades = getParsedEvents(buyReceipt, token.interface, "Trade", token.target);
     expect(buyTrades.length).to.equal(1);
@@ -143,7 +149,7 @@ describe("Fork(v3): Full onchain flow", function () {
 
     const supplyAfterBuy = await token.bondingCurveSupply();
     const sellAmount = buyerBalanceAfterBuy / 2n;
-    const sellTx = await token.connect(buyer).sellToken(sellAmount, 0, ethers.ZeroAddress, 0);
+    const sellTx = await token.connect(buyer).sellToken(sellAmount, 0, ethers.ZeroAddress, 0, "0x", 0);
     const sellReceipt = await sellTx.wait();
     const sellTrades = getParsedEvents(sellReceipt, token.interface, "Trade", token.target);
     expect(sellTrades.length).to.equal(1);
@@ -186,7 +192,9 @@ describe("Fork(v3): Full onchain flow", function () {
     const pendingBeforeListingBuy = await ipshare.getPendingProfits(creator.address, creator.address);
     const listingSupplyBeforeCapture = await ipshare.ipshareSupply(creator.address);
     const tokenEthBeforeListing = await ethers.provider.getBalance(token.target);
-    const listingTx = await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+    const listingTx = await token
+      .connect(creator)
+      .buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: needEth + 10_000_000_000n });
     const listingReceipt = await listingTx.wait();
     const listingTrades = getParsedEvents(listingReceipt, token.interface, "Trade", token.target);
     expect(listingTrades.length).to.equal(1);
@@ -228,7 +236,9 @@ describe("Fork(v3): Full onchain flow", function () {
     expect(pendingAfterListingBuy - pendingBeforeListingBuy).to.be.lte(expectedListingPendingDelta + 3n);
 
     // listed 后曲线交易应关闭
-    await expect(token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, { value: toWei(1) })).to.be.revertedWithCustomError(
+    await expect(
+      token.connect(buyer).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, { value: toWei(1) })
+    ).to.be.revertedWithCustomError(
       token,
       "TokenListed"
     );

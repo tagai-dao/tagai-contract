@@ -4,6 +4,12 @@ const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helper
 const { deployCoreFixture, toWei, saltFromNumber, createTokenByEvent } = require("../../v3/fixtures/deploy");
 
 describe("Fork(v3): Pancake V4 mainnet integration", function () {
+  before(function () {
+    if (process.env.ENABLE_FORK !== "1") {
+      this.skip();
+    }
+  });
+
   const FORK_BLOCK = 83628324n;
   const UNIVERSAL_ROUTER = "0xd9C500DfF816a1Da21A48A732d3498Bf09dc9AEB";
   const PERMIT2 = "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768";
@@ -181,7 +187,9 @@ describe("Fork(v3): Pancake V4 mainnet integration", function () {
     const capAmount = toWei(650000000);
     const needEth = await pump.getBuyPriceAfterFee(0, capAmount);
     try {
-      await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 10_000_000_000n });
+      await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, {
+        value: needEth + 10_000_000_000n,
+      });
     } catch (err) {
       const data = err?.data || err?.error?.data || err?.info?.error?.data;
       throw new Error(`listing reverted: ${decodeRevertData(data)}`);
@@ -326,7 +334,9 @@ describe("Fork(v3): Pancake V4 mainnet integration", function () {
       const tokenNeed = (-amount1 * 12n) / 10n + 1000n;
       const supply = await token.bondingCurveSupply();
       const needEth = await pump.getBuyPriceAfterFee(supply, tokenNeed);
-      await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, { value: needEth + 1_000_000_000_000n });
+      await token.connect(creator).buyToken(0, ethers.ZeroAddress, 0, "0x", 0, {
+        value: needEth + 1_000_000_000_000n,
+      });
       await token.connect(creator).transfer(probe.target, tokenNeed);
     }
 

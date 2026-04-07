@@ -48,9 +48,10 @@ describe("Pump (v3)", function () {
     const { pump, creator } = await loadFixture(deployWithIpShareCreateFee);
     const salt = saltFromNumber(1);
 
+    // pumpCreateFee (0.005) + ipshareCreateFee (0.005) = 0.01 ETH; send less than that
     await expect(
       pump.connect(creator).createToken("TKN1", salt, {
-        value: toWei(0.01), // only covers pump createFee, not ipshare createFee
+        value: toWei(0.009),
       })
     ).to.be.revertedWithCustomError(pump, "InsufficientCreateFee");
   });

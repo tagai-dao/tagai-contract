@@ -41,12 +41,11 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
 
     /**
      * @param _ipshare IPShare contract address
-     * @param _tokenImplementation Token implementation address (used for clone)
      * @param _feeReceiver Fee receiver address, pass address(0) to use default
      */
-    constructor(address _ipshare, address _tokenImplementation, address _feeReceiver) Ownable(msg.sender) {
+    constructor(address _ipshare, address _feeReceiver) Ownable(msg.sender) {
         ipshare = _ipshare;
-        tokenImplementation = _tokenImplementation;
+        tokenImplementation = address(new Token());
         if (_feeReceiver != address(0)) feeReceiver = _feeReceiver;
     }
 
@@ -97,11 +96,6 @@ contract Pump is Ownable2Step, IPump, ReentrancyGuard, IBondingCurve {
         }
         feeRatio = ratios;
         emit FeeRatiosChanged(ratios[0], ratios[1]);
-    }
-
-    function adminChangeTokenImplementation(address _tokenImplementation) public onlyOwner {
-        emit TokenImplementationChanged(tokenImplementation, _tokenImplementation);
-        tokenImplementation = _tokenImplementation;
     }
 
     function adminChangeFeeAddress(address _feeReceiver) public onlyOwner {

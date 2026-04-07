@@ -23,7 +23,6 @@ interface IPump {
     event CreateFeeChanged(uint256 indexed oldFee, uint256 indexed newFee);
     event FeeAddressChanged(address indexed oldAddress, address indexed newAddress);
     event FeeRatiosChanged(uint256 indexed donutFee, uint256 indexed sellsmanFee);
-    event TokenImplementationChanged(address indexed oldImpl, address indexed newImpl);
 
     function getIPShare() external view returns (address);
     function getFeeReceiver() external view returns (address);

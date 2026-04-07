@@ -66,17 +66,11 @@ async function main() {
     console.log("IPShare deployed:", ipshareAddress);
   }
 
-  const tokenImplementation = await ethers.deployContract("Token");
-  await tokenImplementation.waitForDeployment();
-  console.log("Token implementation deployed:", tokenImplementation.target);
-
-  const pump = await ethers.deployContract("Pump", [
-    ipshareAddress,
-    tokenImplementation.target,
-    feeReceiver,
-  ]);
+  const pump = await ethers.deployContract("Pump", [ipshareAddress, feeReceiver]);
   await pump.waitForDeployment();
   console.log("Pump deployed:", pump.target);
+  const tokenImplementationAddress = await pump.tokenImplementation();
+  console.log("Token implementation (via Pump):", tokenImplementationAddress);
 
   let hookAddress = ethers.ZeroAddress;
   if (deployHook) {
@@ -108,8 +102,8 @@ async function main() {
     if (!existingIPShare) {
       await verifyContract(ipshareAddress, [protocolFeeDestination]);
     }
-    await verifyContract(tokenImplementation.target, []);
-    await verifyContract(pump.target, [ipshareAddress, tokenImplementation.target, feeReceiver]);
+    await verifyContract(tokenImplementationAddress, []);
+    await verifyContract(pump.target, [ipshareAddress, feeReceiver]);
     if (hookAddress !== ethers.ZeroAddress) {
       const clPoolManager = process.env.CL_POOL_MANAGER || DEFAULT_MAINNET_POOL_MANAGER;
       const vault = process.env.VAULT || DEFAULT_MAINNET_VAULT;
@@ -125,7 +119,7 @@ async function main() {
         chainId: Number(chainId),
         deployer: deployer.address,
         ipshare: ipshareAddress,
-        tokenImplementation: tokenImplementation.target,
+        tokenImplementation: tokenImplementationAddress,
         pump: pump.target,
         hook: hookAddress,
         feeReceiver,
