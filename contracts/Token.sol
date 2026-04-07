@@ -1,45 +1,114 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity ^0.8.26;
 
 import {ERC20} from "./solady/src/tokens/ERC20.sol";
-import {IWETH} from "./interface/IWETH.sol";
+import {ECDSA} from "./solady/src/utils/ECDSA.sol";
+
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IToken.sol";
 import "./interface/IIPShare.sol";
 import "./interface/IPump.sol";
-import "./interface/IUniswapV2Router02.sol";
-import "./interface/IUniswapV2Factory.sol";
-import "./interface/IUniswapV2Pair.sol";
 import "./interface/IBondingCurve.sol";
-import "./interface/INonfungiblePositionManager.sol";
 
-contract Token is IToken, ERC20, ReentrancyGuard {
+// PancakeSwap V4 (Infinity)
+import {ICLPoolManager} from "infinity-core/src/pool-cl/interfaces/ICLPoolManager.sol";
+import {IHooks} from "infinity-core/src/interfaces/IHooks.sol";
+import {ILockCallback} from "infinity-core/src/interfaces/ILockCallback.sol";
+import {IVault} from "infinity-core/src/interfaces/IVault.sol";
+import {PoolKey} from "infinity-core/src/types/PoolKey.sol";
+import {PoolId, PoolIdLibrary} from "infinity-core/src/types/PoolId.sol";
+import {Currency, CurrencyLibrary} from "infinity-core/src/types/Currency.sol";
+import {BalanceDelta} from "infinity-core/src/types/BalanceDelta.sol";
+import {CLPoolParametersHelper} from "infinity-core/src/pool-cl/libraries/CLPoolParametersHelper.sol";
+import {IPoolManager} from "infinity-core/src/interfaces/IPoolManager.sol";
+
+interface ITipTagSwapHook {
+    function registerPool(PoolId poolId, address token) external;
+}
+
+error OnlyPump();
+error NutboxAddressesAlreadySet();
+error InvalidGatePermission();
+
+contract Token is IToken, ERC20, ReentrancyGuard, ILockCallback {
+    using PoolIdLibrary for PoolKey;
+    using CurrencyLibrary for Currency;
+
     string private _name;
     string private _symbol;
     uint256 private constant divisor = 10000;
-    address private BlackHole = 0x000000000000000000000000000000000000dEaD;
+    address private constant BlackHole = 0x000000000000000000000000000000000000dEaD;
 
-    // distribute token total amount
-    uint256 private constant socialDistributionAmount = 150000000 ether;
+    /// @dev 15% supply for Nutbox community rewards vault (Pump transfers to Community).
+    uint256 public constant NUTBOX_ALLOCATION = 150_000_000 ether;
     uint256 private constant bondingCurveTotalAmount = 650000000 ether;
     uint256 private constant liquidityAmount = 200000000 ether;
 
     uint256 public bondingCurveSupply = 0;
 
+    // Anti-snipe: within 15s after creation, sellsmanFee decays quadratically from 80% to Pump's feeRatio[1]
+    uint256 public createdAt;
+    uint256 private constant ANTI_SNIPE_WINDOW = 15;
+    uint256 private constant ANTI_SNIPE_SELLSMAN_FEE_MAX = 8000; // 80%
+    uint256 private constant ANTI_SNIPE_DENOM = 225; // 15^2, used for quadratic decay
+
     // state
-    address private manager;        // pump contract address
+    address private manager; // pump contract address
     address public ipshareSubject;
     IBondingCurve public bondingCurve;
     bool public listed = false;
     bool initialized = false;
 
-    // dex
-    address public pair;
+    /// @dev Filled once by Pump after Nutbox community + SocialCuration pool exist.
+    address public nutboxCommunity;
+    address public nutboxSocialPool;
+
+    // PCS V4 pool info
+    ICLPoolManager public clPoolManager;
+    IVault public vault;
+    PoolId public v4PoolId;
+    // In V4, tickSpacing and fee are fully decoupled.
+    // fee=0 means zero native pool fee; all fees are collected by TipTagSwapHook.
+    // tickSpacing=60 controls price-tick granularity only (no 0.3% DEX fee implied).
+    int24 public constant TICK_SPACING = 60;
+    // Calibrated initial price for bounded-range listing so 19 ETH + 200M TOKEN are both used as much as possible.
+    uint160 private constant INITIAL_SQRT_PRICE_X96 = 27302121365878665742458286;
+    uint256 private constant LISTING_ETH_AMOUNT = 19 ether;
+    uint256 private constant LISTING_TOKEN_AMOUNT = 200000000 ether;
+    // Precomputed listing constants for fixed strategy.
+    int24 private constant LISTING_TICK_LOWER = -191700;
+    int24 private constant LISTING_TICK_UPPER = 887220;
+    uint128 private constant LISTING_LIQUIDITY_DELTA = 6547423157242855;
 
     receive() external payable {
         if (!listed) {
-            buyToken(0, address(0), 0);
+            if (IPump(manager).getTradeSigner() != address(0)) revert InvalidGatePermission();
+            _buyTokenDirect();
+        }
+    }
+
+    /// @dev receive() 专用：门控关闭时直接买入，避免 calldata 类型限制
+    function _buyTokenDirect() private {
+        address sellsman = _checkBondingCurveState(address(0));
+        (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) = _getBuyFeeRatiosView();
+        uint256 buyFunds = msg.value;
+        uint256 tiptagFee = (buyFunds * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (buyFunds * sellsmanFeePercent) / divisor;
+        if (sellsmanFee < 100000000) revert DustIssue();
+        uint256 tokenReceived = bondingCurve.getBuyAmountByValue(bondingCurveSupply, buyFunds - tiptagFee - sellsmanFee);
+        address tiptapFeeAddress = IPump(manager).getFeeReceiver();
+        if (tokenReceived + bondingCurveSupply >= bondingCurveTotalAmount) {
+            uint256 actualAmount = bondingCurveTotalAmount - bondingCurveSupply;
+            _buyTokenFillToCap(actualAmount, tiptagFeePercent, sellsmanFeePercent, sellsman);
+        } else {
+            bondingCurveSupply += tokenReceived;
+            this.transfer(msg.sender, tokenReceived);
+            (bool success, ) = tiptapFeeAddress.call{value: tiptagFee}("");
+            if (!success) revert CostFeeFail();
+            address feeRecipient = _getFeeRecipient(sellsman);
+            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+            emit Trade(msg.sender, feeRecipient, true, tokenReceived, buyFunds, tiptagFee, sellsmanFee);
         }
     }
 
@@ -47,128 +116,105 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         return ipshareSubject;
     }
 
-    function initialize(
-        address manager_, 
-        address ipshareSubject_,
-        string memory tick) public 
-    {
+    function initialize(address manager_, address ipshareSubject_, string memory tick) public {
         if (initialized) {
             revert TokenInitialized();
         }
         initialized = true;
+        createdAt = block.timestamp;
         manager = manager_;
         ipshareSubject = ipshareSubject_;
         bondingCurve = IBondingCurve(manager_);
         _name = tick;
         _symbol = tick;
         _mint(address(this), bondingCurveTotalAmount + liquidityAmount);
-        _mint(address(manager), socialDistributionAmount);
+        _mint(address(manager), NUTBOX_ALLOCATION);
 
-        // create v2 pool and set price
-        IUniswapV2Factory factory = IUniswapV2Factory(IPump(manager).getUniswapV2Factory());
-        pair = factory.getPair(address(this), IPump(manager).getWETH());
-        if (pair == address(0)) {
-            pair = factory.createPair(address(this), IPump(manager).getWETH());
-        }
+        // Set PCS V4 references
+        clPoolManager = ICLPoolManager(IPump(manager).getPoolManager());
+        vault = IVault(IPump(manager).getVault());
+    }
+
+    /// @notice Records Nutbox `Community` and SocialCuration pool; callable once by Pump only.
+    function setNutboxAddresses(address community, address pool) external {
+        if (msg.sender != manager) revert OnlyPump();
+        if (nutboxCommunity != address(0)) revert NutboxAddressesAlreadySet();
+        require(community != address(0) && pool != address(0));
+        nutboxCommunity = community;
+        nutboxSocialPool = pool;
     }
 
     /********************************** bonding curve ********************************/
     function buyToken(
         uint256 expectAmount,
         address sellsman,
-        uint16 slippage
+        uint16 slippage,
+        bytes calldata signature,
+        uint256 deadline
     ) public payable nonReentrant returns (uint256) {
-        require(msg.sender != pair, "can't buy token to pair");
+        require(msg.sender != address(clPoolManager), "can't buy token from pool");
+        _verifyTradeGate(signature, deadline);
         sellsman = _checkBondingCurveState(sellsman);
-        uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
+        (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) = _getBuyFeeRatiosView();
         uint256 buyFunds = msg.value;
-        uint256 tiptagFee = (msg.value * feeRatio[0]) / divisor;
-        uint256 sellsmanFee = (msg.value * feeRatio[1]) / divisor;
+        uint256 tiptagFee = (msg.value * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (msg.value * sellsmanFeePercent) / divisor;
 
-         if (sellsmanFee < 100000000) {
+        if (sellsmanFee < 100000000) {
             revert DustIssue();
         }
 
-        uint256 tokenReceived = bondingCurve
-            .getBuyAmountByValue(bondingCurveSupply, buyFunds - tiptagFee - sellsmanFee);
+        uint256 tokenReceived = bondingCurve.getBuyAmountByValue(
+            bondingCurveSupply,
+            buyFunds - tiptagFee - sellsmanFee
+        );
 
         address tiptapFeeAddress = IPump(manager).getFeeReceiver();
 
         if (tokenReceived + bondingCurveSupply >= bondingCurveTotalAmount) {
             uint256 actualAmount = bondingCurveTotalAmount - bondingCurveSupply;
-            if (
-                slippage > 0 &&
-                (actualAmount > (expectAmount * (divisor + slippage)) / divisor ||
-                    actualAmount < (expectAmount * (divisor - slippage)) / divisor)
-            ) {
+            if (slippage > 0 && (actualAmount < (expectAmount * (divisor - slippage)) / divisor)) {
                 revert OutOfSlippage();
             }
-            // calculate used eth
-            uint256 usedEth = bondingCurve.getBuyPriceAfterFee(bondingCurveSupply,actualAmount);
-            if (usedEth > msg.value) {
-                revert InsufficientFund();
-            }
-            if (usedEth < msg.value) {
-                // refund
-                (bool success, ) = msg.sender.call{value: msg.value - usedEth}("");
-                if (!success) {
-                    revert RefundFail();
-                }
-            }
-
-            buyFunds = usedEth;
-            tiptagFee = (usedEth * feeRatio[0]) / divisor;
-            sellsmanFee = (usedEth * feeRatio[1]) / divisor;
-
-            (bool success1, ) = tiptapFeeAddress.call{value: tiptagFee}("");
-            if (!success1) {
-                revert CostFeeFail();
-            }
-            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-            this.transfer(msg.sender, actualAmount);
-            bondingCurveSupply += actualAmount;
-
-            emit Trade(msg.sender, sellsman, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
-            // build liquidity pool
-            _makeLiquidityPool();
-            return actualAmount;
+            return _buyTokenFillToCap(actualAmount, tiptagFeePercent, sellsmanFeePercent, sellsman);
         } else {
-            if (
-                slippage > 0 &&
-                (tokenReceived > (expectAmount * (divisor + slippage)) / divisor ||
-                    tokenReceived < (expectAmount * (divisor - slippage)) / divisor)
-            ) {
+            // Normal buy: fees already computed at entry using dynamic ratios from _getBuyFeeRatiosView()
+            if (slippage > 0 && (tokenReceived < (expectAmount * (divisor - slippage)) / divisor)) {
                 revert OutOfSlippage();
             }
+
+            // CEI: update state before external calls
+            bondingCurveSupply += tokenReceived;
+            this.transfer(msg.sender, tokenReceived);
 
             (bool success, ) = tiptapFeeAddress.call{value: tiptagFee}("");
             if (!success) {
                 revert CostFeeFail();
             }
 
-            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-            this.transfer(msg.sender, tokenReceived);
-            bondingCurveSupply += tokenReceived;
-            emit Trade(msg.sender, sellsman, true, tokenReceived, msg.value, tiptagFee, sellsmanFee);
+            address feeRecipient = _getFeeRecipient(sellsman);
+            IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+            emit Trade(msg.sender, feeRecipient, true, tokenReceived, msg.value, tiptagFee, sellsmanFee);
             return tokenReceived;
         }
     }
 
-    function sellToken(uint256 amount, uint256 expectReceive, address sellsman, uint16 slippage) public nonReentrant {
+    function sellToken(uint256 amount, uint256 expectReceive, address sellsman, uint16 slippage, bytes calldata signature, uint256 deadline) public nonReentrant {
+        _verifyTradeGate(signature, deadline);
         sellsman = _checkBondingCurveState(sellsman);
 
         uint256 sellAmount = amount;
         if (balanceOf(msg.sender) < sellAmount) {
             sellAmount = balanceOf(msg.sender);
         }
-        
+
         if (sellAmount < 100000000) {
             revert DustIssue();
         }
-        
+
         uint256 afterSupply = 0;
         afterSupply = bondingCurveSupply - sellAmount;
-        
+
         uint256 price = bondingCurve.getPrice(afterSupply, sellAmount);
 
         uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
@@ -178,16 +224,13 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         uint256 sellsmanFee = (price * feeRatio[1]) / divisor;
         uint256 receivedEth = price - tiptagFee - sellsmanFee;
 
-        if (
-            expectReceive > 0 &&
-            slippage > 0 &&
-            (receivedEth > ((divisor + slippage) * expectReceive) / divisor ||
-                receivedEth < ((divisor - slippage) * expectReceive) / divisor)
-        ) {
+        if (expectReceive > 0 && slippage > 0 && (receivedEth < ((divisor - slippage) * expectReceive) / divisor)) {
             revert OutOfSlippage();
         }
 
+        // CEI: update state before external calls
         transfer(address(this), sellAmount);
+        bondingCurveSupply -= sellAmount;
 
         {
             (bool success1, ) = tiptagFeeAddress.call{value: tiptagFee}("");
@@ -197,10 +240,77 @@ contract Token is IToken, ERC20, ReentrancyGuard {
             }
         }
 
-        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(sellsman);
-        bondingCurveSupply -= sellAmount;
+        address feeRecipient = _getFeeRecipient(sellsman);
+        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+        emit Trade(msg.sender, feeRecipient, false, sellAmount, price, tiptagFee, sellsmanFee);
+    }
 
-        emit Trade(msg.sender, sellsman, false, sellAmount, price, tiptagFee, sellsmanFee);
+    /**
+     * Get current buy fee ratios (basis points, e.g. 100 = 1%).
+     * 1. First buy (bondingCurveSupply == 0): uses Pump's feeRatio as-is.
+     * 2. Within 15s after creation: tiptag = feeRatio[0]; sellsman decays quadratically from 80% to feeRatio[1].
+     * 3. After 15s: uses Pump's configured feeRatio.
+     */
+    function getBuyFeeRatios() external view returns (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) {
+        return _getBuyFeeRatiosView();
+    }
+
+    function _getBuyFeeRatiosView() private view returns (uint256 tiptagFeePercent, uint256 sellsmanFeePercent) {
+        uint256[2] memory feeRatio = IPump(manager).getFeeRatio();
+        if (bondingCurveSupply == 0) {
+            return (feeRatio[0], feeRatio[1]);
+        }
+        uint256 elapsed = block.timestamp - createdAt;
+        if (elapsed >= ANTI_SNIPE_WINDOW) {
+            return (feeRatio[0], feeRatio[1]);
+        }
+        uint256 remaining = ANTI_SNIPE_WINDOW - elapsed;
+        sellsmanFeePercent =
+            feeRatio[1] +
+            ((ANTI_SNIPE_SELLSMAN_FEE_MAX - feeRatio[1]) * remaining * remaining) /
+            ANTI_SNIPE_DENOM;
+        return (feeRatio[0], sellsmanFeePercent);
+    }
+
+    function _buyTokenFillToCap(
+        uint256 actualAmount,
+        uint256 tiptagFeePercent,
+        uint256 sellsmanFeePercent,
+        address sellsman
+    ) private returns (uint256) {
+        uint256 priceBeforeFee = bondingCurve.getPrice(bondingCurveSupply, actualAmount);
+        uint256 usedEth = (priceBeforeFee * divisor) / (divisor - tiptagFeePercent - sellsmanFeePercent);
+        if (usedEth > msg.value) revert InsufficientFund();
+        if (usedEth < msg.value) {
+            (bool ok, ) = msg.sender.call{value: msg.value - usedEth}("");
+            if (!ok) revert RefundFail();
+        }
+        uint256 tiptagFee = (usedEth * tiptagFeePercent) / divisor;
+        uint256 sellsmanFee = (usedEth * sellsmanFeePercent) / divisor;
+        address tiptapFeeAddress = IPump(manager).getFeeReceiver();
+        // CEI: update state before external calls
+        bondingCurveSupply += actualAmount;
+        this.transfer(msg.sender, actualAmount);
+
+        (bool success1, ) = tiptapFeeAddress.call{value: tiptagFee}("");
+        if (!success1) revert CostFeeFail();
+        address feeRecipient = _getFeeRecipient(sellsman);
+        IIPShare(IPump(manager).getIPShare()).valueCapture{value: sellsmanFee}(feeRecipient);
+        emit Trade(msg.sender, feeRecipient, true, actualAmount, usedEth, tiptagFee, sellsmanFee);
+        _makeLiquidityPool();
+        return actualAmount;
+    }
+
+    /// @notice 验证交易门控签名。tradeSigner == address(0) 时门控关闭，任何人可交易。
+    /// 签名内容：keccak256(chainId, tokenAddress, msg.sender, deadline)
+    function _verifyTradeGate(bytes calldata signature, uint256 deadline) private view {
+        address signer = IPump(manager).getTradeSigner();
+        if (signer == address(0)) return;
+        if (block.timestamp > deadline) revert InvalidSignature();
+        bytes32 hash = keccak256(abi.encodePacked(block.chainid, address(this), msg.sender, deadline));
+        bytes32 ethHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+        address recovered = ECDSA.recoverCalldata(ethHash, signature);
+        if (recovered != signer) revert InvalidSignature();
     }
 
     function _checkBondingCurveState(address sellsman) private returns (address) {
@@ -215,24 +325,111 @@ contract Token is IToken, ERC20, ReentrancyGuard {
         return sellsman;
     }
 
-    /********************************** to dex ********************************/
+    /// @notice 动态交易期（15s 内）费用固定归部署者，防止 MEV 攻击者通过传入自己为 sellsman 回收费用
+    function _getFeeRecipient(address sellsman) private view returns (address) {
+        if (block.timestamp - createdAt < ANTI_SNIPE_WINDOW) {
+            return ipshareSubject;
+        }
+        return sellsman;
+    }
+
+    /********************************** to dex (PancakeSwap V4 Infinity) ********************************/
     function _makeLiquidityPool() private {
+        require(address(this).balance >= LISTING_ETH_AMOUNT, "Insufficient ETH for listing");
+        require(balanceOf(address(this)) >= LISTING_TOKEN_AMOUNT, "Insufficient token for listing");
+
+        // 1. Build the PoolKey (PCS V4 format)
+        //    currency0 = Native ETH (address(0)), currency1 = Token
+        //    tickSpacing is encoded in bytes32 parameters (bits [16-39])
+        address hookAddr = IPump(manager).getHookAddress();
+
+        uint16 hookBitmap = hookAddr == address(0) ? 0 : IHooks(hookAddr).getHooksRegistrationBitmap();
+        bytes32 parameters = CLPoolParametersHelper.setTickSpacing(bytes32(uint256(hookBitmap)), TICK_SPACING);
+
+        PoolKey memory poolKey = PoolKey({
+            currency0: CurrencyLibrary.NATIVE, // Native ETH
+            currency1: Currency.wrap(address(this)), // Token
+            hooks: IHooks(hookAddr),
+            poolManager: IPoolManager(address(clPoolManager)),
+            fee: 0, // No native LP fee, all fees via Hook
+            parameters: parameters
+        });
+
+        // 2. Use fixed initial price to avoid runtime price drift and overflow edge-cases.
+        uint160 sqrtPriceX96 = INITIAL_SQRT_PRICE_X96;
+
+        // 3. Use precomputed bounded ticks to avoid per-list tick math.
+        int24 tickLower = LISTING_TICK_LOWER;
+        int24 tickUpper = LISTING_TICK_UPPER;
+
+        // 4. Initialize the pool
+        clPoolManager.initialize(poolKey, sqrtPriceX96);
+
+        // 5. Register pool in Hook for fee collection
+        PoolId poolId = poolKey.toId();
+        v4PoolId = poolId;
+        ITipTagSwapHook(hookAddr).registerPool(poolId, address(this));
+
+        // 6. Add bounded-range liquidity via vault.lock() callback.
+        bytes memory callbackData = abi.encode(poolKey, tickLower, tickUpper);
+        vault.lock(callbackData);
+
+        // 7. After LP is settled, send all remaining ETH to platform. Remaining token stays in this contract.
         address tiptagFeeAddress = IPump(manager).getFeeReceiver();
-        (bool success1, ) = tiptagFeeAddress.call{value: 1 ether}("");
-        require(success1, "Transfer ETH failed");
-
-        uint256 tokenAmount = balanceOf(address(this));
-        uint256 ethBalance = address(this).balance;
-        
-        _transfer(address(this), pair, tokenAmount);
-        (bool success, ) = IPump(manager).getWETH().call{value: ethBalance}(abi.encodeWithSignature("deposit()"));
-        require(success, "ETH to WETH failed");
-        ERC20(IPump(manager).getWETH()).transfer(pair, ethBalance);
-
-        IUniswapV2Pair(pair).mint(BlackHole);
+        uint256 remainEth = address(this).balance;
+        if (remainEth > 0) {
+            (bool success1, ) = tiptagFeeAddress.call{value: remainEth}("");
+            require(success1, "Transfer ETH failed");
+        }
 
         listed = true;
-        emit TokenListedToDex(pair);
+        emit TokenListedToDex(address(this), PoolId.unwrap(poolId), sqrtPriceX96);
+    }
+
+    /// @notice ILockCallback — called by Vault during lock() for atomic liquidity addition
+    function lockAcquired(bytes calldata data) external override returns (bytes memory) {
+        require(msg.sender == address(vault), "Only Vault");
+
+        (PoolKey memory poolKey, int24 tickLower, int24 tickUpper) = abi.decode(data, (PoolKey, int24, int24));
+
+        ICLPoolManager.ModifyLiquidityParams memory params = ICLPoolManager.ModifyLiquidityParams({
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            liquidityDelta: int256(uint256(LISTING_LIQUIDITY_DELTA)),
+            salt: bytes32(0)
+        });
+
+        (BalanceDelta callerDelta, ) = clPoolManager.modifyLiquidity(poolKey, params, "");
+
+        // Settle amounts owed to the pool
+        int128 ethOwed = callerDelta.amount0();
+        int128 tokenOwed = callerDelta.amount1();
+
+        // Settle ETH (native currency) — send ETH to Vault
+        if (ethOwed < 0) {
+            uint256 ethToSettle = uint256(uint128(-ethOwed));
+            require(ethToSettle <= LISTING_ETH_AMOUNT, "ETH budget exceeded");
+            vault.settle{value: ethToSettle}();
+        }
+
+        // Settle Token — transfer tokens to Vault then call settle
+        if (tokenOwed < 0) {
+            uint256 tokenToSettle = uint256(uint128(-tokenOwed));
+            require(tokenToSettle <= LISTING_TOKEN_AMOUNT, "Token budget exceeded");
+            vault.sync(poolKey.currency1);
+            _transfer(address(this), address(vault), tokenToSettle);
+            vault.settle();
+        }
+
+        // Take back any excess (should be minimal)
+        if (ethOwed > 0) {
+            vault.take(poolKey.currency0, address(this), uint256(uint128(ethOwed)));
+        }
+        if (tokenOwed > 0) {
+            vault.take(poolKey.currency1, address(this), uint256(uint128(tokenOwed)));
+        }
+
+        return "";
     }
 
     /********************************** erc20 function ********************************/
@@ -246,7 +443,8 @@ contract Token is IToken, ERC20, ReentrancyGuard {
 
     // only listed token can do erc20 transfer functions
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
-        if  (!listed && to == pair && from != address(this)) {
+        // Before listing, prevent unauthorized token transfers to Vault
+        if (!listed && to == address(vault) && from != address(this)) {
             revert TokenNotListed();
         }
         return super._beforeTokenTransfer(from, to, amount);

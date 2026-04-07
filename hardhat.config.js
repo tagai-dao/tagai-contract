@@ -1,14 +1,30 @@
 
-require('@nomicfoundation/hardhat-toolbox') 
+require('@nomicfoundation/hardhat-toolbox')
+require('@nomicfoundation/hardhat-ignition-ethers')
+require('@nomicfoundation/hardhat-verify')
 require('hardhat-deploy')
 require('hardhat-gas-reporter')
 require('dotenv').config();
 
+const enableFork = process.env.ENABLE_FORK === "1";
+const forkBlockNumber = 83628324;
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: 
+  solidity:
   {
-    compilers:[
+    compilers: [
+      {
+        version: "0.8.26",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          },
+          viaIR: true,
+          evmVersion: "cancun"
+        }
+      },
       {
         version: "0.8.20",
         settings: {
@@ -27,27 +43,33 @@ module.exports = {
           }
         }
       },
-      {version: "0.5.0",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 1000
-        }
-      }},
-      {version: "0.6.12",
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 1000
-        }
-      }},
-      {version: "0.7.6",
+      {
+        version: "0.5.0",
         settings: {
           optimizer: {
             enabled: true,
             runs: 1000
           }
-        }}
+        }
+      },
+      {
+        version: "0.6.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          }
+        }
+      },
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          }
+        }
+      }
     ],
     overrides: {
       "contracts/UniswapV2/SushiswapFactoryV2.sol": {
@@ -76,7 +98,14 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 97
+      chainId: enableFork ? 56 : 97,
+      hardfork: "cancun",
+      forking: enableFork
+        ? {
+            url: process.env.BSC_RPC_URL || process.env.BSC,
+            blockNumber: forkBlockNumber
+          }
+        : undefined
     },
     base: {
       url: process.env.BASE,
@@ -100,18 +129,37 @@ module.exports = {
       ]
     },
     bsc: {
-      url: process.env.BSC,
+      url: process.env.BSC || process.env.BSC_RPC_URL,
       chainId: 56,
       accounts: [
         process.env.KEY
       ]
     }
   },
+  // Etherscan V2 统一 API：同一 API Key 支持多链，使用 api.etherscan.io/v2/api
   etherscan: {
-    apiKey:{
+    apiKey: {
       base: process.env.BASE_API_KEY,
       bsc: process.env.BSC_API_KEY
-    }
+    },
+    customChains: [
+      {
+        network: 'bsc',
+        chainId: 56,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=56',
+          browserURL: 'https://bscscan.com'
+        }
+      },
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=8453',
+          browserURL: 'https://basescan.org'
+        }
+      }
+    ]
   },
   // flattenExporter: {
   //   src: "./contracts",

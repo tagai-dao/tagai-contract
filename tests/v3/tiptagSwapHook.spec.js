@@ -1,0 +1,359 @@
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
+const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
+const { toWei } = require("./fixtures/deploy");
+
+const TWO_128 = 1n << 128n;
+const MASK_128 = TWO_128 - 1n;
+
+function toTwos128(x) {
+  return x < 0n ? TWO_128 + x : x;
+}
+
+function toBalanceDelta(amount0, amount1) {
+  return (toTwos128(amount0) << 128n) | (toTwos128(amount1) & MASK_128);
+}
+
+describe("TipTagSwapHook (v3)", function () {
+  async function deployHookFixture() {
+    const [owner, poolManager, feeReceiver, subject, other] = await ethers.getSigners();
+
+    const MockIPShare = await ethers.getContractFactory("MockIPShareForHook");
+    const ipshare = await MockIPShare.deploy();
+
+    const MockVault = await ethers.getContractFactory("MockVaultForHook");
+    const vault = await MockVault.deploy();
+
+    const MockPump = await ethers.getContractFactory("MockPumpForHook");
+    const pump = await MockPump.deploy(feeReceiver.address, ipshare.target, 100, 200);
+
+    const TipTagSwapHook = await ethers.getContractFactory("TipTagSwapHook");
+    const hook = await TipTagSwapHook.deploy(poolManager.address, vault.target, pump.target);
+
+    const MockToken = await ethers.getContractFactory("MockTokenForHook");
+    const token = await MockToken.deploy(subject.address);
+
+    const key = {
+      currency0: ethers.ZeroAddress,
+      currency1: token.target,
+      hooks: hook.target,
+      poolManager: poolManager.address,
+      fee: 0,
+      parameters: ethers.ZeroHash,
+    };
+
+    await owner.sendTransaction({ to: vault.target, value: toWei(10) });
+
+    return {
+      owner,
+      poolManager,
+      feeReceiver,
+      subject,
+      other,
+      ipshare,
+      vault,
+      pump,
+      hook,
+      token,
+      key,
+    };
+  }
+
+  async function registerPool(fixture) {
+    const { pump, token, hook, key } = fixture;
+    await pump.setCreatedToken(token.target, true);
+    await token.registerByKey(hook.target, key);
+  }
+
+  it("should reject pool registration when token is not created by pump", async function () {
+    const { token, hook, key } = await loadFixture(deployHookFixture);
+
+    await expect(token.registerByKey(hook.target, key)).to.be.revertedWithCustomError(hook, "Unauthorized");
+  });
+
+  it("should allow token to register pool when created by pump", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { token, hook, key } = fixture;
+    await fixture.pump.setCreatedToken(token.target, true);
+
+    await expect(token.registerByKey(hook.target, key)).to.emit(hook, "PoolRegistered");
+  });
+
+  it("should allow only pool manager to call beforeSwap", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, other } = fixture;
+
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await expect(hook.connect(other).beforeSwap(other.address, key, params, "0x")).to.be.revertedWithCustomError(
+      hook,
+      "NotPoolManager"
+    );
+  });
+
+  it("should reject beforeInitialize when sender token is not created by pump", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, other } = fixture;
+
+    await expect(hook.connect(poolManager).beforeInitialize(other.address, key, 0)).to.be.revertedWithCustomError(
+      hook,
+      "Unauthorized"
+    );
+  });
+
+  it("should skip fee collection for unregistered pool", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+
+    const beforeParams = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+    const afterParams = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(50000n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, beforeParams, "0x");
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, afterParams, delta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  it("should collect and distribute fees in beforeSwap", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, subject, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await expect(hook.connect(poolManager).beforeSwap(poolManager.address, key, params, "0x"))
+      .to.emit(hook, "SwapFeeCollected")
+      .withArgs(anyValue, key.currency1, 1000n, 2000n);
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+
+    expect(feeReceiverAfter - feeReceiverBefore).to.equal(1000n);
+    expect(capturedAfter - capturedBefore).to.equal(2000n);
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should collect and distribute fees in afterSwap when ETH is unspecified", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, subject, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(50000n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await expect(hook.connect(poolManager).afterSwap(poolManager.address, key, params, delta, "0x"))
+      .to.emit(hook, "SwapFeeCollected")
+      .withArgs(anyValue, key.currency1, 500n, 1000n);
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+
+    expect(feeReceiverAfter - feeReceiverBefore).to.equal(500n);
+    expect(capturedAfter - capturedBefore).to.equal(1000n);
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should skip fee collection when fee ratio is zero", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare, pump } = fixture;
+    await registerPool(fixture);
+    await pump.setFeeRatio(0, 0);
+
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  it("should skip afterSwap fee when unspecified ETH amount is zero", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(0n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, params, delta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  it("should skip fee when totalFee rounds down to zero", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, feeReceiver, ipshare } = fixture;
+    await registerPool(fixture);
+
+    const beforeParams = {
+      zeroForOne: true,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const afterParams = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const tinyDelta = toBalanceDelta(1n, 0n);
+
+    const feeReceiverBefore = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedBefore = await ipshare.totalCaptured();
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, beforeParams, "0x");
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, afterParams, tinyDelta, "0x");
+
+    const feeReceiverAfter = await ethers.provider.getBalance(feeReceiver.address);
+    const capturedAfter = await ipshare.totalCaptured();
+    expect(feeReceiverAfter).to.equal(feeReceiverBefore);
+    expect(capturedAfter).to.equal(capturedBefore);
+  });
+
+  // ======================== hookData: custom IPShare subject ========================
+
+  it("should distribute fee to custom subject specified in hookData (beforeSwap)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, other } = fixture;
+    await registerPool(fixture);
+
+    // Register other's IPShare so it passes the ipshareCreated check
+    await ipshare.setIPShareCreated(other.address, true);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(other.address);
+  });
+
+  it("should distribute fee to custom subject specified in hookData (afterSwap)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, other } = fixture;
+    await registerPool(fixture);
+
+    await ipshare.setIPShareCreated(other.address, true);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: false,
+      amountSpecified: -1n,
+      sqrtPriceLimitX96: 0,
+    };
+    const delta = toBalanceDelta(50000n, 0n);
+
+    await hook.connect(poolManager).afterSwap(poolManager.address, key, params, delta, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(other.address);
+  });
+
+  it("should fall back to token creator when hookData subject has no IPShare", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject, other } = fixture;
+    await registerPool(fixture);
+
+    // other's IPShare is NOT created — should fall back to default subject
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [other.address]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should fall back to token creator when hookData is address(0)", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject } = fixture;
+    await registerPool(fixture);
+
+    const hookData = ethers.AbiCoder.defaultAbiCoder().encode(["address"], [ethers.ZeroAddress]);
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, hookData);
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+
+  it("should fall back to token creator when hookData is too short", async function () {
+    const fixture = await loadFixture(deployHookFixture);
+    const { hook, key, poolManager, ipshare, subject } = fixture;
+    await registerPool(fixture);
+
+    const params = {
+      zeroForOne: true,
+      amountSpecified: -100000n,
+      sqrtPriceLimitX96: 0,
+    };
+
+    // Pass hookData shorter than 32 bytes
+    await hook.connect(poolManager).beforeSwap(poolManager.address, key, params, "0x1234");
+
+    expect(await ipshare.lastSubject()).to.equal(subject.address);
+  });
+});
