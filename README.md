@@ -42,6 +42,8 @@ Only agent can trade token in bonding-curve period. And the 15% token will be us
   "PumpBsc#IPShare": "0x95450AaD4Cc195e03BB4791B7f6f04aC6D9BA922",
   "PumpBsc#TokenImplementation": "0x679a06AB0970CA68007777b5460bDca240B59cD2",
   "PumpBsc#Pump": "0x3E75E2db40E7cc9C7d7869Fc2d97eDAb01724212",
-  "PumpBsc#TipTagSwapHook": "0xF815dB0fbeafED4C719F65E41dEC9C50fb357896"
+  "PumpBsc#TipTagSwapHook": "0xF815dB0fbeafED4C719F65E41dEC9C50fb357896",
+  "PumpBscV8#Pump": "0x88d495228E831b01D8Ae6d62f9633cBcC6d27De2",
+  "PumpBscV8#TipTagSwapHook": "0xF1fa1B3Eb87D9A916fc8d9D1b172Ec67b4612800"
 }
 ```
