@@ -2,7 +2,6 @@
 require('@nomicfoundation/hardhat-toolbox')
 require('@nomicfoundation/hardhat-ignition-ethers')
 require('@nomicfoundation/hardhat-verify')
-require('hardhat-deploy')
 require('hardhat-gas-reporter')
 require('dotenv').config();
 
@@ -91,10 +90,6 @@ module.exports = {
         }
       }
     }
-  },
-  namedAccounts: {
-    deployer: 0,
-    tokenOwner: 1
   },
   networks: {
     hardhat: {

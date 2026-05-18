@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # hardhat-deploy 2.x 与当前 Ignition 部署流程不兼容；已移除此依赖
+    ignore:
+      - dependency-name: hardhat-deploy
+    groups:
+      dev-tooling:
+        patterns:
+          - "@nomicfoundation/*"
+          - "hardhat*"
+          - "ethers"
+          - "typechain*"
