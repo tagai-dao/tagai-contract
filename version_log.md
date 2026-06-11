@@ -20,7 +20,8 @@ pcs v4第一版 已弃用
 pcs v4第二版 已弃用
 
 ## V9
-pcs V4第三版 目前在用。内盘阶段bondingCurve和前面的一致，代币分配比例一致。list时，创建Nutbox合约，创建社交矿池，15%代币注入hook，由hook根据交易数据分发到Nutbox合约，由Nutbox合约进一步指定分发策略
+pcs V4第三版 目前在用。内盘阶段bondingCurve和前面的一致，代币分配比例一致。list时，创建Nutbox合约，创建社交矿池，15%代币注入hook，由hook根据交易数据分发到Nutbox合约，由Nutbox合约进一步指定分发策略.
+代码是在:https://github.com/tagai-dao/TagAI-contract-V2.git
 
 - 0LP费用
 - 0protocol费用
